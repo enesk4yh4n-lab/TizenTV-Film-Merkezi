@@ -15,5 +15,6 @@ Bu klasör temiz kaynak deposudur; çalışan özel geliştirme klasörü değil
 5. GitHub Issues'ı açabilir, varsa özel güvenlik bildirimini etkinleştirebilirsiniz.
    Geliştirici parolası, özel sertifika, Samsung hesabı veya iletişim adresi eklemeyin.
 
-Bu hazırlık GitHub'a otomatik yükleme yapmaz; depo, Release veya Apps2Samsung
-topluluk kataloğuna kayıt henüz oluşturulmamıştır.
+Proje deposu: [TizenTV-HDFilmCehennemi.wgt](https://github.com/enesk4yh4n-lab/TizenTV-HDFilmCehennemi.wgt).
+İndirilebilir paketler [GitHub Releases](https://github.com/enesk4yh4n-lab/TizenTV-HDFilmCehennemi.wgt/releases)
+bölümünde sunulur. Apps2Samsung topluluk kataloğuna kayıt yapılmamıştır.

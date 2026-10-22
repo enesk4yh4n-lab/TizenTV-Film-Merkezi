@@ -14,7 +14,8 @@ açılış bildirimi, gerçek Tizen 10.0 TV veya Samsung TV emülatörü kabulü
 
 ## İndirme ve kurulum
 
-GitHub Releases bölümünden `HDfilmCehennemi-TV-0.4.6-public.wgt` dosyasını indirin.
+[v0.4.6 sürümünden](https://github.com/enesk4yh4n-lab/TizenTV-HDFilmCehennemi.wgt/releases/tag/v0.4.6)
+`HDfilmCehennemi-TV-0.4.6-public.wgt` dosyasını indirin.
 Kaynak ZIP dosyası uygulama paketi değildir.
 
 Kurulumda **[Apps2Samsung](https://github.com/Apps2Samsung/Apps2Samsung)** kullanıldı.
