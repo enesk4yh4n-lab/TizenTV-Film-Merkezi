@@ -1,0 +1,14 @@
+/* Local synthetic checks: not a physical TV or live-source certification. */
+const {chromium}=require('playwright'),http=require('node:http'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+async function main(){
+ const app=path.resolve(__dirname,'../app'),server=http.createServer((req,res)=>{const name=new URL(req.url,'http://localhost').pathname,file=path.resolve(app,name==='/'?'index.html':'.'+name);if(!file.startsWith(app+path.sep)){res.writeHead(403);return res.end();}if(!fs.existsSync(file)){res.writeHead(404);return res.end();}res.setHeader('Content-Type',({'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.css':'text/css','.svg':'image/svg+xml','.png':'image/png'})[path.extname(file)]||'application/octet-stream');res.end(fs.readFileSync(file));});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let browser;try{browser=await chromium.launch({headless:true,...(process.env.BROWSER_CHANNEL?{channel:process.env.BROWSER_CHANNEL}:{})});const page=await browser.newPage({viewport:{width:1920,height:1080}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('https://www.hdfilmcehennemi.nl/**',route=>route.fulfill({body:JSON.stringify({html:'<div data-page-items><a class="poster" href="/public-synthetic-fixture/"><strong class="poster-title">Kontrollü test kartı</strong><span class="poster-lang"><span>Dublaj &amp; Altyazılı</span></span></a></div>'}),contentType:'application/json'}));
+ await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>window.ChainApp&&ChainApp.catalog&&!ChainApp.catalog.screen.loading);
+  assert.equal(await page.locator('.catalog-card').count(),1);assert.equal(await page.locator('.catalog-language-badge').count(),2);assert.equal(await page.evaluate(()=>document.activeElement.id),'search-activate');
+  await page.locator('#catalog-tools').click();await page.locator('[data-focus="tools-about"]').click();assert.match(await page.locator('#catalog-modal-card').innerText(),/HDfilmCehennemi TV contributors/);assert(!/Mail:/.test(await page.locator('#catalog-modal-card').innerText()));await page.keyboard.press('Escape');
+  await page.evaluate(()=>{ChainApp.open({...ChainApp.contents.sample,contentId:'public:ui-check',title:'Controlled UI check',sources:[]});});await page.waitForFunction(()=>ChainApp.controller.content);await page.evaluate(()=>{ChainApp.view.openMenu('about');});assert(!/Mail:/.test(await page.locator('#menu-items').innerText()));await page.evaluate(()=>ChainApp.controller.stop('test'));
+  assert.deepEqual(errors,[]);console.log('PASS public catalog, TR/CC badges, initial remote focus and both anonymous About screens');
+ }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
+}
+main().catch(e=>{console.error(e);process.exitCode=1;});

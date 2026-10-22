@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.p12
+*.pfx
+*.key
+*.pem
+.env
+.env.*
+app/author-signature.xml
+app/signature1.xml
+__pycache__/
+.manifest.tmp
+*.wgt
+*.zip
+*.log

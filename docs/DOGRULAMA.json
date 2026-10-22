@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-22",
+  "version": "0.4.6",
+  "publicPackage": "HDfilmCehennemi-TV-0.4.6-public.wgt",
+  "sha256": "2c2ddf528542bfe57a71e2d0bb03cee69ec51f64976eda38c59826a54756a6ea",
+  "signed": false,
+  "requiresPerDeviceSigning": true,
+  "signingTool": "Apps2Samsung",
+  "privateIdentityFindings": 0,
+  "privateSigningFilesIncluded": false,
+  "runtimeIdentity": "HdfTVShare.App",
+  "sourceMatchesPackage": true,
+  "checks": [
+    "ES5 first-party syntax",
+    "local asset references",
+    "both anonymous About screens",
+    "source/generated decoder identity",
+    "unmodified hls.js digest",
+    "TR/CC badge rendering",
+    "original working app preserved"
+  ],
+  "tizen3PhysicalTV": {
+    "device": "Samsung UE55MU7500",
+    "software": "1410",
+    "result": "User reports issue-free daily use of base version; public identity variant not yet physically tested"
+  },
+  "tizen3PublicEmulator": {
+    "seconds": 56.978,
+    "checkCount": 8,
+    "failures": [],
+    "contents": [
+      {
+        "title": "Mayday",
+        "position": 11.103,
+        "transport": "native",
+        "codecs": "avc1.640028 / mp4a.40.2"
+      },
+      {
+        "title": "Phony S01E01",
+        "position": 11.142,
+        "transport": "native",
+        "codecs": "avc1.640020 / mp4a.40.2"
+      }
+    ],
+    "physicalAudioOrRemoteCertified": false
+  },
+  "tizen10Emulator": {
+    "booted": true,
+    "sdbConnected": true,
+    "installed": false,
+    "result": "Blocked by required Samsung certificate; current local Tizen test certificate chain rejected",
+    "runtimeCompatibility": "not verified"
+  },
+  "otherTizenVersions": "not tested",
+  "githubPublished": false,
+  "tizen10SimulatorUserReport": {
+    "environment": "tizen-sim / Tizen 10.0, as reported by user",
+    "applicationOpened": true,
+    "reportedBy": "user",
+    "detailedTestsPerformed": false,
+    "nativeNetworkPlaybackAudioAndRemoteCompatibility": "not verified",
+    "simulatorVersionOrConfiguration": "not provided"
+  }
+}

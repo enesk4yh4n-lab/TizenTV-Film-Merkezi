@@ -1,0 +1,14 @@
+{
+  "name": "hdfilmcehennemi-tv",
+  "version": "0.4.6",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "test": "node scripts/check.cjs",
+    "browser": "node scripts/browser-check.cjs"
+  },
+  "devDependencies": {
+    "acorn": "8.15.0",
+    "playwright": "1.56.1"
+  }
+}

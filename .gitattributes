@@ -1,0 +1,5 @@
+# Preserve original bytes across Windows/Linux checkouts and release builds.
+# In particular, do not rewrite the bundled hls.js file whose digest is verified.
+* -text
+app/hls-1.7.3.min.js linguist-vendored
+app/decoder.js linguist-generated
