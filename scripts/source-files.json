@@ -1,0 +1,12 @@
+[
+  "siteler/hdfilmcehennemi/decoder-kaynak/src/catalog.js",
+  "siteler/hdfilmcehennemi/decoder-kaynak/src/player.js",
+  "siteler/hdfilmcehennemi/decoder-kaynak/src/utils.js",
+  "ortak/ag/native/secure-http.cpp",
+  "ortak/ag/native/ca-bundle.h",
+  "ortak/ag/native/film-tls-config.h",
+  "ortak/ag/native/http-response.h",
+  "ortak/ag/native/ca-bundle.pem",
+  "ortak/ag/native/build-hashes.json",
+  "ortak/ag/native/README.md"
+]

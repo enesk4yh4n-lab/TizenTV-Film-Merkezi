@@ -1,14 +1,26 @@
-/* Local synthetic checks: not a physical TV or live-source certification. */
-const {chromium}=require('playwright'),http=require('node:http'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-async function main(){
- const app=path.resolve(__dirname,'../app'),server=http.createServer((req,res)=>{const name=new URL(req.url,'http://localhost').pathname,file=path.resolve(app,name==='/'?'index.html':'.'+name);if(!file.startsWith(app+path.sep)){res.writeHead(403);return res.end();}if(!fs.existsSync(file)){res.writeHead(404);return res.end();}res.setHeader('Content-Type',({'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.css':'text/css','.svg':'image/svg+xml','.png':'image/png'})[path.extname(file)]||'application/octet-stream');res.end(fs.readFileSync(file));});
- await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let browser;try{browser=await chromium.launch({headless:true,...(process.env.BROWSER_CHANNEL?{channel:process.env.BROWSER_CHANNEL}:{})});const page=await browser.newPage({viewport:{width:1920,height:1080}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.route('https://www.hdfilmcehennemi.nl/**',route=>route.fulfill({body:JSON.stringify({html:'<div data-page-items><a class="poster" href="/public-synthetic-fixture/"><strong class="poster-title">Kontrollü test kartı</strong><span class="poster-lang"><span>Dublaj &amp; Altyazılı</span></span></a></div>'}),contentType:'application/json'}));
- await page.goto('http://127.0.0.1:'+server.address().port);await page.waitForFunction(()=>window.ChainApp&&ChainApp.catalog&&!ChainApp.catalog.screen.loading);
-  assert.equal(await page.locator('.catalog-card').count(),1);assert.equal(await page.locator('.catalog-language-badge').count(),2);assert.equal(await page.evaluate(()=>document.activeElement.id),'search-activate');
-  await page.locator('#catalog-tools').click();await page.locator('[data-focus="tools-about"]').click();assert.match(await page.locator('#catalog-modal-card').innerText(),/HDfilmCehennemi TV contributors/);assert(!/Mail:/.test(await page.locator('#catalog-modal-card').innerText()));await page.keyboard.press('Escape');
-  await page.evaluate(()=>{ChainApp.open({...ChainApp.contents.sample,contentId:'public:ui-check',title:'Controlled UI check',sources:[]});});await page.waitForFunction(()=>ChainApp.controller.content);await page.evaluate(()=>{ChainApp.view.openMenu('about');});assert(!/Mail:/.test(await page.locator('#menu-items').innerText()));await page.evaluate(()=>ChainApp.controller.stop('test'));
-  assert.deepEqual(errors,[]);console.log('PASS public catalog, TR/CC badges, initial remote focus and both anonymous About screens');
- }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
-}
-main().catch(e=>{console.error(e);process.exitCode=1;});
+/* Isolated first-launch UI only; this fixture server is never used by the TV app. */
+'use strict';
+const fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict'),{chromium}=require('playwright');
+(async()=>{
+ const app=path.resolve(__dirname,'../app'),errors=[];
+ const server=http.createServer((req,res)=>{
+  const name=new URL(req.url,'http://localhost').pathname;
+  const file=path.resolve(app,name==='/'?'index.html':name.slice(1));
+  if(!file.startsWith(app+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404);return res.end();}
+  res.setHeader('Content-Type',({'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml'})[path.extname(file)]||'application/octet-stream');res.end(fs.readFileSync(file));
+ });
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;
+ const browser=await chromium.launch({channel:'chrome',headless:true}),page=await browser.newPage({viewport:{width:1920,height:1080}});
+ page.on('pageerror',e=>errors.push(e.message));await page.route('https://**/*',r=>r.abort());
+ try{
+  await page.goto(url);await page.locator('[data-legal=accept]').waitFor();
+  assert.equal(await page.evaluate(()=>!!window.ChainApp),false);
+  assert.equal(await page.locator(':focus').getAttribute('data-legal'),'accept');
+  await page.keyboard.press('ArrowRight');assert.equal(await page.locator(':focus').getAttribute('data-legal'),'exit');
+  await page.keyboard.press('Enter');assert.equal(await page.evaluate(()=>localStorage.getItem(FilmLegal.key)),null);
+  await page.evaluate(()=>{FilmLegal.showCredits();});await page.locator('[data-legal=credit-0]').waitFor();
+  assert.match(await page.locator('#legal-card').innerText(),/Apache-2.0/);
+  await page.close();assert.equal(errors.length,0,errors.join('\n'));
+  console.log('PASS public first-launch gate, remote focus, declined consent and local credits; no live TV playback test');
+ }finally{await browser.close();await new Promise(r=>server.close(r));}
+})().catch(e=>{console.error(e);process.exitCode=1;});

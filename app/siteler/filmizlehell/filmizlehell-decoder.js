@@ -1,0 +1,8 @@
+(function(root){
+ 'use strict';var D=root.WebPlayerData,HOST='https://p.playturka.space';
+ function alternatives(body){var d=D.doc(body),out=[],seen={};Array.prototype.forEach.call(d.querySelectorAll('[x-data],button'),function(n){var attr=n.getAttribute('x-data')||n.getAttribute('@click')||n.getAttribute('x-on:click')||'',m=/\bactiveSource\s*(?::|=)\s*(['"])(https:\/\/p\.playturka\.space\/#([A-Za-z0-9_-]+))\1/.exec(attr);if(!m||seen[m[3]])return;seen[m[3]]=true;out.push({sourceId:'filmizlehell-'+m[3],id:m[3],label:n.tagName==='BUTTON'?root.CatalogUtils.clean(n.textContent):'PlayTurka',url:m[2]});});return out;}
+ function settings(body,id){var v;try{v=JSON.parse(body);}catch(ignore){var data=body.replace(/^\s+|\s+$/g,'').replace(/[A-Za-z0-9_-]/g,function(c){var n=c.charCodeAt(0);return n>=65&&n<=90?String.fromCharCode(155-n):n>=97&&n<=122?String.fromCharCode(219-n):/\d/.test(c)?String((Number(c)+5)%10):c==='-'?'+':'/';});while(data.length%4)data+='=';try{v=JSON.parse(D.b64(data));}catch(error){throw D.fail('decode','PlayTurka API yanıtı okunamadı.');}}
+  if(!v||v.status!=='success'||v.videoId!==id||!v.files)throw D.fail('unavailable','PlayTurka videosu bu yanıtta kullanılamıyor.');var u=D.publicUrl(v.files.masterUrl),p=u&&new root.URL(u);if(!p||p.origin!==HOST||p.pathname!=='/videos/'+id+'/master.m3u8')throw D.fail('decode','PlayTurka manifest kimliği eşleşmiyor.');return {url:u,type:'hls',subtitles:[]};
+ }
+ root.FilmizleHellDecoder={alternatives:alternatives,settings:settings,resolve:function(e,get){return get(HOST+'/api/video-url?id='+encodeURIComponent(e.id),'https://filmizlehell.net/','api').then(function(r){var v=settings(r.body,e.id);v.referer=e.url;return v;});}};
+})(window);

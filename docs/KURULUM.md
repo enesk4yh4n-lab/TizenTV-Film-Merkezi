@@ -1,24 +1,11 @@
 # Apps2Samsung ile kurulum
 
-Bu projenin gerçek TV kurulumunda Apps2Samsung kullanıldı. Geliştiricilerine ve
-topluluk katkıcılarına teşekkür ederiz.
+1. TV ve telefon/bilgisayarı aynı yerel ağa bağlayın. TV'nin Apps ekranında geliştirici modunu açın; Host PC IP alanına kurulumu yapan telefon/bilgisayarın adresini yazın. Gerekirse TV'yi yeniden başlatın.
+2. Apps2Samsung'u resmî deposundan kurun: https://github.com/Apps2Samsung/Apps2Samsung . TV'yi taratın veya yerel IP'sini girin.
+3. Genel katalog başvurusu kabul edilene kadar Custom WGT/TPK üzerinden **Film-Merkezi-TV-1.0.0-public.wgt** seçin. Kaynak ZIP'i uygulama paketi değildir.
+4. Apps2Samsung sertifika gerektiğinde Samsung hesabı girişi açar. Sertifikayı kullanıcının TV'sine göre oluşturur ve WGT'yi yeniden imzalar. Geçerli profil aynı TV'yi kapsıyorsa tekrar giriş gerekmeyebilir.
+5. Kurulumdan sonra uygulamayı açın ve kullanım bilgilendirmesini okuyun. Normal kullanımda kurulum telefonu/bilgisayarı veya ek sunucu gerekmez.
 
-1. [Resmî Apps2Samsung projesinden](https://github.com/Apps2Samsung/Apps2Samsung)
-   cihazınıza uygun sürümü indirin.
-2. TV'de geliştirici modunu açın. Modeliniz için
-   [Apps2Samsung'ın geliştirici modu rehberini](https://github.com/Apps2Samsung/Apps2Samsung#-how-it-works-short-version)
-   izleyin. Telefon/PC ile TV'nin erişilebilir aynı ağda olduğundan emin olun.
-3. Apps2Samsung'ı açıp TV'nizi seçin.
-4. Kendi paketiniz/Custom WGT seçeneğinde `HDfilmCehennemi-TV-0.4.6-public.wgt`
-   dosyasını seçin. Menü adları aracın sürümüne göre değişebilir.
-5. Aracın sertifika, Samsung hesabı ve kurulum adımlarını kendi cihazınız için
-   tamamlayın. Bu projenin geliştiricileri sizden hesap parolası veya sertifika istemez.
-6. Kurulumdan sonra TV'deki uygulamalar arasından HDfilmCehennemi'ni açın.
+Genel WGT imzasızdır; geliştiriciye ait özel anahtar, parola ve DUID listesi içermez. Samsung hesabı/parola/tokenları bu projenin issue'larına gönderilmez. Mevcut uygulamayı farklı author sertifikasıyla güncellemek engellenebilir; sertifika yenilemesini her seferinde zorlamayın. Kaldırma işlemi kayıtları silebilir.
 
-WGT bilerek imzasızdır: başkasının kişisel sertifikası dağıtılmaz. Apps2Samsung
-TV'ye uygun sertifikayla imzalama/kurulum yapar. İlk kurulumdan sonraki güncellemelerde
-aynı imzalama kimliğini kullanın. Geliştirici modu veya sertifika hatası, uygulamanın
-oynatma uyumluluğunun test edildiği anlamına gelmez.
-
-Bu paylaşım Apps2Samsung topluluk kataloğuna otomatik eklenmiş değildir; özel WGT
-seçeneği kullanılır. Araç veya Samsung hesabı için üçüncü kişilere parola göndermeyin.
+Uygulama bazı yetişkin içerik sunabilen kaynaklar içerir. Başvuru `adult: true` olarak yapılır; Apps2Samsung'un 18+ filtresi kapalıyken görünmeyebilir. Kabul ve katalogya dağıtım zamanını Apps2Samsung yöneticileri belirler.

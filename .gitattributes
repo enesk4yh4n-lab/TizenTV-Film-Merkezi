@@ -1,5 +1,5 @@
-# Preserve original bytes across Windows/Linux checkouts and release builds.
-# In particular, do not rewrite the bundled hls.js file whose digest is verified.
+# Preserve runtime/native/CA bytes across Windows and Linux checkouts.
 * -text
-app/hls-1.7.3.min.js linguist-vendored
-app/decoder.js linguist-generated
+app/vendor/** linguist-vendored
+app/cozumleyiciler/youtube/youtube-extractor.js linguist-generated
+app/siteler/hdfilmcehennemi/decoder.js linguist-generated

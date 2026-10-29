@@ -1,0 +1,100 @@
+#legal-overlay {
+  display: none;
+  position: fixed;
+  z-index: 20000;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: #0e1726;
+  color: #f2f4f8;
+  padding: 48px 100px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+#legal-card {
+  max-width: 1500px;
+  margin: 0 auto;
+  font:
+    26px/1.4 Arial,
+    sans-serif;
+}
+#legal-card h1 {
+  font-size: 38px;
+  line-height: 1.2;
+  margin: 0 0 24px;
+}
+#legal-card p {
+  margin: 14px 0;
+}
+#legal-card .legal-paragraph {
+  line-height: 1.5;
+}
+#legal-card .legal-intro,
+#legal-card .legal-revision,
+#legal-card .legal-status {
+  color: #c0cbda;
+  font-size: 23px;
+}
+#legal-card button {
+  display: inline-block;
+  font: inherit;
+  text-align: left;
+  vertical-align: top;
+  background: #243953;
+  color: #fff;
+  border: 3px solid transparent;
+  padding: 12px 20px;
+  margin: 12px 14px 0 0;
+  border-radius: 5px;
+}
+#legal-card button:focus {
+  outline: none;
+  border-color: #ffd04e;
+  background: #334e6f;
+}
+#legal-card .legal-credit {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 9px 18px;
+}
+#legal-card .legal-credit small {
+  display: block;
+  color: #d2dbe7;
+  font-size: 21px;
+}
+#legal-card .legal-url {
+  font-size: 21px;
+  word-break: break-all;
+  color: #c6d3e4;
+}
+#legal-card .legal-document {
+  font: 21px/1.35 monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 12px 0;
+  max-height: 640px;
+  overflow-y: auto;
+}
+@media (max-height: 800px) {
+  #legal-overlay {
+    padding: 20px 48px;
+  }
+  #legal-card {
+    font-size: 20px;
+  }
+  #legal-card h1 {
+    font-size: 29px;
+    margin-bottom: 14px;
+  }
+  #legal-card .legal-intro,
+  #legal-card .legal-revision,
+  #legal-card .legal-status {
+    font-size: 18px;
+  }
+  #legal-card .legal-document {
+    max-height: 390px;
+    font-size: 17px;
+  }
+}

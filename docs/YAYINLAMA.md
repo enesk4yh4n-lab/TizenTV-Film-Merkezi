@@ -1,20 +1,9 @@
-# GitHub'da yayımlama
+# Release procedure
 
-Bu klasör temiz kaynak deposudur; çalışan özel geliştirme klasörü değildir.
+Run `npm ci`, `npm test` and `python scripts/build.py`. The public WGT is unsigned on purpose: the recipient's installer obtains a device-authorized certificate and re-signs it. Never upload a private signing profile, password or user records.
 
-1. GitHub'da boş bir public depo açın. Bu klasörün içindekileri depo köküne yükleyin.
-   Üstte fazladan `github-paylasim/` katmanı oluşturmadan `README.md`, `LICENSE`,
-   `app/`, `vendor/` ve `scripts/` kökte görünsün.
-2. Git kullanıyorsanız `.gitignore` dosyasını koruyun. `node_modules/`, `dist/`,
-   imza/özel anahtar dosyaları ve kişisel test arşivlerini commit etmeyin.
-3. `v0.4.6` etiketiyle bir GitHub Release oluşturun. `dist/` içindeki public WGT ve
-   `SHA256SUMS.txt` dosyasını Release'e ekleyin. Kaynakları indirenler de paketi
-   `python scripts/build.py` ile üretebilir.
-4. Release açıklamasında [uyumluluk tablosundaki](UYUMLULUK.md) sınırları koruyun.
-   Test edilmemiş Tizen sürümlerine “sorunsuz” yazmayın.
-5. GitHub Issues'ı açabilir, varsa özel güvenlik bildirimini etkinleştirebilirsiniz.
-   Geliştirici parolası, özel sertifika, Samsung hesabı veya iletişim adresi eklemeyin.
+Attach `Film-Merkezi-TV-1.0.0-public.wgt`, `Film-Merkezi-Kaynak-1.0.0.zip`, `Film-Merkezi-Kaynak-Tam-1.0.0.zip`, `SHA256SUMS.txt` and the static scan report to release **v1.0.0**. The native/decoder source ZIP carries the original MPL CA source and must remain available wherever the WGT is distributed. Source notices in the WGT identify these download locations.
 
-Proje deposu: [TizenTV-HDFilmCehennemi.wgt](https://github.com/enesk4yh4n-lab/TizenTV-HDFilmCehennemi.wgt).
-İndirilebilir paketler [GitHub Releases](https://github.com/enesk4yh4n-lab/TizenTV-HDFilmCehennemi.wgt/releases)
-bölümünde sunulur. Apps2Samsung topluluk kataloğuna kayıt yapılmamıştır.
+The community manifest must select the exact public WGT asset using `assets[].match`; the release has several assets and the catalog's single-file shortcut would be ambiguous. Use category `streaming` and disclose adult-capable providers with `adult: true`. Do not set root or per-user API-key settings: this application needs neither.
+
+The upstream catalog PR is a request for inclusion. Only Apps2Samsung maintainers can merge it into their catalog, after their schema, package and malware checks. A release or open PR is not a claim that all users can already see it.

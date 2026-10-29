@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://hdfilmcehennemi-tv.local/community" version="0.4.6" viewmodes="maximized">
-<name>HDfilmCehennemi</name><content src="index.html"/><icon src="icon.png"/>
-<author>HDfilmCehennemi TV contributors</author>
-<tizen:application id="HdfTVShare.App" package="HdfTVShare" required_version="3.0"/><tizen:profile name="tv"/>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://filmmerkezi.local/tv" version="1.0.0" viewmodes="maximized">
+<name>Film Merkezi</name><content src="index.html"/><icon src="icon.png"/>
+<author>Film Merkezi contributors</author>
+<tizen:application id="FilmMerkez.FilmMerkezi" package="FilmMerkez" required_version="3.0"/><tizen:profile name="tv"/>
 <tizen:privilege name="http://tizen.org/privilege/internet"/><tizen:privilege name="http://tizen.org/privilege/download"/><tizen:privilege name="http://tizen.org/privilege/filesystem.read"/><tizen:privilege name="http://tizen.org/privilege/filesystem.write"/>
 <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
-<access origin="*" subdomains="true"/><tizen:content-security-policy>default-src 'self'; script-src 'self' $WEBAPIS; style-src 'self' 'unsafe-inline'; connect-src https: http:; media-src blob: https: http:; img-src 'self' blob: data: https: http:; object-src 'self'</tizen:content-security-policy>
+<access origin="*" subdomains="true"/><tizen:content-security-policy>default-src 'self'; script-src 'self' $WEBAPIS 'sha256-fC+VEVSj+Rqc3UVIU1lmAqo+N+mXuYHMS4aU8uMF15s='; child-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' file: https: http:; media-src 'self' blob: https: http:; img-src 'self' blob: data: https: http:; object-src 'self'</tizen:content-security-policy>
 </widget>

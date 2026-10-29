@@ -1,0 +1,281 @@
+/* One lightweight TV skin, using the existing six columns / 430px virtual rows. */
+.catalog-header {
+  height: 176px;
+  padding-top: 20px;
+}
+.catalog-search-group {
+  top: 25px;
+  width: 870px;
+  left: 500px;
+}
+.catalog-search-field {
+  width: 650px;
+}
+#search-submit {
+  width: 100px;
+  border-radius: 0;
+}
+#search-clear,
+#search-recent {
+  width: 60px;
+  min-width: 60px;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid #536078;
+  background: #283447;
+  font-size: 24px;
+}
+#search-recent {
+  border-radius: 0 9px 9px 0;
+}
+#catalog-tools {
+  top: 27px;
+}
+.catalog-nav {
+  margin-top: 15px;
+}
+.nav-tab {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+#site-change {
+  top: 90px !important;
+}
+#catalog-scroll{
+  top: 176px;
+}
+.catalog-hero {
+  height: 208px;
+  margin-bottom: 16px;
+}
+.hero-content {
+  padding: 15px 34px;
+}
+.hero-content h1 {
+  font-size: 38px !important;
+  margin: 6px 0 !important;
+  line-height: 1.12 !important;
+}
+.hero-content p {
+  margin: 5px 0;
+  font-size: 21px;
+}
+.hero-content .gold-button {
+  padding: 9px 20px;
+}
+.hero-content {
+  padding: 12px 28px;
+}
+.hero-content h1 {
+  font-size: 34px !important;
+  line-height: 1.08 !important;
+  max-height: 75px;
+  margin: 4px 0 !important;
+}
+.hero-content p {
+  font-size: 18px;
+  line-height: 22px;
+  margin: 4px 0;
+}
+.hero-content .gold-button {
+  font-size: 22px;
+  padding: 7px 16px;
+  margin-bottom: 0;
+}
+.catalog-rail {
+  margin-top: 14px;
+  margin-bottom: 20px;
+}
+.catalog-rail h2 {
+  font-size: 28px !important;
+  margin-bottom: 10px !important;
+}
+.catalog-order-heading {
+  min-height: 40px;
+  margin-bottom: 8px;
+}
+.catalog-order-heading .quiet-button {
+  padding: 7px 15px;
+}
+.unified-status {
+  font-size: 20px;
+  min-height: 34px;
+  margin-bottom: 8px;
+  padding: 0 12px;
+  border-color: transparent;
+  background: transparent;
+}
+.unified-status .quiet-button {
+  font-size: 19px;
+  padding: 5px 12px;
+}
+.catalog-card {
+  transition: none !important;
+  transform-origin: center center;
+}
+.catalog-card:focus {
+  transform: scale(1.025);
+  z-index: 2;
+  outline: 4px solid #ffca55;
+  outline-offset: 2px;
+}
+.catalog-card-title {
+  font-size: 25px;
+  line-height: 29px;
+  height: 58px;
+}
+.catalog-art {
+  background: #172334;
+}
+.catalog-language-badges {
+  z-index: 2;
+}
+.catalog-language-badges {
+  top: 10px;
+  bottom: auto;
+}
+.catalog-card .new-episode-badge {
+  top: auto;
+  bottom: 108px;
+  left: 15px;
+}
+.catalog-provider-badge {
+  z-index: 2;
+  font-size: 19px;
+}
+.detail-copy h1 {
+  font-size: 45px !important;
+  line-height: 1.16 !important;
+  word-wrap: break-word;
+}
+.detail-art {
+  width: 350px;
+  min-width: 350px;
+  height: 500px;
+}
+.detail-actions {
+  margin-top: 18px;
+  margin-bottom: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.detail-actions button {
+  margin-bottom: 10px;
+}
+.detail-collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.series-detail .detail-art {
+  width: 205px;
+  min-width: 205px;
+  height: 290px;
+  margin-right: 35px;
+}
+.series-detail {
+  margin-bottom: 16px;
+}
+.series-detail .detail-description,
+.series-detail .detail-cast {
+  display: none;
+}
+.series-detail .detail-copy h1 {
+  font-size: 38px !important;
+}
+.series-detail .detail-meta,
+.series-detail .detail-genres {
+  margin: 9px 0;
+}
+.series-detail .series-summary {
+  margin: 10px 0;
+}
+.series-detail .catalog-note {
+  font-size: 20px;
+}
+.episode-entry {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  margin: 0 0 12px;
+}
+.episode-entry .episode-button {
+  flex: 1;
+  width: auto;
+  min-height: 76px;
+  padding: 14px 20px;
+  border-radius: 8px 0 0 8px;
+}
+.episode-entry .episode-options {
+  width: 220px;
+  min-width: 220px;
+  border: 1px solid #3f526b;
+  border-left: 0;
+  border-radius: 0 8px 8px 0;
+  white-space: normal;
+}
+.episode-entry .episode-button {
+  font-size: 25px;
+  line-height: 1.4;
+}
+.season-tabs {
+  margin-top: 15px;
+}
+.season-tabs h2 {
+  font-size: 29px !important;
+  margin-bottom: 12px !important;
+}
+.recent-search-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.recent-search-row button:first-child {
+  flex: 1;
+  text-align: left;
+  margin-right: 16px;
+}
+.recent-search-row button {
+  margin-bottom: 0;
+}
+.expanded-detail-text {
+  font-size: 27px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.recommendation-entry {
+  margin-right: 18px !important;
+  font-size: 23px !important;
+  padding: 9px 19px !important;
+}
+.recommendation-cards {
+  display: flex;
+  justify-content: center;
+  margin: 25px 0 28px;
+}
+.recommendation-cards .catalog-card {
+  width: 330px;
+  margin: 0 36px;
+}
+.recommendation-cards .catalog-card {
+  height: 490px;
+}
+.recommendation-cards .catalog-art {
+  width: 304px;
+  height: 380px;
+}
+.recommendation-cards .catalog-card-title {
+  font-size: 27px;
+  height: 64px;
+  line-height: 32px;
+}
+.recommendation-actions {
+  text-align: center;
+  margin: 16px 0;
+}
+.recommendation-actions button {
+  margin: 0 12px;
+}

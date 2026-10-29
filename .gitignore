@@ -1,15 +1,19 @@
 node_modules/
 dist/
+__pycache__/
+*.pyc
 *.p12
 *.pfx
 *.key
-*.pem
+*.pwd
 .env
 .env.*
 app/author-signature.xml
 app/signature1.xml
-__pycache__/
 .manifest.tmp
 *.wgt
 *.zip
 *.log
+# Public Mozilla CA certificate data is licensed source, never a private key.
+*.pem
+!kaynak/ortak/ag/native/ca-bundle.pem

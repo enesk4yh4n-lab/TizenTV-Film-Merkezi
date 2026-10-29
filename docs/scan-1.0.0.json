@@ -1,0 +1,171 @@
+{
+  "meta": {
+    "date": "2026-10-29 11:38 UTC",
+    "packages": 1,
+    "clamav": "not run"
+  },
+  "packages": [
+    {
+      "file": "Film-Merkezi-TV-1.0.0-public.wgt",
+      "size": 4221003,
+      "sha256": "dcd03a46d282bf5307860bc7d948ce7d2b24844f75ec15369243ca84c42c0da3",
+      "content_hash": "content:c7f72c45c06c2c8f780e645cffc6314106cf8312e5d7a0636d2f933ce5d7006e",
+      "manifest": {
+        "kind": "wgt",
+        "manifest": "config.xml",
+        "widget_id": "http://filmmerkezi.local/tv",
+        "version": "1.0.0",
+        "name": "Film Merkezi",
+        "app_id": "FilmMerkez.FilmMerkezi",
+        "package_id": "FilmMerkez",
+        "required_version": "3.0",
+        "csp": "default-src 'self'; script-src 'self' $WEBAPIS 'sha256-fC+VEVSj+Rqc3UVIU1lmAqo+N+mXuYHMS4aU8uMF15s='; child-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' file: https: http:; media-src 'self' blob: https: http:; img-src 'self' blob: data: https: http:; object-src 'self'",
+        "privileges": [
+          "http://tizen.org/privilege/download",
+          "http://tizen.org/privilege/filesystem.read",
+          "http://tizen.org/privilege/filesystem.write",
+          "http://tizen.org/privilege/internet",
+          "http://tizen.org/privilege/tv.inputdevice"
+        ],
+        "access": [
+          {
+            "origin": "*",
+            "subdomains": "true"
+          }
+        ],
+        "services": [],
+        "settings": {}
+      },
+      "signers": {},
+      "inventory": {
+        "files": 170,
+        "by_extension": {
+          ".js": 131,
+          ".mp4": 11,
+          ".txt": 8,
+          ".css": 5,
+          ".nexe": 3,
+          ".svg": 2,
+          ".png": 2,
+          ".html": 2,
+          ".md": 2,
+          ".xml": 1,
+          "(none)": 1,
+          ".json": 1,
+          ".nmf": 1
+        },
+        "native": [
+          "ortak/ag/native/https-arm.nexe",
+          "ortak/ag/native/https-x86-32.nexe",
+          "ortak/ag/native/https-x86-64.nexe"
+        ]
+      },
+      "code": {
+        "text_files": 147,
+        "hosts": {
+          "tc39.es": 50,
+          "url.spec.whatwg.org": 26,
+          "www.youtube.com": 10,
+          "www.ddizi.tel": 7,
+          "www.filmizlebabam.com": 4,
+          "matrudas.com": 4,
+          "fsf.org": 3,
+          "www.dizibox.live": 3,
+          "invalid.local": 2,
+          "youtubei.googleapis.com": 2,
+          "spdx.org": 2,
+          "filmizle.ink": 2,
+          "www.filmifullizle.news": 2,
+          "filmizlehell.net": 2,
+          "filmmakinesi.to": 2,
+          "myplayersvideo.xyz": 2,
+          "www.fullhdfilmizlesene.now": 2,
+          "www.hdfilmcehennemi.nl": 2,
+          "hdfilmdelisi.one": 2,
+          "lovefilmizle.net": 2,
+          "player.filmizle.in": 2,
+          "turkcefilmler.to": 2,
+          "music.youtube.com": 1,
+          "suggestqueries-clients6.youtube.com": 1,
+          "upload.youtube.com": 1,
+          "green-youtubei.sandbox.googleapis.com": 1,
+          "release-youtubei.sandbox.googleapis.com": 1,
+          "test-youtubei.sandbox.googleapis.com": 1,
+          "cami-youtubei.sandbox.googleapis.com": 1,
+          "uytfe.sandbox.google.com": 1,
+          "esm.sh": 1,
+          "standards.iso.org": 1,
+          "dashif.org": 1,
+          "ytjs.googlevideo.com": 1,
+          "ytjs.dev": 1,
+          "oauth.net": 1,
+          "gdata.youtube.com": 1,
+          "www.googleapis.com": 1,
+          "ytx.invalid": 1,
+          "project-everest.github.io": 1,
+          "mozilla.org": 1,
+          "en.wikipedia.org": 1,
+          "www.opensource.org": 1,
+          "www.ti.com": 1,
+          "curl.se": 1,
+          "filmmerkezi.invalid": 1,
+          "streambox.xyz": 1,
+          "pilavyerplay.top": 1,
+          "p.playturka.space": 1,
+          "oynat.fixfullfilmizle.net": 1,
+          "vidara.to": 1,
+          "vevocloud.com": 1,
+          "www.fixfullfilmizle.net": 1,
+          "hdfilmcehennemi.mobi": 1,
+          "sinemacc.com": 1,
+          "aomedia.org": 1,
+          "www.dailymotion.com": 1
+        },
+        "public_ips": {},
+        "remote_scripts": [],
+        "minified": [
+          "cozumleyiciler/youtube/youtube-extractor.js",
+          "cozumleyiciler/youtube/youtube-polyfills.js",
+          "vendor/hls-1.7.3.min.js"
+        ]
+      },
+      "clamav": {
+        "status": "not-run",
+        "reason": "clamscan not installed"
+      },
+      "findings": [
+        {
+          "level": "info",
+          "code": "network-any-origin",
+          "message": "may load content from any origin (`<access origin=\"*\">`); normal for apps that wrap a website"
+        },
+        {
+          "level": "info",
+          "code": "sensitive-privilege",
+          "message": "requests `http://tizen.org/privilege/filesystem.write` (write to TV storage)"
+        },
+        {
+          "level": "info",
+          "code": "compiled-module",
+          "message": "contains WebAssembly / NaCl modules (compiled code, not inspectable as text)"
+        },
+        {
+          "level": "info",
+          "code": "code-usage",
+          "message": "uses runtime <script> injection in cozumleyiciler/youtube/youtube-polyfills.js, cozumleyiciler/youtube/youtube-source.js, site-listesi.js"
+        },
+        {
+          "level": "info",
+          "code": "code-usage",
+          "message": "uses tizen.filesystem in ortak/ag/native-media.js, ortak/ag/network.js, ortak/player/avplay-player.js"
+        },
+        {
+          "level": "info",
+          "code": "minified",
+          "message": "3 minified/bundled file(s): cozumleyiciler/youtube/youtube-extractor.js, cozumleyiciler/youtube/youtube-polyfills.js, vendor/hls-1.7.3.min.js"
+        }
+      ],
+      "level": "info"
+    }
+  ]
+}

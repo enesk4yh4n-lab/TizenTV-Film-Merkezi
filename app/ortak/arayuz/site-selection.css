@@ -1,0 +1,24 @@
+#site-selection{position:fixed;z-index:200;left:0;top:0;width:100%;height:100%;background:radial-gradient(ellipse at 50% 30%,#1e2942 0%,#090e18 75%);color:#f6f5f1;overflow:auto}
+.site-selection-inner{max-width:1800px;margin:0 auto;padding:70px 45px;text-align:center}
+.site-selection-inner h1{font-size:44px;margin:16px 0}.site-help{font-size:21px;color:#aeb8c9;margin:20px 0 35px}
+.site-grid{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;padding:20px}
+.site-card{display:block;width:185px;margin:10px;padding:0 0 24px;border:4px solid transparent;border-radius:16px;background:#172135;color:#fff;text-align:left;overflow:hidden;outline:none;flex-shrink:0}
+.site-card:focus{border-color:#edc36b;box-shadow:0 0 0 5px rgba(237,195,107,.18);transform:scale(1.035)}
+.site-poster{height:280px;display:flex;align-items:center;justify-content:center;font-size:76px;font-weight:800;letter-spacing:-6px;background:linear-gradient(145deg,#24527c,#0c1c32);text-shadow:0 8px 18px rgba(0,0,0,.35)}
+.site-card strong{display:block;font-size:20px;min-height:56px;white-space:normal;word-wrap:break-word;margin:22px 10px 10px}.site-card small{display:block;font-size:17px;min-height:40px;color:#bdc8d8;margin:0 15px}
+#site-change{position:absolute;top:116px;right:55px;max-width:360px;font-size:17px;padding:8px 16px;background:#202e43;color:#e4ebf6;border:1px solid #46576e;border-radius:8px}
+#site-change:focus{border-color:#edc36b;box-shadow:0 0 0 3px rgba(237,195,107,.3)}
+.catalog-version{display:none}
+
+/* Fourteen choices remain legible in two remote-navigable rows at 1920x1080. */
+#site-selection.site-selection-many .site-selection-inner{padding-top:25px;padding-bottom:25px}
+#site-selection.site-selection-many .site-selection-inner h1{font-size:36px;margin:8px 0}
+#site-selection.site-selection-many .site-help{font-size:19px;margin:10px 0 15px}
+#site-selection.site-selection-many .site-grid{padding:5px;max-width:1660px;margin:auto;align-items:stretch}
+#site-selection.site-selection-many .site-card{width:210px;margin:8px;padding-bottom:12px}
+#site-selection.site-selection-many .site-poster{height:155px;font-size:65px}
+#site-selection.site-selection-many .site-card strong{margin:12px 10px 6px;min-height:48px;font-size:20px}
+#site-selection.site-selection-many .site-card small{font-size:16px;margin:0 10px;min-height:38px}
+.site-all{display:flex;align-items:center;justify-content:center;max-width:1580px;width:94%;margin:14px auto 8px;padding:18px 26px;border:3px solid #4a5c74;border-radius:12px;background:linear-gradient(100deg,#243b55,#192538);color:#e7eef8;outline:none}
+.site-all strong{font-size:29px;color:#f1ce85;margin-right:35px}.site-all span{font-size:22px;color:#b8c8da}
+.site-all:focus{border-color:#edc36b;background:#2b3b50;box-shadow:0 0 0 4px rgba(237,195,107,.18)}

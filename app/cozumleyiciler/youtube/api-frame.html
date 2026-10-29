@@ -1,0 +1,16 @@
+<!doctype html><meta charset="utf-8"><script>/* Local sandbox page: opaque origin, public metadata only; no SDK/storage access needed. */
+(function(){'use strict';
+ var jobs={};
+ function allowed(value,method){try{var u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password&&method==='POST'&&u.hostname==='youtubei.googleapis.com'&&u.pathname==='/youtubei/v1/player';}catch(e){return false;}}
+ parent.postMessage({channel:'YTExtract1',ready:true},'*');
+ window.addEventListener('message',function(e){
+  var d=e.data;if(e.source!==parent||!d||d.channel!=='YTExtract1')return;
+  if(typeof d.cancel==='number'){if(jobs[d.cancel])jobs[d.cancel]({error:'İptal edildi'});return;}
+  if(typeof d.id!=='number'||typeof d.body!=='string'||d.body.length>1024*1024||!allowed(d.url,d.method))return;
+  var x=new XMLHttpRequest(),done=false,timer=setTimeout(function(){end({error:'Yerel çerçeve API zaman aşımı'});},16000);
+  function end(result){if(done)return;done=true;clearTimeout(timer);delete jobs[d.id];result.channel='YTExtract1';result.id=d.id;try{x.abort();}catch(ignore){}parent.postMessage(result,'*');}
+  jobs[d.id]=end;
+  try{x.open(d.method,d.url,true);x.withCredentials=false;if(d.method==='POST')x.setRequestHeader('Content-Type','text/plain;charset=UTF-8');else x.responseType='arraybuffer';x.onprogress=function(p){if(p.loaded>(d.limit||4*1024*1024))end({error:'API/medya yanıtı boyut sınırı'});};x.onload=function(){end({status:x.status,body:d.method==='POST'?x.responseText:'',data:d.method==='GET'?x.response:null,mime:x.getResponseHeader('Content-Type')||'application/json'});};x.onerror=function(){end({error:'Yerel çerçeve API/medya ağ/CORS/TLS hatası',status:x.status});};x.send(d.method==='POST'?d.body:null);}catch(error){end({error:String(error.message).slice(0,180)});}
+ });
+})();
+</script>

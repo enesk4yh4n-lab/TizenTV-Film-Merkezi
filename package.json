@@ -1,10 +1,11 @@
 {
-  "name": "hdfilmcehennemi-tv",
-  "version": "0.4.6",
+  "name": "film-merkezi-tv",
+  "version": "1.0.0",
   "private": true,
   "license": "MIT",
   "scripts": {
     "test": "node scripts/check.cjs",
+    "build": "python scripts/build.py",
     "browser": "node scripts/browser-check.cjs"
   },
   "devDependencies": {

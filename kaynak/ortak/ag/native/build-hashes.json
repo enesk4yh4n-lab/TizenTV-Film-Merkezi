@@ -1,0 +1,27 @@
+{
+  "qa": false,
+  "sourceSha256": "32821b111f2d635fc884b78a83d86586fa6aa019c3a05513c950068ae438fe3b",
+  "inputs": {
+    "secure-http.cpp": "32821b111f2d635fc884b78a83d86586fa6aa019c3a05513c950068ae438fe3b",
+    "ca-bundle.h": "0bf632e879abbe487c714aaef5439d906908b7c600151fe3b0ff93a23f6eabff",
+    "film-tls-config.h": "4522af5585ce00940b9082323fc3a118d92c0628f4c0f9287dc1203253ceb46a",
+    "http-response.h": "cb8a7453e76c86e4cec095d8d2728266988b82a352aa67357b53eaf4615a0b6d",
+    "ca-bundle.pem": "796f1389bfea13c0ed78f663b765baaff54a508e5483786bd6ece73c5e3e3cbe"
+  },
+  "tlsVersion": "3.6.7",
+  "tlsArchiveSha256": "a7e8bcbec0e6f761b4af24f25677626b35f762f68eef79c08677a363212d11f6",
+  "files": {
+    "https-arm.nexe": {
+      "sha256": "e2b95608082dfc4462db6b6fd75d388dd43c283ec04298b382ed783d8446ab81",
+      "size": 2206208
+    },
+    "https-x86-32.nexe": {
+      "sha256": "9ae48062b4a417e569b960b2f2ddf0a412c87c4677aa9714a070484e13537527",
+      "size": 2573028
+    },
+    "https-x86-64.nexe": {
+      "sha256": "b4a832d9f958025bec2045dac7357cd11c9eecca027b97ef06c90de88e3bf8a0",
+      "size": 2898408
+    }
+  }
+}
