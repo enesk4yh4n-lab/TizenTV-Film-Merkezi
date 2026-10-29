@@ -107,10 +107,10 @@ This public WGT intentionally has no developer signatures. Apps2Samsung signs it
 with the installer's own TV-authorized certificates. No private keys are included.
 
 Complete application and native/decoder sources:
-https://github.com/enesk4yh4n-lab/TizenTV-HDFilmCehennemi.wgt/tree/main
+https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/tree/main
 
 Versioned native/decoder sources, including the unmodified MPL-2.0 CA data:
-https://github.com/enesk4yh4n-lab/TizenTV-HDFilmCehennemi.wgt/releases/download/v1.0.0/Film-Merkezi-Kaynak-1.0.0.zip
+https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/releases/download/v1.0.0/Film-Merkezi-Kaynak-1.0.0.zip
 
 Complete versioned source snapshot:
-https://github.com/enesk4yh4n-lab/TizenTV-HDFilmCehennemi.wgt/releases/download/v1.0.0/Film-Merkezi-Kaynak-Tam-1.0.0.zip
+https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/releases/download/v1.0.0/Film-Merkezi-Kaynak-Tam-1.0.0.zip
