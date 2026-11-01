@@ -3,7 +3,12 @@
   'use strict';
   var xhrUnavailable = false,
     report = { fast: 0, fallback: 0, lastFallback: null };
-  function read(file) {
+  function read(file, options) {
+    options = options || {};
+    var requested = options.byteLimit,
+      limit = Math.min(12 * 1024 * 1024,
+        typeof requested === 'number' && isFinite(requested) && requested > 0
+          ? Math.floor(requested) : 8 * 1024 * 1024);
     var done = false,
       stream = null,
       xhr = null,
@@ -89,8 +94,15 @@
     var promise = new Promise(function (resolve, reject) {
       resolveJob = resolve;
       rejectJob = reject;
-      if (typeof size !== 'number' || size <= 0 || size > 8 * 1024 * 1024) {
+      if (typeof size !== 'number' || !isFinite(size) || size <= 0 || size % 1) {
         finish(Error('Medya dosyası boyut sınırı'));
+        return;
+      }
+      if (size > limit) {
+        var error = Error('[media-size-limit] Medya dosyası boyut sınırı: ' + limit);
+        error.byteLimitExceeded = true;
+        error.byteLimit = limit;
+        finish(error);
         return;
       }
       var uri = '';

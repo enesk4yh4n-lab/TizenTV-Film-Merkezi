@@ -16,8 +16,9 @@ read = lambda f: f.read_bytes().decode('utf-8')
 # Keep the decoder's build inputs available and reproduce its original wrapper.
 src = ROOT / 'kaynak/siteler/hdfilmcehennemi/decoder-kaynak/src'
 parts = ['/* MIT decoder adaptations; see LICENSE and THIRD_PARTY_NOTICES.md. */', '(function(root){var modules={},cache={};']
-for name in ['utils', 'catalog', 'player']:
+for name in ['utils', 'catalog']:
     parts.append("modules['"+name+"']=function(module,exports,require){\n"+read(src/(name+'.js'))+"\n};")
+parts.append("modules['player']=function(module){if(!root.LiteralMediaDecoder)throw new Error('Shared media decoder missing');module.exports=root.LiteralMediaDecoder;};")
 parts.append("function load(n){n=n.replace('./','');if(cache[n])return cache[n].exports;var m={exports:{}};cache[n]=m;modules[n](m,m.exports,load);return m.exports;}root.ChainDecoder={catalog:load('catalog'),player:load('player')};})(window);")
 assert (APP/'siteler/hdfilmcehennemi/decoder.js').read_bytes() == '\n'.join(parts).encode('utf-8'), 'Generated decoder differs from its source'
 literal = "/* Generated data-only MIT media decoder; canonical source (outside WGT): kaynak/siteler/hdfilmcehennemi/decoder-kaynak/src/player.js. */\n(function(root){var module={exports:{}};\n"+read(src/'player.js')+"\nroot.LiteralMediaDecoder=module.exports;})(window);\n"

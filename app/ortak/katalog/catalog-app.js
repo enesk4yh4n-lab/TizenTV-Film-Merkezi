@@ -880,7 +880,7 @@
     else {
       if (card.year) meta.push(card.year);
       meta.push(
-        card.type === 'series' ? 'Dizi' : card.type === 'collection' ? 'Koleksiyon' : 'Film'
+        card.identityState === 'pending' ? 'Tür doğrulanıyor' : card.type === 'series' ? 'Dizi' : card.type === 'collection' ? 'Koleksiyon' : 'Film'
       );
       if (card.imdb) meta.push('IMDb ' + card.imdb);
     }
@@ -900,8 +900,7 @@
   App.prototype.scheduleLanguages = function (interaction) {
     if (
       interaction &&
-      this.provider.active === 0 &&
-      !this.provider.queue.length &&
+      this.provider.isIdle && this.provider.isIdle() &&
       this.provider.deadline <= Date.now()
     )
       this.provider.deadline = Date.now() + 30000;
@@ -1494,7 +1493,7 @@
           ['collection', 'Koleksiyonlar']
         ].forEach(function (pair) {
           var count = s.items.filter(function (x) {
-            return pair[0] === 'all' || x.type === pair[0];
+            return pair[0] === 'all' || (x.type === pair[0] && x.identityState !== 'pending');
           }).length;
           tabs.appendChild(
             button(
@@ -1863,11 +1862,11 @@
       if (root.FilmI18n)
         box.appendChild(
           button(
-            'Dil / Language',
-            'tools-language',
+            'Uygulama ayarları',
+            'tools-settings',
             function () {
-              self.panel = { kind: 'ui-language', returnKey: 'catalog-tools' };
-              self.renderPanel('ui-language-' + root.FilmI18n.language());
+              self.panel = { kind: 'application-settings', returnKey: 'catalog-tools' };
+              self.renderPanel('settings-language');
             },
             'filter-field'
           )

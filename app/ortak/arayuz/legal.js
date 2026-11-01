@@ -303,6 +303,37 @@
       button('Çıkış', 'exit', exit);
     } else button('Geri', 'back', returnTo).focus();
   }
+  function setup(focusId) {
+    open('Film Merkezi’ye hoş geldiniz', exit);
+    card.appendChild(node('p', 'legal-intro', 'Dil ve katalog tercihlerinizi seçin.'));
+    card.appendChild(node('h2', '', 'Dil / Language'));
+    [['tr', 'Türkçe'], ['en', 'English']].forEach(function (row) {
+      var selected = root.FilmI18n.language() === row[0],
+        choice = button(row[1], 'setup-language-' + row[0], function () {
+          root.FilmI18n.set(row[0]);
+          setup('setup-language-' + row[0]);
+        });
+      choice.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+    card.appendChild(node('h2', '', 'Aynı film ve dizileri birleştir'));
+    card.appendChild(node('p', 'legal-intro', 'Açıkken aynı içerikler tek kartta toplanır. Kapalıyken her sitenin sonucu ayrı gösterilir; birleştirme için ek doğrulama yapılmaz.'));
+    [[true, 'Açık'], [false, 'Kapalı']].forEach(function (row) {
+      var choice = button(row[1], 'setup-merge-' + (row[0] ? 'on' : 'off'), function () {
+        api.preferences.merging(row[0]);
+        setup('setup-merge-' + (row[0] ? 'on' : 'off'));
+      });
+      choice.setAttribute('aria-pressed', api.preferences.merging() === row[0] ? 'true' : 'false');
+    });
+    if (api.preferences.blocked || api.preferences.failed)
+      card.appendChild(node('p', 'legal-status', 'Tercih bu oturumda kullanılacak; kalıcı olarak kaydedilemedi.')).id = 'legal-status';
+    button('Kuruluma devam et', 'setup-next', function () {
+      api.preferences.merging(api.preferences.merging());
+      usage(false);
+    });
+    button('Çıkış', 'exit', exit);
+    var selectedButton = card.querySelector('[data-legal="' + (focusId || 'setup-language-' + root.FilmI18n.language()) + '"]');
+    if (selectedButton) selectedButton.focus();
+  }
   function showCredits(page, returnTo, focusIndex) {
     page = page || 0;
     open('Teşekkürler ve lisanslar', returnTo);
@@ -428,15 +459,18 @@
       try {
         storage = root.localStorage;
       } catch (ignore) {}
-      if (root.FilmI18n && root.CatalogPreferences)
-        root.FilmI18n.init(new root.CatalogPreferences(storage));
+      if (root.FilmI18n && root.CatalogPreferences) {
+        api.preferences = new root.CatalogPreferences(storage);
+        root.FilmI18n.init(api.preferences);
+      }
       api.consent = new Consent(storage);
       if (api.consent.accepted) {
         ready();
         return;
       }
       done = ready;
-      usage(false);
+      if (api.preferences && !api.preferences.existingInstall) setup();
+      else usage(false);
       if (api.consent.blocked)
         document.getElementById('legal-status').textContent = tr(
           'Önceki onay kaydı okunamadı; değiştirilmeden korunacak. Onayınız yalnız bu oturum için geçerli olacak.'

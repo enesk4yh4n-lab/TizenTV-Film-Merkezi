@@ -1,7 +1,6 @@
 /* Literal player data only. No downloaded script is evaluated or mounted. */
 (function (root) {
   'use strict';
-  var U = root.CatalogUtils;
   function fail(stage, message) {
     var e = new Error(message);
     e.stage = stage;

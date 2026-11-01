@@ -220,6 +220,7 @@
         self.onerror('Bölüm ilerlemesi geri alınamadı; izleme kaydını kontrol edin.');
       }
     });
+    if (this.storage && this.storage.protectionChanged) this.storage.protectionChanged();
   };
   Store.prototype.preference = function (id, key, value) {
     var e = this.entry(id);

@@ -4,7 +4,6 @@
   function tr(value) {
     return root.FilmI18n ? root.FilmI18n.text(value) : value;
   }
-  var C = root.PlayerCore;
   function node(tag, cls, text, raw) {
     var n = document.createElement(tag);
     n.className = cls || '';
@@ -22,9 +21,11 @@
     this.app = app;
     this.extraButtons = [];
     this.siteButtons = [];
-    this.preferences = new root.CatalogPreferences(app.storage, function (message) {
+    this.preferences = (root.FilmLegal && root.FilmLegal.preferences) || new root.CatalogPreferences(app.storage, function (message) {
       app.app.view.toast(message);
     });
+    this.preferences.storage = app.storage;
+    this.preferences.notify = function (message) { app.app.view.toast(message); };
     if (root.FilmI18n) root.FilmI18n.init(this.preferences);
     this.recommendations = new root.RecommendationService({
       hub: app.app.hub,
@@ -273,7 +274,8 @@
         'detail-text',
         'detail-more',
         'detail-sites',
-        'ui-language'
+        'ui-language',
+        'application-settings'
       ].indexOf(p.kind) < 0
     )
       return false;
@@ -291,6 +293,8 @@
             ? 'Ne izlesem?'
             : p.kind === 'detail-text'
               ? p.title
+              : p.kind === 'application-settings'
+                ? 'Uygulama ayarları'
               : p.kind === 'ui-language'
                 ? 'Arayüz dili'
                 : p.kind === 'detail-sites'
@@ -298,7 +302,31 @@
                   : 'Diğer işlemler'
       )
     );
-    if (p.kind === 'ui-language') {
+    if (p.kind === 'application-settings') {
+      box.appendChild(button('Dil / Language', 'settings-language', function () {
+        a.panel = { kind: 'ui-language', returnKey: 'catalog-tools' };
+        a.renderPanel('ui-language-' + root.FilmI18n.language());
+      }, 'filter-field'));
+      box.appendChild(node('h3', '', 'Aynı film ve dizileri birleştir'));
+      box.appendChild(node('p', 'catalog-note', 'Açıkken aynı içerikler tek kartta toplanır. Kapalıyken her sitenin sonucu ayrı gösterilir; birleştirme için ek doğrulama yapılmaz.'));
+      box.appendChild(node('p', 'catalog-note', 'Değiştirildiğinde katalog ana sayfası yenilenir. Listem ve izleme kayıtları korunur.'));
+      [[true, 'Açık'], [false, 'Kapalı']].forEach(function (row) {
+        var selected = self.preferences.merging() === row[0],
+          choice = button((selected ? '✓ ' : '') + tr(row[1]), 'app-merge-' + (row[0] ? 'on' : 'off'), function () {
+            if (self.preferences.merging() === row[0]) return;
+            a.begin();
+            self.preferences.merging(row[0]);
+            if (a.hub) a.hub.setMerging(row[0]);
+            a.closePanel(false);
+            a.history = [];
+            a.navigate('home');
+            if (self.preferences.blocked || self.preferences.failed)
+              a.app.view.toast('Tercih bu oturumda kullanılacak; kalıcı olarak kaydedilemedi.');
+          }, 'filter-field', true);
+        choice.setAttribute('aria-pressed', selected ? 'true' : 'false');
+        box.appendChild(choice);
+      });
+    } else if (p.kind === 'ui-language') {
       box.appendChild(
         node(
           'p',

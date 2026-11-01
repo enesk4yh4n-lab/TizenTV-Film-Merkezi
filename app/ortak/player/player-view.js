@@ -289,7 +289,11 @@
     );
     text('busy-budget', busy ? 'Geri: seçenekler' : '');
     el('revert-source').style.display =
-      c.previousSource !== null && c.previousSource !== undefined ? 'inline-block' : 'none';
+      c.previousSource !== null && c.previousSource !== undefined && c.sourceRevertUntil > c.now()
+        ? 'inline-block'
+        : 'none';
+    if (el('revert-source').style.display === 'none' && document.activeElement === el('revert-source'))
+      this.focus(el('play-button'));
     el('seek-preview').style.display = this.seekTarget !== null ? 'block' : 'none';
     text('seek-time', C.format(this.seekTarget || 0));
     text(

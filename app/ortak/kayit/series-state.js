@@ -139,7 +139,10 @@
         s.pending = [];
         s.checkedAt = enabled && !detail.staleAt ? detail.fetchedAt || self.now() : 0;
       });
-    if (ok && !enabled) this.clearMarks([]);
+    if (ok && !enabled) {
+      this.clearMarks([]);
+      if (this.storage && this.storage.protectionChanged) this.storage.protectionChanged();
+    }
     return ok;
   };
   State.prototype.observe = function (detail) {

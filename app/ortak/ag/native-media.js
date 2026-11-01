@@ -31,9 +31,6 @@
           timeout = options.timeoutMs || 25000,
           limit = options.byteLimit || (options.binary ? 8 * 1024 * 1024 : 2 * 1024 * 1024),
           times = { start: Date.now(), first: 0, downloadEnd: 0, readStart: 0, readEnd: 0 };
-        function status(message) {
-          if (!done && options.onstatus) options.onstatus(message);
-        }
         function unavailable(message) {
           var e = new Error(message);
           e.nativeUnavailable = true;
@@ -227,7 +224,7 @@
                         return;
                       }
                       if (root.NativeFileBytes) {
-                        fileJob = root.NativeFileBytes.read(file);
+                        fileJob = root.NativeFileBytes.read(file, { byteLimit: limit });
                         fileJob.promise.then(
                           function (result) {
                             fileJob = null;

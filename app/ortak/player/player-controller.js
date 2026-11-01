@@ -33,6 +33,7 @@
     this.phase = 'idle';
     this.desiredPlay = false;
     this.currentSource = -1;
+    this.sourceRevertUntil = 0;
     this.position = 0;
     this.duration = 0;
     this.snapshot = {};
@@ -828,6 +829,7 @@
       token = self.loadToken;
     if (self.content.sourceContext && self.currentSource >= 0 && self.currentSource !== index) {
       self.previousSource = self.currentSource;
+      self.sourceRevertUntil = self.now() + 30000;
       self.previousPosition = position || 0;
       self.previousDesired = self.desiredPlay;
     }
@@ -1272,6 +1274,7 @@
     this.keepTrackIntent();
     this.checkpoint();
     this.previousSource = this.currentSource;
+    this.sourceRevertUntil = this.now() + 30000;
     this.previousPosition = this.position;
     this.previousDesired = this.desiredPlay;
     this.referenceDuration = this.duration;
@@ -1285,6 +1288,7 @@
     var i = this.previousSource;
     this.previousSource = null;
     this.desiredPlay = this.previousDesired;
+    this.sourceRevertUntil = 0;
     this.resetBudget();
     this.cancelDiscovery();
     this.load(i, this.previousPosition);
@@ -1941,6 +1945,10 @@
   Controller.prototype.tick = function () {
     if (!this.content) return;
     var time = this.now();
+    if (this.sourceRevertUntil && time >= this.sourceRevertUntil) {
+      this.sourceRevertUntil = 0;
+      this.changed();
+    }
     if (this.discovery && this.discovery.active && time >= this.discovery.deadline) {
       var expired = new Error('Kaynak taramasının 180 saniyelik süresi doldu.');
       expired.stage = 'timeout';

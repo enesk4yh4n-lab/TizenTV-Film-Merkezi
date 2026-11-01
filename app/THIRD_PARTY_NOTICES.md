@@ -98,19 +98,11 @@ override third-party license permissions or exclude mandatory legal liability.
 Its revision is independent of the application version; a changed notice needs
 a new acknowledgement. This application change does not relicense existing code.
 
+## Public distribution
 
-## Public distribution and source availability — v1.0.0
+This public WGT intentionally has no developer signatures. Apps2Samsung signs it with the installer's own TV-authorized certificates. No private keys are included.
 
-Original Film Merkezi contributions are MIT-licensed; upstream component licenses
-and copyright notices remain applicable and are preserved in this package.
-This public WGT intentionally has no developer signatures. Apps2Samsung signs it
-with the installer's own TV-authorized certificates. No private keys are included.
+## Native TLS module and ca-bundle — MPL-2.0 source availability
 
-Complete application and native/decoder sources:
-https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/tree/main
-
-Versioned native/decoder sources, including the unmodified MPL-2.0 CA data:
-https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/releases/download/v1.0.0/Film-Merkezi-Kaynak-1.0.0.zip
-
-Complete versioned source snapshot:
-https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/releases/download/v1.0.0/Film-Merkezi-Kaynak-Tam-1.0.0.zip
+- Native TLS modülü: `ortak/ag/native`. ca-bundle, Mozilla CA verisidir ve MPL-2.0 lisanslıdır; paketle birlikte değiştirilmemiş haliyle derlenmiştir.
+- Kaynağa nasıl ulaşılacağı: https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/releases/download/v1.1.7/Film-Merkezi-Kaynak-1.1.7.zip

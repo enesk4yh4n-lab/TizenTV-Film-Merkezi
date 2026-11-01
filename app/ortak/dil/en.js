@@ -1,6 +1,14 @@
 /* English UI pack. Turkish source messages are the fallback; site content stays verbatim. */
 FilmI18n.register({
   messages: [
+    ['Film Merkezi’ye hoş geldiniz', 'Welcome to Film Merkezi'],
+    ['Dil ve katalog tercihlerinizi seçin.', 'Choose your language and catalog preferences.'],
+    ['Kuruluma devam et', 'Continue setup'],
+    ['Uygulama ayarları', 'Application settings'],
+    ['Aynı film ve dizileri birleştir', 'Combine matching movies and series'],
+    ['Açıkken aynı içerikler tek kartta toplanır. Kapalıyken her sitenin sonucu ayrı gösterilir; birleştirme için ek doğrulama yapılmaz.', 'When enabled, matching titles share one card. When disabled, each site has separate results and no extra matching checks run.'],
+    ['Değiştirildiğinde katalog ana sayfası yenilenir. Listem ve izleme kayıtları korunur.', 'Changing this reloads the catalog home page. Your list and viewing records are preserved.'],
+    ['Tercih bu oturumda kullanılacak; kalıcı olarak kaydedilemedi.', 'This preference applies to this session; it could not be saved.'],
     ['Kullanım bilgilendirmesi', 'Usage information'],
     ['Okudum, anladım ve devam et', 'I have read and understood; continue'],
     [
@@ -266,6 +274,7 @@ FilmI18n.register({
     ['Türkçe Altyazılı', 'Turkish subtitled'],
     ['Türkçe Altyazı', 'Turkish subtitles'],
     ['Dizi', 'Series'],
+    ['Tür doğrulanıyor', 'Verifying content type'],
     ['Film', 'Movie'],
     ['Koleksiyon', 'Collection'],
     ['DİZİ', 'SERIES'],

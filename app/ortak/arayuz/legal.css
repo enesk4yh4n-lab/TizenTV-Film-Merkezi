@@ -53,6 +53,14 @@
   border-color: #ffd04e;
   background: #334e6f;
 }
+#legal-card button[aria-pressed='true'] {
+  background: #38516d;
+  box-shadow: inset 0 -4px #ffd04e;
+}
+#legal-card h2 {
+  font-size: 28px;
+  margin: 22px 0 0;
+}
 #legal-card .legal-credit {
   display: block;
   width: 100%;

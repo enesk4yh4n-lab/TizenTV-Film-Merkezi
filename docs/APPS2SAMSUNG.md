@@ -1,12 +1,14 @@
 # Apps2Samsung catalog and certificates
 
-Research checked on 29 October 2026, including stable **v2.8.3** source.
+Catalog checked on 2 November 2026. The signing references below were inspected on 29 October 2026, including stable **v2.8.3** source.
 
 ## Catalog inclusion
 
 The public catalog is maintained at [Apps2Samsung/tizen-community-packages](https://github.com/Apps2Samsung/tizen-community-packages). Each app has one `packages/<owner>__<repo>.json` entry. The fastest route is a pull request; a contribution issue is also accepted. The project requires open-source/freely redistributable software, appropriate distribution rights and testing on at least one Tizen device/emulator. Maintainers make the acceptance decision.
 
-Film Merkezi's release includes multiple assets, so the proposed manifest selects only `Film-Merkezi-TV-1.0.0-public.wgt` through `assets[].match`. It identifies `streaming`, sets `adult: true` because adult-capable site providers are included, and does not request root or per-user API values. The 18+ flag can hide the entry until the user opts in. See the [package format](https://github.com/Apps2Samsung/tizen-community-packages/blob/main/packages/README.md) and [schema](https://github.com/Apps2Samsung/tizen-community-packages/blob/main/packages.schema.json).
+Film Merkezi was accepted through [PR #165](https://github.com/Apps2Samsung/tizen-community-packages/pull/165). The existing entry selects only `Film-Merkezi-TV-<version>-public.wgt` through `assets[].match`; source ZIPs cannot be mistaken for the app. New stable GitHub Releases are picked up by normal catalog synchronization. Category remains `streaming`; root and per-user API settings are not required.
+
+The application includes filtering intended to hide adult content and is not intended as an adult-content catalog. For 1.1.7, an update PR requests `adult: false` and a revised description. The original `adult: true` entry remains effective until maintainers accept and distribute that change. A new upstream release alone does not remove the label. See the [package format](https://github.com/Apps2Samsung/tizen-community-packages/blob/main/packages/README.md) and [schema](https://github.com/Apps2Samsung/tizen-community-packages/blob/main/packages.schema.json).
 
 ## What happens to signing
 

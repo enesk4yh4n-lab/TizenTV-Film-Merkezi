@@ -4,7 +4,7 @@
   function tr(value) {
     return root.FilmI18n ? root.FilmI18n.text(value) : value;
   }
-  var info = { version: '1.0.0' };
+  var info = { version: '1.1.7' };
   info.support = function (controller) {
     var c = controller || {},
       tracks = c.tracks || {},

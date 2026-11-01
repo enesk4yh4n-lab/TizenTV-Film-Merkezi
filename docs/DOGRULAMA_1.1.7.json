@@ -1,0 +1,21 @@
+{
+  "version": "1.1.7",
+  "passed": true,
+  "runtimeFiles": 170,
+  "publicFiles": 206,
+  "runtimeMatchesWorkingSource": true,
+  "personalDataHits": [],
+  "rootSignatures": [],
+  "packageBytes": 4225446,
+  "packageSha256": "ab2dff90db66c538bf718558fcc7df58b196c1a2e8ee982b1a3d89a085c35382",
+  "focusedChecks": 34,
+  "es5Files": 124,
+  "newTvTest": false,
+  "legacyRunner": "obsolete startup-picker assertion failed; not counted as pass; relevant parser cases rerun separately",
+  "nativeCompilerPaths": "historical Linux SDK build paths remain inside the three unchanged NEXE executables; not user credentials",
+  "nativeCompilerPathFiles": [
+    "app/ortak/ag/native/https-arm.nexe",
+    "app/ortak/ag/native/https-x86-32.nexe",
+    "app/ortak/ag/native/https-x86-64.nexe"
+  ]
+}

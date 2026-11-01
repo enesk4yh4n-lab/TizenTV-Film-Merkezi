@@ -65,6 +65,7 @@
         ? this.library.seasons
         : {};
     this.records = read(storage, RECORDS, { version: 1, items: {} });
+    this.recordSizes = Object.create(null);
     this.records.items =
       this.records.items &&
       typeof this.records.items === 'object' &&
@@ -105,17 +106,20 @@
               return !protectedIds[id];
             })
             .map(function (id) {
+              var row = self.records.items[id], saved = self.recordSizes[id];
+              if (!saved || saved.row !== row)
+                saved = self.recordSizes[id] = { row: row,
+                  bytes: (JSON.stringify(row).length + JSON.stringify(id).length + 3) * 2 };
               return {
                 id: id,
                 at: self.records.items[id].at || 0,
-                bytes:
-                  (JSON.stringify(self.records.items[id]).length + JSON.stringify(id).length + 3) *
-                  2
+                bytes: saved.bytes
               };
             });
         },
         evict: function (id) {
           delete self.records.items[id];
+          delete self.recordSizes[id];
         },
         serialize: function () {
           return JSON.stringify(self.records);
@@ -171,7 +175,8 @@
       .slice(Math.max(0, 600 - Object.keys(protectedIds).length))
       .forEach(function (key) {
         delete items[key];
-      });
+        delete this.recordSizes[key];
+      }, this);
     if (!defer) this.write(RECORDS, this.records);
   };
   Store.prototype.rememberMany = function (cards) {
@@ -246,6 +251,7 @@
       list.unshift(minimal(card));
     }
     this.write(LIBRARY, this.library);
+    if (this.storage && this.storage.protectionChanged) this.storage.protectionChanged();
     return true;
   };
   Store.prototype.season = function (id, value) {
@@ -335,6 +341,7 @@
     this.limit = 1024 * 1024;
     this.failed = false;
     this.data = read(storage, CACHE, { version: 1, items: {} });
+    this.sizes = Object.create(null);
     this.data.items =
       this.data.items && typeof this.data.items === 'object' && !Array.isArray(this.data.items)
         ? this.data.items
@@ -354,25 +361,41 @@
             return {
               id: id,
               at: item.used || item.at,
-              bytes: (JSON.stringify(item).length + JSON.stringify(id).length + 3) * 2
+              bytes: self.entryBytes(id) + 2
             };
           });
         },
         evict: function (id) {
           delete self.data.items[id];
+          delete self.sizes[id];
         },
         serialize: function () {
           return JSON.stringify(self.data);
         }
       });
   }
+  Cache.prototype.entryBytes = function (key) {
+    var item = this.data.items[key], saved = this.sizes[key];
+    if (!saved || saved.item !== item || saved.used !== item.used) {
+      saved = { item: item, used: item.used,
+        bytes: (JSON.stringify(key).length + 1 + JSON.stringify(item).length) * 2 };
+      this.sizes[key] = saved;
+    }
+    return saved.bytes;
+  };
   Cache.prototype.trim = function () {
     var self = this,
       keys = Object.keys(this.data.items).sort(function (a, b) {
         return self.data.items[a].used - self.data.items[b].used;
       });
-    while (JSON.stringify(this.data).length * 2 > this.limit && keys.length)
-      delete this.data.items[keys.shift()];
+    var bytes = JSON.stringify({ version: 1, items: {} }).length * 2;
+    keys.forEach(function (key, index) { bytes += self.entryBytes(key) + (index ? 2 : 0); });
+    while (bytes > this.limit && keys.length) {
+      var key = keys.shift();
+      bytes -= self.entryBytes(key) + (keys.length ? 2 : 0);
+      delete this.data.items[key];
+      delete this.sizes[key];
+    }
   };
   Cache.prototype.get = function (key) {
     var item = own(this.data.items, key) && this.data.items[key];
@@ -400,6 +423,7 @@
   };
   Cache.prototype.clear = function () {
     this.data.items = {};
+    this.sizes = Object.create(null);
     try {
       if (this.storage) this.storage.removeItem(CACHE);
     } catch (ignore) {}

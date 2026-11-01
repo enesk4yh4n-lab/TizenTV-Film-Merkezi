@@ -1,11 +1,11 @@
-# Apps2Samsung ile kurulum
+# Apps2Samsung ile kurulum — 1.1.7
 
-1. TV ve telefon/bilgisayarı aynı yerel ağa bağlayın. TV'nin Apps ekranında geliştirici modunu açın; Host PC IP alanına kurulumu yapan telefon/bilgisayarın adresini yazın. Gerekirse TV'yi yeniden başlatın.
-2. Apps2Samsung'u resmî deposundan kurun: https://github.com/Apps2Samsung/Apps2Samsung . TV'yi taratın veya yerel IP'sini girin.
-3. Genel katalog başvurusu kabul edilene kadar Custom WGT/TPK üzerinden **Film-Merkezi-TV-1.0.0-public.wgt** seçin. Kaynak ZIP'i uygulama paketi değildir.
-4. Apps2Samsung sertifika gerektiğinde Samsung hesabı girişi açar. Sertifikayı kullanıcının TV'sine göre oluşturur ve WGT'yi yeniden imzalar. Geçerli profil aynı TV'yi kapsıyorsa tekrar giriş gerekmeyebilir.
-5. Kurulumdan sonra uygulamayı açın ve kullanım bilgilendirmesini okuyun. Normal kullanımda kurulum telefonu/bilgisayarı veya ek sunucu gerekmez.
+1. TV ve telefon/bilgisayarı aynı yerel ağa bağlayın. TV'nin Apps ekranında geliştirici modunu açın; Host PC IP alanına kurulumu yapan cihazın yerel adresini yazın. TV'nin istediği yeniden başlatmayı uygulayın.
+2. [Resmî Apps2Samsung uygulamasını](https://github.com/Apps2Samsung/Apps2Samsung) açın ve TV'ye bağlanın.
+3. Film Merkezi topluluk kataloğunda bulunur. Katalogda 1.1.7 henüz görünmüyorsa [bu yayından](https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/releases/tag/v1.1.7) **Film-Merkezi-TV-1.1.7-public.wgt** indirin ve Custom WGT/TPK ile seçin. Kaynak ZIP'leri kurulum paketi değildir.
+4. Apps2Samsung gerektiğinde Samsung hesabı girişiyle TV'ye yetkili sertifikayı hazırlar ve WGT'yi imzalar. Geçerli profiliniz varsa aynı author kimliğini kullanın; her güncellemede yeni sertifika üretmeniz gerekmez.
+5. Film Merkezi'ni açın, Türkçe/İngilizce dilini ve katalog birleştirme tercihini seçin, kullanım bilgilendirmesini okuyup kabul edin. Normal kullanımda bilgisayar veya ek sunucu gerekmez.
 
-Genel WGT imzasızdır; geliştiriciye ait özel anahtar, parola ve DUID listesi içermez. Samsung hesabı/parola/tokenları bu projenin issue'larına gönderilmez. Mevcut uygulamayı farklı author sertifikasıyla güncellemek engellenebilir; sertifika yenilemesini her seferinde zorlamayın. Kaldırma işlemi kayıtları silebilir.
+Public WGT imzasızdır; özel anahtar, parola veya geliştirici sertifikası içermez. Doğrudan imzasız kurulum beklenmez. Farklı author sertifikası mevcut uygulamaya güncellemeyi engelleyebilir; uygulamayı kaldırmak yerel kayıtları silebilir.
 
-Uygulama bazı yetişkin içerik sunabilen kaynaklar içerir. Başvuru `adult: true` olarak yapılır; Apps2Samsung'un 18+ filtresi kapalıyken görünmeyebilir. Kabul ve katalogya dağıtım zamanını Apps2Samsung yöneticileri belirler.
+Katalogda yetişkin içerikleri göstermemeye yönelik filtreleme kullanılır. Film Merkezi yetişkin içerik kataloğu sunmayı amaçlamaz. Apps2Samsung'daki eski +18 işaretinin güncellenmesi için katalog kaydına değişiklik önerilir; yönetici kabulü ve katalog dağıtımı tamamlanana kadar eski işaret görünebilir.

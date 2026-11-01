@@ -1,8 +1,7 @@
 /* One playback session, independent site clients, unchanged provider resolvers. */
 (function (root) {
   'use strict';
-  var C = root.PlayerCore,
-    U = root.CatalogUtils;
+  var C = root.PlayerCore;
   function cancelled() {
     var e = new Error('Kaynak araması iptal edildi.');
     e.cancelled = true;
@@ -72,6 +71,12 @@
   }
   function prepare(content, hub) {
     if (!content || !hub || content.referenceTrial) return content;
+    if (hub.merging === false) {
+      if (!content.sourceContext) return content;
+      var direct = copy(content);
+      delete direct.sourceContext;
+      return direct;
+    }
     var site = root.SiteRegistry.forContent(content),
       episode = content.type === 'episode' && content.episode,
       group = hub.group(content.canonicalId || content.contentId),

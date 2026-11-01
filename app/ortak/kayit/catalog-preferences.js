@@ -37,15 +37,24 @@
       version: 1,
       recent: [],
       recommendation: { genre: '', minImdb: 0 },
-      language: 'tr'
+      language: 'tr',
+      mergeCatalog: false
     };
     try {
       var raw = storage && storage.getItem(KEY),
-        d = raw && JSON.parse(raw);
+        d;
+      this.existingInstall = !!(raw || (storage && (
+        storage.getItem('filmmerkezi.usage-consent.v1') ||
+        storage.getItem('filmmerkezi.unified.v1') ||
+        storage.getItem('chainprobe.player.v1')
+      )));
+      this.data.mergeCatalog = this.existingInstall;
+      d = raw && JSON.parse(raw);
       if (raw && (raw.length > 16384 || !d || d.version !== 1 || !Array.isArray(d.recent)))
         throw Error('Unknown preferences');
       if (d) {
         this.data.language = d.language === 'en' ? 'en' : 'tr';
+        if (typeof d.mergeCatalog === 'boolean') this.data.mergeCatalog = d.mergeCatalog;
         var used = Object.create(null),
           self = this;
         d.recent.forEach(function (row) {
@@ -71,6 +80,7 @@
     if (this.blocked) return;
     try {
       if (this.storage) this.storage.setItem(KEY, JSON.stringify(this.data));
+      this.failed = false;
     } catch (error) {
       if (!this.failed) this.notify('Arama tercihleri kaydedilemedi; bu oturumda korunuyor.');
       this.failed = true;
@@ -85,6 +95,13 @@
       this.flush();
     }
     return this.data.language;
+  };
+  Preferences.prototype.merging = function (value) {
+    if (typeof value === 'boolean') {
+      this.data.mergeCatalog = value;
+      this.flush();
+    }
+    return this.data.mergeCatalog;
   };
   Preferences.prototype.remember = function (query) {
     if (typeof query !== 'string') return;

@@ -19,15 +19,7 @@
       ['title', 'A–Z']
     ];
     function score(card, query) {
-      var q = I.name(query),
-        best = 0;
-      [card.title, card.originalTitle].concat(card.titleAliases || []).forEach(function (v) {
-        var t = card.type === 'series' ? I.seriesName(v) : I.name(v);
-        if (!t) return;
-        var n = t === q ? 100 : t.indexOf(q) === 0 ? 80 : t.indexOf(q) >= 0 ? 60 : 0;
-        best = Math.max(best, n);
-      });
-      return best;
+      return I.score(card, query);
     }
     function compare(a, b) {
       var x = I.name(a.title),
@@ -48,7 +40,7 @@
         })
       )
         return items.slice();
-      return items.slice().sort(function (a, b) {
+      return I.withBatch(function () { return items.slice().sort(function (a, b) {
         var n = 0,
           x,
           y;
@@ -66,7 +58,7 @@
           }
         }
         return n || compare(a, b);
-      });
+      }); });
     }
     function context(s) {
       return s.kind === 'detail' && s.detail && s.detail.type === 'collection'
@@ -141,12 +133,24 @@
     };
     P.gridItems = function (screen) {
       var s = screen || this.screen,
-        items = s.items || [];
+        items = s.items || [],
+        mode = this.catalogOrderMode(s),
+        revision = this.hub ? this.hub.revision : 0,
+        query = typeof s.query === 'string' ? s.query : JSON.stringify(s.query || {}),
+        cache = s.orderedGrid;
+      if (cache && cache.items === items && cache.length === items.length &&
+          cache.revision === revision && cache.catalogRevision === s.catalogRevision &&
+          cache.mode === mode && cache.query === query && cache.tab === s.tab)
+        return cache.value;
+      var source = items;
       if (s.kind === 'search' && s.tab && s.tab !== 'all')
         items = items.filter(function (c) {
-          return c.type === s.tab;
+          return c.type === s.tab && c.identityState !== 'pending';
         });
-      return enabled(s) ? this.orderCards(items, s) : items;
+      var value = enabled(s) ? this.orderCards(items, s) : items;
+      s.orderedGrid = { items: source, length: source.length, revision: revision,
+        catalogRevision: s.catalogRevision, mode: mode, query: query, tab: s.tab, value: value };
+      return value;
     };
     P.collectionEntries = function (s) {
       var items = s.detail.collectionItems || [],

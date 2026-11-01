@@ -25,7 +25,7 @@
       },
       protect: function (k) {
         if (storage && storage.protect) storage.protect(prefix + k);
-      },
+      }
     };
   }
   function minimal(card, provider, preserveUnavailable) {
@@ -69,11 +69,22 @@
       title: U.clean(card.title).slice(0, 300),
       poster: U.url(card.poster, card.pageUrl),
       year: I.year(card.year),
-      imdbId: I.imdb(card.imdbId || card.imdbUrl),
+      imdbId: I.imdb(card.imdbId || card.imdbUrl)
     };
     if (!v.title) return null;
+    v.rawTitle = U.clean(card.rawTitle || card.title).slice(0, 300);
+    v.rawType = card.rawType || v.type;
+    v.rawYear = I.year(card.rawYear || card.year);
+    if (I.evidence(card).version === 2) v.identityEvidence = C.copy(I.evidence(card));
+    if (Array.isArray(card.identityCategories))
+      v.identityCategories = card.identityCategories.slice(0, 16).map(U.clean);
+    if (Number(card.sourceSeason) > 0) v.sourceSeason = Number(card.sourceSeason);
     if (Array.isArray(card.titleAliases))
       v.titleAliases = card.titleAliases.slice(0, 8).map(U.clean).filter(Boolean);
+    if (v.type === 'collection' && Array.isArray(card.collectionTitles))
+      v.collectionTitles = card.collectionTitles.slice(0, 200).map(function (title) {
+        return U.clean(title).slice(0, 300);
+      });
     if (card.releaseDate && /^\d{4}-\d{2}-\d{2}$/.test(card.releaseDate))
       v.releaseDate = card.releaseDate;
     if (card.originalTitle) v.originalTitle = U.clean(card.originalTitle).slice(0, 300);
@@ -87,7 +98,7 @@
         pageUrl: U.url(card.languageReference.pageUrl),
         title: U.clean(card.languageReference.title).slice(0, 300),
         checkedAt: Number(card.languageReference.checkedAt) || 0,
-        stale: !!card.languageReference.stale,
+        stale: !!card.languageReference.stale
       };
     if (
       card.episode &&
@@ -98,7 +109,7 @@
       v.episode = {
         seriesId: card.episode.seriesId,
         season: Number(card.episode.season),
-        number: Number(card.episode.number),
+        number: Number(card.episode.number)
       };
       v.seriesTitle = U.clean(card.seriesTitle);
       v.seriesPageUrl = U.url(card.seriesPageUrl);
@@ -106,10 +117,11 @@
     }
     return v;
   }
-  function Hub(storage, playback, notify) {
+  function Hub(storage, playback, notify, merging) {
     this.storage = storage;
     this.playback = playback;
     this.notify = notify || function () {};
+    this.merging = merging !== false;
     this.limit = 1024 * 1024;
     this.rawGet = playback.get.bind(playback);
     this.rawList = playback.list.bind(playback);
@@ -117,6 +129,7 @@
     this.dirty = false;
     this.failed = false;
     this.revision = 0;
+    this.sizes = map();
     this.batchDepth = 0;
     this.seriesDirty = false;
     this.pendingWork = 0;
@@ -126,7 +139,7 @@
       favorites: [],
       redirects: {},
       seasons: {},
-      imported: false,
+      imported: false
     };
     if (root.SafeStorage)
       this.data = root.SafeStorage.read(
@@ -186,6 +199,8 @@
     });
     this.rebuild();
     this.series = new root.SeriesState(scoped(storage, 'unified.'), this.notify);
+    if (this.data.identityVersion !== 2 && this.merging) this.migrateIdentity();
+    else if (!Object.keys(this.data.items).length) this.data.identityVersion = 2;
     if (storage && storage.registerCache)
       storage.registerCache(KEY, {
         candidates: function () {
@@ -197,7 +212,7 @@
         },
         serialize: function () {
           return JSON.stringify(self.data);
-        },
+        }
       });
     this.importLegacy();
     this.installPlaybackBridge();
@@ -206,6 +221,7 @@
     return parent + '|' + season + '|' + number;
   }
   Hub.prototype.unindex = function (id) {
+    delete this.sizes[id];
     var row = this.indexed[id],
       self = this;
     if (!row) return;
@@ -228,6 +244,12 @@
   };
   Hub.prototype.indexGroup = function (g) {
     this.unindex(g.id);
+    if (this.merging && g.type !== 'episode' && g.type !== 'collection') {
+      var projection = I.project(g.variants);
+      Object.keys(projection).forEach(function (k) {
+        g[k] = projection[k];
+      });
+    }
     var self = this,
       row = { aliases: [], keys: [], hints: [], episode: '' };
     this.indexed[g.id] = row;
@@ -240,19 +262,9 @@
     g.variants.forEach(function (v) {
       self.aliases[v.contentId] = g.id;
       row.aliases.push(v.contentId);
-      I.keys(v).forEach(function (k) {
+      (self.merging ? I.keys(v) : []).forEach(function (k) {
         add(self.keys, row.keys, k);
       });
-      if (g.year && (g.type === 'movie' || g.type === 'series'))
-        I.keys({
-          type: g.type,
-          year: g.year,
-          title: v.title,
-          originalTitle: v.originalTitle,
-          titleAliases: v.titleAliases,
-        }).forEach(function (k) {
-          add(self.hints, row.hints, k);
-        });
     });
     if (g.type === 'episode' && g.parent) {
       row.episode = episodeKey(g.parent, g.season, g.number);
@@ -271,6 +283,14 @@
       self.indexGroup(self.data.items[id]);
     });
   };
+  Hub.prototype.setMerging = function (enabled) {
+    enabled = enabled !== false;
+    if (this.merging === enabled) return;
+    this.merging = enabled;
+    this.rebuild();
+    if (enabled && this.data.identityVersion !== 2) this.migrateIdentity();
+    this.revision++;
+  };
   Hub.prototype.episodeGroup = function (parent, season, number, skip) {
     var ids = this.episodeGroups[episodeKey(parent, season, number)] || [];
     for (var i = 0; i < ids.length; i++)
@@ -280,7 +300,7 @@
   Hub.prototype.batch = function (action) {
     this.batchDepth++;
     try {
-      return action();
+      return I.withBatch(action);
     } finally {
       this.batchDepth--;
       if (!this.batchDepth && this.seriesDirty) {
@@ -364,27 +384,31 @@
         return {
           id: id,
           at: self.data.items[id].updated || 0,
-          bytes: (JSON.stringify(self.data.items[id]).length + JSON.stringify(id).length + 3) * 2,
+          bytes: self.entryBytes(id) + 2
         };
       });
+  };
+  Hub.prototype.entryBytes = function (id) {
+    var saved = this.sizes[id], value = this.data.items[id];
+    if (!saved || saved.value !== value)
+      saved = this.sizes[id] = { value: value,
+        bytes: (JSON.stringify(id).length + JSON.stringify(value).length + 2) * 2 };
+    return saved.bytes;
   };
   Hub.prototype.trim = function () {
     var self = this,
       protectedIds = this.protectedIds(),
       keys = Object.keys(this.data.items),
       sizes = map(),
-      size =
-        JSON.stringify({
-          version: this.data.version,
-          items: {},
-          favorites: this.data.favorites,
-          redirects: this.data.redirects,
-          seasons: this.data.seasons,
-          imported: this.data.imported,
-        }).length * 2,
+      header = {},
+      size,
       count = keys.length;
+    Object.keys(this.data).forEach(function (key) {
+      header[key] = key === 'items' ? {} : self.data[key];
+    });
+    size = JSON.stringify(header).length * 2;
     keys.forEach(function (k) {
-      sizes[k] = (JSON.stringify(k).length + JSON.stringify(self.data.items[k]).length + 2) * 2;
+      sizes[k] = self.entryBytes(k);
       size += sizes[k];
     });
     keys.sort(function (a, b) {
@@ -404,13 +428,78 @@
     });
   };
   Hub.prototype.allocate = function (v, custom) {
-    var keys = I.keys(v),
+    var keys = custom ? [] : I.keys(v),
       key = custom || keys[0] || v.type + '|source|' + v.contentId,
       base = 'unified:' + v.type + ':' + encodeURIComponent(key),
-      id = base,
+      id = (this.migrationIds && this.migrationIds[v.contentId]) || base,
       i = 1;
     while (own(this.data.items, id)) id = base + ':' + ++i;
     return id;
+  };
+  Hub.prototype.migrateIdentity = function () {
+    var self = this,
+      old = this.data.items,
+      rows = [],
+      redirects = this.data.redirects;
+    this.migrationIds = map();
+    Object.keys(old).forEach(function (id) {
+      var g = old[id],
+        variants = g.variants.slice().sort(function (a, b) {
+          return a.contentId < b.contentId ? -1 : a.contentId > b.contentId ? 1 : 0;
+        }),
+        anchor =
+          variants.filter(function (v) {
+            return v.contentId === g.preferred;
+          })[0] || variants[0];
+      if (anchor) self.migrationIds[anchor.contentId] = id;
+      if (anchor) rows.push(anchor);
+      variants.forEach(function (v) {
+        if (v !== anchor) rows.push(v);
+      });
+    });
+    this.data.items = {};
+    this.data.redirects = {};
+    this.rebuild();
+    rows.sort(function (a, b) {
+      return (a.type === 'episode' ? 1 : 0) - (b.type === 'episode' ? 1 : 0);
+    });
+    this.batch(function () {
+      rows.forEach(function (v) {
+        self.observe(v, v.providerId, true);
+      });
+    });
+    Object.keys(old).forEach(function (id) {
+      var preferred = old[id].preferred,
+        selected = preferred && self.group(preferred);
+      if (
+        selected &&
+        (!selected.preferred || (old[id].chosenAt || 0) >= (selected.chosenAt || 0))
+      ) {
+        selected.preferred = preferred;
+        selected.chosenAt = old[id].chosenAt || 0;
+      }
+      if (!self.group(id)) {
+        var source = old[id].preferred || old[id].variants[0].contentId,
+          target = self.resolveId(source);
+        if (target) self.data.redirects[id] = target;
+      }
+    });
+    Object.keys(redirects).forEach(function (id) {
+      if (!self.data.items[id] && !self.aliases[id] && self.resolveId(redirects[id]))
+        self.data.redirects[id] = self.resolveId(redirects[id]);
+    });
+    this.data.favorites.forEach(function (f) {
+      var id = self.resolveId(f.sourceId);
+      if (id) f.id = id;
+    });
+    Object.keys(this.data.seasons).forEach(function (id) {
+      var target = self.resolveId(id);
+      if (target && !self.data.seasons[target]) self.data.seasons[target] = self.data.seasons[id];
+    });
+    this.migrationIds = null;
+    this.data.identityVersion = 2;
+    this.reconcileSeries();
+    this.changed();
   };
   Hub.prototype.reconcileSeries = function () {
     if (!this.series) return;
@@ -470,8 +559,21 @@
     }
   };
   Hub.prototype.merge = function (keep, drop) {
+    if (!this.merging) return keep;
     if (!keep || !drop || keep.id === drop.id) return keep;
-    if (keep.type !== drop.type || (keep.imdbId && drop.imdbId && keep.imdbId !== drop.imdbId))
+    if (keep.type === 'episode' || drop.type === 'episode') {
+      if (
+        keep.type !== drop.type ||
+        keep.parent !== drop.parent ||
+        keep.season !== drop.season ||
+        keep.number !== drop.number
+      )
+        return keep;
+    } else if (
+      !drop.variants.some(function (v) {
+        return I.compatible(v, keep.variants);
+      })
+    )
       return keep;
     keep.created = Math.min(keep.created || Date.now(), drop.created || Date.now());
     var self = this;
@@ -522,16 +624,32 @@
     return keep;
   };
   Hub.prototype.observe = function (card, provider, defer) {
-    var v = minimal(card, provider);
+    var v = minimal(card, provider, !!this.migrationIds);
     if (!v) return null;
+    v = this.corroborate(v);
     var self = this,
       old = this.group(v.contentId),
       g = null,
-      keys = I.keys(v),
+      keys = this.merging ? I.keys(v) : [],
       parent = null,
-      conflict =
-        old && (old.type !== v.type || (old.imdbId && v.imdbId && old.imdbId !== v.imdbId)),
+      conflict = false,
       detachedFavorite = null;
+    if (old) {
+      var prior = old.variants.filter(function (x) {
+        return x.contentId === v.contentId;
+      })[0];
+      if (prior && prior.identityEvidence && !v.identityEvidence)
+        v.identityEvidence = C.copy(prior.identityEvidence);
+      conflict = this.merging && old.variants.some(function (x) {
+        return (
+          x.contentId !== v.contentId &&
+          (I.decide(v, x).state === 'different' || I.evidence(v).imdbConflict)
+        );
+      });
+    }
+    var facts = this.merging ? I.analyze(v) : { type: v.type, season: v.sourceSeason || null };
+    v.sourceSeason = facts.season;
+    v.type = facts.type;
     if (v.type === 'episode' && v.episode) {
       parent = this.group(v.episode.seriesId);
       if (!parent && v.seriesPageUrl && v.seriesTitle)
@@ -541,12 +659,12 @@
             type: 'series',
             pageUrl: v.seriesPageUrl,
             title: v.seriesTitle,
-            poster: v.poster,
+            poster: v.poster
           },
           v.providerId,
           true
         );
-      if (parent) g = this.episodeGroup(parent.id, v.episode.season, v.episode.number);
+      if (parent && this.merging) g = this.episodeGroup(parent.id, v.episode.season, v.episode.number);
     }
     if (conflict) {
       old.variants = old.variants.filter(function (x) {
@@ -561,69 +679,44 @@
       } else this.indexGroup(old);
       old = null;
     }
-    if (!g && v.imdbId) {
-      var ids = this.keys[v.type + '|imdb|' + v.imdbId] || [];
-      g = ids.length ? this.group(ids[0]) : null;
+    if (old) {
+      old.variants = old.variants.map(function (x) {
+        return x.contentId === v.contentId ? v : x;
+      });
+      this.indexGroup(old);
+      keys = this.merging ? I.keys(v) : [];
+    }
+    if (this.merging && !g && v.type !== 'episode' && v.type !== 'collection') {
+      var candidates = [],
+        seenCandidates = map();
+      keys.forEach(function (k) {
+        (self.keys[k] || []).forEach(function (id) {
+          if (!seenCandidates[id]) {
+            seenCandidates[id] = true;
+            var candidate = self.group(id);
+            if (candidate) candidates.push(candidate);
+          }
+        });
+      });
+      var matches = I.select(v, candidates);
+      if (matches.length) {
+        g = matches[0];
+        matches.slice(1).forEach(function (peer) {
+          g = self.merge(g, peer);
+        });
+      }
     }
     if (!g && old) g = old;
-    if (!g && v.type !== 'episode')
-      keys.some(function (k) {
-        var matches = (self.keys[k] || [])
-          .map(function (id) {
-            return self.group(id);
-          })
-          .filter(function (x) {
-            return x && x.type === v.type && !(v.imdbId && x.imdbId && v.imdbId !== x.imdbId);
-          });
-        if (matches.length === 1) {
-          g = matches[0];
-          return true;
-        }
-        return false;
-      });
     if (!g) {
       var id = this.allocate(
         v,
-        parent ? 'episode|' + parent.id + '|' + v.episode.season + '|' + v.episode.number : null
+        !this.merging ? 'source|' + v.contentId :
+          parent ? 'episode|' + parent.id + '|' + v.episode.season + '|' + v.episode.number : null
       );
-      g = {
-        id: id,
-        type: v.type,
-        variants: [],
-        created: Date.now(),
-        updated: Date.now(),
-      };
+      g = { id: id, type: v.type, variants: [], created: Date.now(), updated: Date.now() };
       this.data.items[id] = g;
     }
     if (old && old.id !== g.id) g = this.merge(g, old);
-    if (v.type !== 'episode') {
-      var peers = map(),
-        ambiguous = false;
-      keys.forEach(function (k) {
-        if (k.indexOf('|name|') < 0) return;
-        (self.keys[k] || []).forEach(function (id) {
-          var peer = self.group(id);
-          if (!peer || peer.id === g.id) return;
-          if ((v.imdbId || g.imdbId) && peer.imdbId && peer.imdbId !== (v.imdbId || g.imdbId)) {
-            ambiguous = true;
-            return;
-          }
-          peers[peer.id] = peer;
-        });
-      });
-      var peerIds = Object.keys(peers),
-        knownIds = map();
-      if (g.imdbId) knownIds[g.imdbId] = true;
-      if (v.imdbId) knownIds[v.imdbId] = true;
-      peerIds.forEach(function (id) {
-        if (peers[id].imdbId) knownIds[peers[id].imdbId] = true;
-      });
-      if (Object.keys(knownIds).length > 1) ambiguous = true;
-      if (!ambiguous)
-        peerIds.forEach(function (id) {
-          g = self.merge(g, self.group(id));
-        });
-    }
     var previous = g.variants.filter(function (x) {
       return x.contentId === v.contentId;
     })[0];
@@ -633,6 +726,7 @@
         if (v[k] !== '' && v[k] !== null && v[k] !== undefined) previous[k] = v[k];
       });
     else g.variants.push(v);
+    I.invalidate(previous);
     ['title', 'originalTitle', 'poster', 'year', 'language', 'imdb'].forEach(function (k) {
       if (!g[k] && v[k]) g[k] = v[k];
     });
@@ -652,8 +746,7 @@
           return;
         var prior = self.group(id);
         if (prior && prior.id !== g.id) {
-          if (prior.type === g.type) g = self.merge(g, prior);
-          else {
+          {
             self.data.favorites.forEach(function (f) {
               if (f.id === prior.id && f.sourceId === id) f.id = g.id;
             });
@@ -696,7 +789,7 @@
       out = [];
     (cards || []).forEach(function (c) {
       var current = self.card(c.contentId) || c,
-        id = self.resolveId(current.contentId) || current.contentId;
+        id = self.merging ? self.resolveId(current.contentId) || current.contentId : current.contentId;
       if (seen[id]) return;
       seen[id] = true;
       [
@@ -706,54 +799,13 @@
         'newCount',
         'checkedAt',
         'historyCompleted',
-        'historyAt',
+        'historyAt'
       ].forEach(function (k) {
         if (c[k] !== undefined) current[k] = C.copy(c[k]);
       });
       out.push(current);
     });
     return out;
-  };
-  Hub.prototype.hintMatches = function (card) {
-    var self = this,
-      seen = map(),
-      out = [],
-      y = I.year(card.yearHint);
-    I.keys({
-      type: card.type,
-      year: y,
-      title: card.title,
-      originalTitle: card.originalTitle,
-      titleAliases: card.titleAliases,
-    }).forEach(function (k) {
-      (self.hints[k] || []).forEach(function (id) {
-        if (seen[id]) return;
-        seen[id] = true;
-        var g = self.group(id);
-        if (
-          g &&
-          g.type === card.type &&
-          g.year === y &&
-          !(card.imdbId && g.imdbId && card.imdbId !== g.imdbId)
-        )
-          out.push(g);
-      });
-    });
-    return out;
-  };
-  Hub.prototype.corroborateSeries = function (card) {
-    if (card.type !== 'series' || I.year(card.year) || !I.year(card.yearHint)) return card;
-    var matches = this.hintMatches(card);
-    if (
-      matches.length === 1 &&
-      matches[0].variants.some(function (v) {
-        return v.providerId !== card.providerId;
-      })
-    ) {
-      card = C.copy(card);
-      card.year = I.year(card.yearHint);
-    }
-    return card;
   };
   Hub.prototype.observeDetail = function (detail, provider) {
     var self = this;
@@ -768,24 +820,26 @@
       });
       children.forEach(function (child, i) {
         if (children[i + 1]) child.nextId = children[i + 1].id;
+        delete self.sizes[child.id];
       });
       self.changed();
       return g;
     });
   };
   Hub.prototype.corroborate = function (card) {
-    if (card.type === 'series') return this.corroborateSeries(card);
-    if (card.type !== 'movie' || I.year(card.year) || !I.year(card.yearHint)) return card;
-    var matches = this.hintMatches(card).filter(function (g) {
-      return g.variants.some(function (v) {
-        return v.providerId !== card.providerId;
+    if (!this.merging) return card;
+    var self = this,
+      references = [],
+      seen = map();
+    I.keys(card).forEach(function (k) {
+      (self.keys[k] || []).forEach(function (id) {
+        if (seen[id]) return;
+        seen[id] = true;
+        var g = self.group(id);
+        if (g) references = references.concat(g.variants);
       });
     });
-    if (matches.length === 1) {
-      card = C.copy(card);
-      card.year = I.year(card.yearHint);
-    }
-    return card;
+    return I.confirmAgainst(card, references);
   };
   /* Revisit only this interaction's variants after all metadata has arrived. No title-only year guesses. */
   Hub.prototype.reconcileValues = function (ids) {
@@ -810,7 +864,7 @@
     var self = this,
       before = this.resolveId(v.contentId),
       verified = this.corroborate(v),
-      needs = verified.year !== v.year;
+      needs = verified.year !== v.year || verified.type !== v.type;
     if (!needs)
       needs = I.keys(verified).some(function (k) {
         return (self.keys[k] || []).some(function (id) {
@@ -822,6 +876,7 @@
     return !!g && (before !== g.id || verified.year !== v.year);
   };
   Hub.prototype.reconcile = function (ids) {
+    if (!this.merging) return;
     var self = this;
     return this.batch(function () {
       for (var pass = 0; pass < 3; pass++) {
@@ -838,6 +893,7 @@
   };
   /* Yield between small batches so Back, directional keys and video events can run. */
   Hub.prototype.reconcileAsync = function (ids, valid) {
+    if (!this.merging) return Promise.resolve();
     var self = this;
     this.pendingWork++;
     clearTimeout(this.timer);
@@ -904,6 +960,18 @@
   Hub.prototype.card = function (id) {
     var g = this.group(id);
     if (!g) return null;
+    if (!this.merging) {
+      var raw = this.preferred(g, /^unified:/.test(id) ? null : id),
+        site = raw && root.SiteRegistry.get(raw.providerId);
+      if (!raw) return null;
+      raw.canonicalId = g.id;
+      raw.contentId = /^unified:/.test(id) ? g.id : raw.contentId;
+      raw.variants = [C.copy(this.preferred(g, raw.contentId))];
+      raw.providerNames = site ? [site.name] : [];
+      raw.providerCount = site ? 1 : 0;
+      raw.firstSeenAt = g.created;
+      return raw;
+    }
     var v = this.preferred(g),
       c = {
         contentId: g.id,
@@ -916,12 +984,20 @@
         year: g.year || null,
         imdb: g.imdb || null,
         imdbId: g.imdbId || '',
+        identityState: g.identityState || 'ready',
         language: v.language || g.language || '',
         variants: C.copy(g.variants),
         providerNames: [],
-        providerCount: 0,
+        providerCount: 0
       };
     if (v.languageReference) c.languageReference = C.copy(v.languageReference);
+    else g.variants.some(function (variant) {
+      if (variant.language === c.language && variant.languageReference) {
+        c.languageReference = C.copy(variant.languageReference);
+        return true;
+      }
+      return false;
+    });
     c.firstSeenAt = g.created;
     c.titleAliases = [];
     g.variants.forEach(function (x) {
@@ -944,7 +1020,7 @@
       c.episode = {
         seriesId: this.resolveId(g.parent),
         season: g.season,
-        number: g.number,
+        number: g.number
       };
       c.seriesTitle = g.seriesTitle;
       c.seriesPageUrl = (this.card(g.parent) || {}).pageUrl;
@@ -954,6 +1030,7 @@
     return c;
   };
   Hub.prototype.preferred = function (group, requested) {
+    if (!this.merging && typeof group === 'string' && !/^unified:/.test(group)) requested = requested || group;
     var g = typeof group === 'string' ? this.group(group) : group;
     if (!g) return null;
     var chosen = g.variants.filter(function (v) {
@@ -982,6 +1059,7 @@
     if (!variant) return false;
     g.preferred = rawId;
     g.chosenAt = g.updated = Date.now();
+    delete this.sizes[g.id];
     if (g.parent) {
       var parent = this.group(g.parent),
         match =
@@ -1028,7 +1106,7 @@
           g.variants.filter(function (v) {
             return v.contentId === (card.selectedVariant || card.contentId);
           })[0] || this.preferred(g)
-        ).contentId,
+        ).contentId
       });
     }
     this.changed();
@@ -1039,7 +1117,7 @@
     var self = this;
     return this.data.favorites
       .map(function (f) {
-        return self.card(f.id);
+        return self.card(self.merging ? f.id : f.sourceId) || self.card(f.id);
       })
       .filter(Boolean);
   };
@@ -1184,6 +1262,7 @@
             })
           : null
       );
+      if (self.storage && self.storage.protectionChanged) self.storage.protectionChanged();
     });
   };
   Hub.prototype.importLegacy = function () {
@@ -1314,7 +1393,8 @@
     this.hub.flush();
   };
   /* A navigation-owned result set survives disposable persistent-cache eviction. */
-  function ResultSet() {
+  function ResultSet(merging) {
+    this.merging = merging !== false;
     this.ids = [];
     this.cards = map();
     this.aliases = map();
@@ -1327,13 +1407,14 @@
     if (this.ids.indexOf(id) < 0) this.ids.push(id);
     (card.variants || [card]).forEach(function (v) {
       self.aliases[v.contentId] = id;
-      I.keys(v).forEach(function (k) {
+      (self.merging ? I.keys(v) : []).forEach(function (k) {
         if (!self.keys[k]) self.keys[k] = [];
         if (self.keys[k].indexOf(id) < 0) self.keys[k].push(id);
       });
     });
   };
   ResultSet.prototype.prepare = function (cards, hub) {
+    if (!this.merging) return;
     var self = this;
     cards.forEach(function (card) {
       var ids = [],
@@ -1353,14 +1434,14 @@
       });
     });
   };
-  ResultSet.prototype.snapshot = function (hub) {
+  ResultSet.prototype.snapshot = function (hub, projected) {
     var self = this,
       out = [],
       seen = map(),
       old = this.ids.slice();
     old.forEach(function (id) {
       var prior = self.cards[id],
-        current = hub.card(id) || prior;
+        current = (projected && projected[id]) || hub.card(id) || prior;
       if (!current) return;
       var canonical = current.contentId;
       self.cards[canonical] = current;
@@ -1388,7 +1469,10 @@
     (card.variants || [card]).forEach(function (v) {
       group = self.observe(v, v.providerId, true) || group;
     });
-    if (group && card.firstSeenAt) group.created = Math.min(group.created, card.firstSeenAt);
+    if (group && card.firstSeenAt) {
+      group.created = Math.min(group.created, card.firstSeenAt);
+      delete this.sizes[group.id];
+    }
     return group;
   };
   root.CatalogResultSet = ResultSet;

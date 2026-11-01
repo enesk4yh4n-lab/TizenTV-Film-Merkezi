@@ -82,7 +82,7 @@
         app.hub ||
         new root.UnifiedHub(storage, app.store, function (m) {
           app.view.toast(m);
-        });
+        }, root.FilmLegal && root.FilmLegal.preferences ? root.FilmLegal.preferences.merging() : true);
       this.hub = app.hub;
       Base.call(this, app, storage);
       this.hub.decorate(this.library);
@@ -347,13 +347,13 @@
         self.unifiedDrawTimer = null;
         if (self.screen !== s || self.generation !== token || self.suspended) return;
         if (
-          (s.kind === 'search' || s.kind === 'list') &&
+          (s.kind === 'search' || s.kind === 'list' || s.kind === 'home') &&
           s.catalogRevision &&
           s.catalogRevision === s.renderedCatalogRevision &&
           s.loading === s.renderedLoading &&
           s.searchNotice === s.renderedSearchNotice &&
           s.unifiedProgress &&
-          s.unifiedProgress.running &&
+          (s.kind === 'home' || s.unifiedProgress.running) &&
           !s.error
         )
           self.renderUnifiedStatus();
@@ -367,6 +367,7 @@
     P.refreshUnifiedScreen = function () {
       var s = this.screen;
       if (!this.site || !this.site.virtual || !s) return;
+      if (!this.hub.merging) return;
       var active = document.activeElement,
         wanted = active && active.catalogCard,
         match = /^card-(\d+)$/.exec(s.focusKey || ''),
@@ -560,6 +561,8 @@
         var site = root.SiteRegistry.get(v.providerId),
           label =
             (site ? site.name : v.providerId + ' · Kullanılamıyor') +
+            (v.sourceSeason ? ' · ' + v.sourceSeason + '. Sezon' : '') +
+            (v.rawTitle ? ' · ' + v.rawTitle : '') +
             (v.language ? ' · ' + v.language : '') +
             (d.selectedVariant === v.contentId ? ' · Seçili' : ''),
           button = b(
@@ -573,7 +576,7 @@
         button.disabled = !site;
         row.appendChild(button);
       });
-      row.appendChild(
+      if (this.hub.merging) row.appendChild(
         b(
           s.findingSites ? 'Sitelerde aranıyor…' : 'Diğer sitelerde de bul',
           'detail-find-sites',
@@ -608,6 +611,10 @@
       if (s.loading) {
         var playButton = this.findFocus('detail-play');
         if (playButton) playButton.disabled = true;
+      }
+      if (!s.loading && d.seasonSourcePlayable && !d.episodes.length) {
+        var seasonPlay = this.findFocus('detail-play');
+        if (seasonPlay) { seasonPlay.disabled = false; seasonPlay.textContent = tr('▶  İzle') + ' · ' + d.sourceSeason + '. Sezon'; }
       }
     };
     P.changeUnifiedProvider = function (rawId) {
@@ -670,7 +677,7 @@
       if (!d || !d.playback) return play.call(this, episode);
       if (s.loading) return;
       var content;
-      if (d.type === 'series') {
+      if (d.type === 'series' && !(d.seasonSourcePlayable && !d.episodes.length)) {
         var target =
           episode ||
           this.selectedEpisode(d) ||
@@ -702,7 +709,9 @@
         nav = content.navigation;
       if (content.type !== 'movie' || !nav || !s || s.kind !== 'detail') return false;
       var target = this.hub.card(content.contentId);
-      if (!target || this.hub.resolveId(s.card.contentId) === target.contentId) return false;
+      var currentId = this.hub.merging ? this.hub.resolveId(s.card.contentId) :
+        (s.detail && s.detail.playback ? s.detail.playback.contentId : s.card.contentId);
+      if (!target || currentId === target.contentId) return false;
       var parent = this.history.pop();
       if (parent) {
         this.screen = parent;

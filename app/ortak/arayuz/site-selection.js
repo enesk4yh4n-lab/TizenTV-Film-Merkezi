@@ -20,6 +20,12 @@
     e.preventDefault();
     e.stopImmediatePropagation();
   }
+  function updateBrand() {
+    var brand = document.querySelector('.catalog-brand > div');
+    brand.textContent = 'Film Merkezi';
+    brand.appendChild(node('span', 'catalog-brand-version', 'v' + root.AppInfo.version));
+    brand.appendChild(node('small', '', 'SİNEMA EVİNİZDE'));
+  }
   function show() {
     if (!app || app.controller.content) return;
     var cat = app.catalog;
@@ -111,9 +117,7 @@
     } catch (ignore) {}
     app.catalog.selectSite(site, landing);
     document.getElementById('site-change').textContent = tr('Siteler · ' + site.name);
-    var brand = document.querySelector('.catalog-brand > div');
-    brand.textContent = tr(site.name);
-    brand.appendChild(node('small', '', 'SİNEMA EVİNİZDE'));
+    updateBrand();
   }
   document.addEventListener(
     'keydown',
@@ -202,9 +206,7 @@
       if (!site) return;
       document.getElementById('site-change').textContent =
         tr('Siteler') + ' · ' + (site.virtual ? tr(site.name) : site.name);
-      var brand = document.querySelector('.catalog-brand > div');
-      brand.textContent = site.virtual ? tr(site.name) : site.name;
-      brand.appendChild(node('small', '', 'SİNEMA EVİNİZDE'));
+      updateBrand();
     },
     init: function (application) {
       app = application;

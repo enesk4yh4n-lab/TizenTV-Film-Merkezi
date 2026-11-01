@@ -70,11 +70,45 @@
       d = documentData(body),
       menu = d.querySelector('.keremiya_part'),
       out = [],
-      seen = {};
+      seen = {},
+      tabs = menu && menu.querySelector('a[data-keremiya-part][aria-controls]');
     if (!canonical || !menu) throw failure('Kaynak seçim alanı bulunamadı.');
     Array.prototype.forEach.call(menu.children, function (node) {
       var label = U.clean(node.textContent),
         url;
+      if (tabs) {
+        if (node.tagName !== 'A') return;
+        var part = node.getAttribute('data-keremiya-part'),
+          panelId = node.getAttribute('aria-controls'),
+          panel = d.getElementById(panelId),
+          container = d.querySelector('.filmicerik #vast'),
+          iframe,
+          wrapper;
+        if (
+          !/^[1-9]\d*$/.test(part || '') ||
+          panelId !== 'keremiya-part-' + part ||
+          !panel ||
+          !container ||
+          panel.parentNode !== container ||
+          panel.getAttribute('data-keremiya-panel') !== part ||
+          seen[panelId] ||
+          !label
+        )
+          return;
+        iframe = panel.querySelector('iframe');
+        try {
+          wrapper = playerFrame(
+            iframe &&
+              (iframe.getAttribute('data-frame-src') || iframe.getAttribute('data-keremiya-src')),
+            page
+          );
+        } catch (invalidFrame) {
+          return;
+        }
+        seen[panelId] = true;
+        out.push({ url: canonical, label: label, panelId: panelId, frameUrl: wrapper });
+        return;
+      }
       if (node.tagName === 'A') url = P.sourcePage(U.url(node.getAttribute('href'), page));
       else if (node.tagName === 'SPAN' && !/^\(/.test(label)) url = P.sourcePage(page);
       if (!url || !label || P.movieUrl(url) !== canonical || seen[url]) return;
@@ -84,10 +118,8 @@
     if (!out.length || out.length > 12) throw failure('Kaynak seçim listesi tanınamadı.');
     return out;
   }
-  function frame(body, page) {
-    var d = documentData(body),
-      n = d.querySelector('.filmicerik #vast iframe'),
-      url = U.url(n && n.getAttribute('data-frame-src'), page),
+  function playerFrame(value, page) {
+    var url = U.url(value, page),
       u;
     try {
       u = new root.URL(url);
@@ -102,6 +134,11 @@
     )
       throw failure('Aktif Fix Video oynatıcısı bulunamadı.');
     return url;
+  }
+  function frame(body, page) {
+    var d = documentData(body),
+      n = d.querySelector('.filmicerik #vast iframe');
+    return playerFrame(n && n.getAttribute('data-frame-src'), page);
   }
   function wrappedFrame(body) {
     var d = documentData(body),

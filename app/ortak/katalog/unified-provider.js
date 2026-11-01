@@ -13,7 +13,7 @@
     this.deadline = 0;
   }
   Queue.prototype.pump = function () {
-    if (this.paused) return;
+    if (this.paused || this.cancelling) return;
     var self = this;
     while (this.running.length < 2 && this.pending.length) {
       var job = this.pending.shift();
@@ -65,14 +65,15 @@
     });
   };
   Queue.prototype.cancel = function (owner) {
-    this.pending
-      .concat(this.running)
-      .filter(function (j) {
+    this.cancelling = (this.cancelling || 0) + 1;
+    try {
+      this.pending.concat(this.running).filter(function (j) {
         return !owner || j.owner === owner;
-      })
-      .forEach(function (j) {
-        j.finish(cancelled());
-      });
+      }).forEach(function (j) { j.finish(cancelled()); });
+    } finally {
+      this.cancelling--;
+      this.pump();
+    }
   };
   function capture(provider, queue, identity) {
     var original = provider.network;
@@ -114,8 +115,8 @@
     this.queue = new Queue();
     this.clients = {};
     this.generation = 0;
-    this.deadline = Date.now() + 45000;
-    this.budgetMs = 45000;
+    this.deadline = Date.now() + 30000;
+    this.budgetMs = 30000;
     this.timers = [];
     this.running = [];
   }
@@ -146,13 +147,17 @@
   Provider.prototype.begin = function () {
     this.cancel();
     this.queue.paused = false;
-    this.deadline = Math.max(Date.now() + 1, this.deadline || Date.now() + 45000);
+    this.deadline = Math.max(Date.now() + 1, this.deadline || Date.now() + 30000);
     this.queue.deadline = this.deadline;
     this.identitySeen = {};
     this.identityUsed = {};
     this.identityCount = 0;
-    this.seriesHints = [];
+    this.searchCandidates = {};
+    this.metadataPromise = null;
     return this.generation;
+  };
+  Provider.prototype.isIdle = function () {
+    return !this.running.length && !this.queue.running.length && !this.queue.pending.length;
   };
   Provider.prototype.invoke = function (site, method, args) {
     var self = this;
@@ -168,6 +173,12 @@
       }
       self.queue.deadline = self.deadline;
       p.deadline = self.deadline;
+      var detailOperation = method === 'detail' || method === 'identity',
+        identityClient = self.client(site);
+      if (detailOperation && args[0]) {
+        identityClient.identity.active = args[0].pageUrl.replace(/#.*$/, '');
+        identityClient.identity.value = null;
+      }
       var done = false,
         timer,
         end = function (e, v) {
@@ -179,7 +190,12 @@
           i = self.timers.indexOf(timer);
           if (i >= 0) self.timers.splice(i, 1);
           if (e) reject(e);
-          else resolve(v);
+          else
+            resolve(
+              detailOperation
+                ? root.ContentIdentity.attachDetail(v, identityClient.identity.value)
+                : v
+            );
         };
       self.running.push(end);
       timer = setTimeout(
@@ -201,72 +217,103 @@
       }
     });
   };
-  Provider.prototype.enrich = function (cards, token, update, includeMovies) {
+  Provider.prototype.enrich = function (cards, token, update, finalPass) {
+    if (this.hub.merging === false) return Promise.resolve();
     var self = this,
-      jobs = [],
-      used = this.identityUsed || (this.identityUsed = {}),
+      I = root.ContentIdentity;
+    if (finalPass === undefined) finalPass = true;
+    // Keep most of the bounded detail budget for conflicts revealed by later sites.
+    if (!finalPass && self.identityCount >= 4) return Promise.resolve();
+    if (this.metadataPromise)
+      return finalPass
+        ? this.metadataPromise.then(function () {
+            return self.enrich(cards, token, update, true);
+          })
+        : this.metadataPromise;
+    var used = this.identitySeen || (this.identitySeen = {}),
       busy = {},
-      names = {};
-    this.identitySeen = this.identitySeen || {};
-    cards.forEach(function (c) {
-      if (c.type === 'series') {
-        var n = root.ContentIdentity.seriesName(c.title, c.year);
-        names[n] = (names[n] || 0) + 1;
-      }
-    });
-    cards
-      .filter(function (c) {
-        var series = c.type === 'series',
-          need = series
-            ? !c.year
-            : includeMovies !== false &&
-              c.type === 'movie' &&
-              (!c.year || (c.titleAliases && c.titleAliases.length > 1));
-        return (
-          need &&
-          root.CatalogSearch &&
-          (!self.searchText && series
-            ? names[root.ContentIdentity.seriesName(c.title, c.year)] > 1
-            : root.CatalogSearch.score(c, self.searchText || '') > 0)
-        );
-      })
-      .sort(function (a, b) {
-        return (
-          (b.type === 'series' ? 1 : 0) - (a.type === 'series' ? 1 : 0) ||
-          root.CatalogSearch.score(b, self.searchText || '') -
-            root.CatalogSearch.score(a, self.searchText || '')
-        );
-      })
-      .forEach(function (c) {
-        var group = self.hub.group(c.contentId);
-        if (
-          group &&
-          !self.identitySeen[c.contentId] &&
-          (group.variants.length === 1 || c.type === 'series') &&
-          (used[c.providerId] || 0) < 3 &&
-          (self.identityCount || 0) < 12
-        ) {
-          self.identitySeen[c.contentId] = true;
-          used[c.providerId] = (used[c.providerId] || 0) + 1;
-          self.identityCount = (self.identityCount || 0) + 1;
-          jobs.push(c);
-        }
+      jobs = [];
+    cards.forEach(function (card) {
+      if (!card || card.type === 'episode' || used[card.pageUrl]) return;
+      if (
+        self.searchText &&
+        card.type !== 'collection' &&
+        !I.score(card, self.searchText) &&
+        !self.searchCandidates[card.contentId]
+      )
+        return;
+      var group = self.hub.group(card.contentId),
+        facts = I.analyze(card),
+        candidates = {},
+        collision = 0;
+      I.keys(card).forEach(function (k) {
+        (self.hub.keys[k] || []).forEach(function (id) {
+          candidates[id] = true;
+        });
       });
+      collision = Object.keys(candidates).length;
+      // Numberless names nominate detail checks only; they never decide a merge.
+      var numberedSplit = false;
+      facts.names.forEach(function (n) {
+        var plain = n.key.replace(/(?:^| )[1-9]\d*(?= |$)/g, ' ').replace(/\s+/g, ' ').replace(/^ | $/g, '');
+        if (plain && plain !== n.key)
+          (self.hub.keys['name|' + plain] || []).forEach(function (id) {
+            if (!group || id !== group.id) numberedSplit = true;
+          });
+      });
+      var priority =
+        (self.searchText &&
+        facts.names.some(function (n) {
+          return n.key === I.name(self.searchText);
+        })
+          ? 60
+          : 0) +
+        (card.type === 'collection' ? 40 : 0) +
+        (collision > 1 ? 30 : 0) +
+        (numberedSplit ? 80 : 0) -
+        (group && group.variants.length > 1 && !numberedSplit ? 35 : 0) -
+        (facts.evidence.detailChecked && facts.imdbId && facts.year && facts.typeVerified && collision < 2 ? 60 : 0) +
+        (!facts.year ? 12 : 0) +
+        (!facts.year && facts.type === 'series' ? 20 : 0) +
+        (facts.type === 'series' && /\b\d+\s*\.?\s*(?:bolum|episode)\b/.test(I.name(card.title)) ? 45 : 0) +
+        (facts.seriesHint ? 10 : 0) +
+        (facts.names.some(function (n) {
+          return n.kind === 'brand';
+        })
+          ? 8
+          : 0) +
+        (/\b\d+\b/.test(I.name(facts.title)) || facts.names.length > 1 ? 3 : 0) +
+        (/\b1\b/.test(I.name(facts.title)) && !facts.imdbId ? 20 : 0) +
+        (!facts.imdbId ? 1 : 0);
+      if ((group || card.type === 'collection') && priority > 1)
+        jobs.push({ card: card, priority: priority });
+    });
+    jobs.sort(function (a, b) {
+      return b.priority - a.priority;
+    });
+    if (!finalPass) jobs = jobs.slice(0, 1);
+    if (!jobs.length) return Promise.resolve();
     function lane() {
-      if (token !== self.generation || Date.now() + 1500 >= self.deadline || !jobs.length)
+      if (
+        token !== self.generation ||
+        Date.now() + 250 >= self.deadline ||
+        self.identityCount >= 12
+      )
         return Promise.resolve();
       var index = -1;
-      jobs.some(function (c, i) {
-        if (!busy[c.providerId]) {
+      jobs.some(function (j, i) {
+        if (!busy[j.card.providerId]) {
           index = i;
           return true;
         }
         return false;
       });
       if (index < 0) return Promise.resolve();
-      var card = jobs.splice(index, 1)[0],
+      var card = jobs.splice(index, 1)[0].card,
         site = root.SiteRegistry.get(card.providerId);
-      if (!site) return lane();
+      if (!site || used[card.pageUrl]) return lane();
+      used[card.pageUrl] = true;
+      self.identityCount++;
       busy[site.id] = true;
       var method;
       try {
@@ -276,15 +323,16 @@
         return lane();
       }
       return self
-        .invoke(site, method, [card, false])
+        .invoke(site, method, [card, !card.identityEvidence])
         .then(
-          function (d) {
+          function (value) {
             if (token !== self.generation) return;
-            var verified = self.hub.corroborate(d);
-            self.hub.observeDetail(verified, site.id);
-            if (!verified.year && d.yearHint) self.seriesHints.push(d);
-            self.resolveSeriesHints();
-            update(true);
+            Object.keys(value).forEach(function (key) {
+              card[key] = value[key];
+            });
+            if (!self.searchText || I.relevant(cards, self.searchText).indexOf(card) >= 0)
+              self.hub.observeDetail(value, site.id);
+            return update(true);
           },
           function () {}
         )
@@ -293,18 +341,15 @@
           return lane();
         });
     }
-    return Promise.all([lane(), lane()]);
-  };
-  Provider.prototype.resolveSeriesHints = function () {
-    var self = this;
-    this.seriesHints = (this.seriesHints || []).filter(function (d) {
-      var verified = self.hub.corroborate(d);
-      if (verified.year) {
-        self.hub.observeDetail(verified, d.providerId);
-        return false;
+    this.metadataPromise = Promise.all(finalPass ? [lane(), lane()] : [lane()]);
+    return this.metadataPromise.then(
+      function () {
+        if (token === self.generation) self.metadataPromise = null;
+      },
+      function () {
+        if (token === self.generation) self.metadataPromise = null;
       }
-      return true;
-    });
+    );
   };
   Provider.prototype.collect = function (kind, query, next, force, notify) {
     var self = this,
@@ -324,13 +369,16 @@
           message: error.message
         };
       }),
-      view = (next && next.resultSet) || new root.CatalogResultSet(),
+      view = (next && next.resultSet) || new root.CatalogResultSet(this.hub.merging),
       ids = next && Array.isArray(next.ids) ? next.ids.slice() : [],
       cursors = (next && next.cursors) || {},
       remaining = sites.slice(),
       active = 0,
       done = loadErrors.length,
-      results = {};
+      results = {},
+      snapshotCards = null,
+      snapshotRevision = -1,
+      snapshotIdCount = -1;
     if (next && next.signature !== JSON.stringify(query))
       return Promise.reject(new Error('Ortak devam bağlantısı bu listeyle eşleşmiyor.'));
     if (next)
@@ -346,11 +394,28 @@
       });
     });
     function snapshot() {
-      ids.forEach(function (id) {
-        var card = self.hub.card(id);
-        if (card) view.remember(card);
-      });
-      var cards = view.snapshot(self.hub),
+      if (kind === 'search')
+        states.forEach(function (state) {
+          state.count = received.filter(function (c) {
+            return c.providerId === state.id && self.searchCandidates[c.contentId];
+          }).length;
+        });
+      // Provider status changes do not require copying/indexing every card again.
+      // This cache belongs only to this collection; identity mutations invalidate it.
+      if (!snapshotCards || snapshotRevision !== self.hub.revision || snapshotIdCount !== ids.length) {
+        var projected = Object.create(null);
+        ids.forEach(function (id) {
+          var card = self.hub.card(id);
+          if (card) {
+            projected[id] = projected[card.contentId] = card;
+            view.remember(card);
+          }
+        });
+        snapshotCards = view.snapshot(self.hub, projected);
+        snapshotRevision = self.hub.revision;
+        snapshotIdCount = ids.length;
+      }
+      var cards = snapshotCards,
         cursor = {},
         hasNext = false;
       Object.keys(results).forEach(function (id) {
@@ -411,8 +476,50 @@
       return r;
     }
     var received = [],
+      observedSources = {},
+      admission = Promise.resolve(),
       enrichment = false;
     this.searchText = query.text || '';
+    function admitRelevant() {
+      var cards = (
+        kind === 'search' ? root.ContentIdentity.relevant(received, query.text) : received
+      ).filter(function (card) {
+        self.searchCandidates[card.contentId] = true;
+        if (observedSources[card.contentId]) return false;
+        observedSources[card.contentId] = true;
+        return true;
+      });
+      if (!cards.length) return admission;
+      admission = admission
+        .then(null, function () {})
+        .then(function () {
+          return new Promise(function (resolve, reject) {
+            var index = 0;
+            function step() {
+              if (token !== self.generation) {
+                resolve();
+                return;
+              }
+              try {
+                var chunk = cards.slice(index, index + 8);
+                view.prepare(chunk, self.hub);
+                self.hub.observeMany(chunk);
+                chunk.forEach(function (card) {
+                  var id = self.hub.merging === false ? card.contentId : self.hub.resolveId(card.contentId);
+                  if (id && ids.indexOf(id) < 0) ids.push(id);
+                });
+                index += chunk.length;
+                if (index < cards.length) setTimeout(step, 0);
+                else resolve();
+              } catch (error) {
+                reject(error);
+              }
+            }
+            step();
+          });
+        });
+      return admission;
+    }
     return new Promise(function (resolve, reject) {
       var settled = false,
         finishing = false,
@@ -441,8 +548,7 @@
           return;
         }
         finishing = true;
-        self.resolveSeriesHints();
-        var work = self.hub.reconcileAsync
+        var work = self.hub.merging === false ? Promise.resolve() : self.hub.reconcileAsync
           ? self.hub.reconcileAsync(ids, function () {
               return token === self.generation;
             })
@@ -501,17 +607,23 @@
           self.timers.push(updateTimer);
         }
       }
+      function metadataUpdate(immediate) {
+        if (token !== self.generation || settled) return Promise.resolve();
+        return admitRelevant().then(function () {
+          update(immediate);
+        });
+      }
       function start() {
         if (token !== self.generation) {
           finish();
           return;
         }
         if (!active && !remaining.length) {
-          if (!enrichment) {
+          if (!enrichment && self.hub.merging !== false) {
             enrichment = true;
             active++;
             update();
-            self.enrich(received, token, update, kind === 'search').then(
+            self.enrich(received, token, metadataUpdate, true).then(
               function () {
                 active--;
                 finish();
@@ -562,28 +674,20 @@
                   if (!c.providerId) c.providerId = site.id;
                 });
                 received = received.concat(cards);
-                view.prepare(cards, self.hub);
-                self.hub.observeMany(cards, site.id);
-                self.resolveSeriesHints();
-                cards.forEach(function (card) {
-                  var id = self.hub.resolveId(card.contentId);
-                  if (id && ids.indexOf(id) < 0) ids.push(id);
+                return admitRelevant().then(function () {
+                  if (token !== self.generation) return;
+                  state.status = value.searchNotice ? 'limited' : value.staleAt ? 'stale' : 'ready';
+                  state.count = cards.length;
+                  state.message =
+                    value.searchNotice || (value.staleAt ? 'Önbellekteki sonuçlar' : '');
+                  results[site.id] = value.next || null;
+                  update();
+                  if (kind === 'search' && self.hub.merging !== false)
+                    self.enrich(received, token, metadataUpdate, false).then(
+                      function () {},
+                      function () {}
+                    );
                 });
-                state.status = value.searchNotice ? 'limited' : value.staleAt ? 'stale' : 'ready';
-                state.count = cards.length;
-                state.message =
-                  value.searchNotice || (value.staleAt ? 'Önbellekteki sonuçlar' : '');
-                results[site.id] = value.next || null;
-                update();
-                if (kind === 'search')
-                  return self.enrich(
-                    cards.filter(function (c) {
-                      return c.type === 'series';
-                    }),
-                    token,
-                    update,
-                    false
-                  );
               })
               .then(null, function (error) {
                 if (token !== self.generation) return;
@@ -638,15 +742,45 @@
       imdb: []
     });
   };
-  Provider.prototype.seriesLanguage = function () {
-    return Promise.resolve({ language: '' });
+  Provider.prototype.seriesLanguage = function (card) {
+    var self = this, token = this.generation,
+      group = card && this.hub.group(card.contentId),
+      selected = this.hub.merging === false && card && (card.variants && card.variants[0] ? card.variants[0].contentId : card.contentId),
+      preferred = group && this.hub.preferred(group, selected),
+      variants = group ? group.variants.filter(function (v) {
+        var site = root.SiteRegistry.get(v.providerId);
+        return site && site.supportsSeriesLanguage && (!selected || v.contentId === selected);
+      }).slice() : [];
+    variants.sort(function (a, b) {
+      return (b.providerId === (preferred && preferred.providerId) ? 1 : 0) -
+        (a.providerId === (preferred && preferred.providerId) ? 1 : 0);
+    });
+    function next() {
+      if (token !== self.generation || Date.now() >= self.deadline || !variants.length)
+        return Promise.resolve({ language: '' });
+      var raw = variants.shift(), site = root.SiteRegistry.get(raw.providerId);
+      return self.invoke(site, 'seriesLanguage', [raw]).then(function (value) {
+        if (token !== self.generation) throw cancelled();
+        if (!value || !value.language || !value.languageReference) return next();
+        var updated = C.copy(raw);
+        updated.language = value.language;
+        updated.languageReference = C.copy(value.languageReference);
+        self.hub.observe(updated, site.id);
+        return value;
+      }, function (error) {
+        if (token !== self.generation) throw cancelled();
+        return next();
+      });
+    }
+    return next();
   };
   Provider.prototype.detail = function (card, force, requested) {
     var self = this,
       token = this.begin(),
       group = this.hub.group(card.canonicalId || card.contentId);
     if (!group) return Promise.reject(new Error('Ortak içerik kaydı bulunamadı.'));
-    requested = requested || card.requestedVariant;
+    requested = requested || card.requestedVariant ||
+      (this.hub.merging === false && !/^unified:/.test(card.contentId) ? card.contentId : null);
     var raw = this.hub.preferred(group, requested);
     if (!raw) return Promise.reject(new Error('İçeriğin site kaydı bulunamadı.'));
     if (card.resumeId && !requested) {
@@ -676,7 +810,7 @@
       var g = self.hub.observeDetail(value, site.id);
       if (!g) throw new Error('Site içeriği ortak kütüphaneye bağlanamadı.');
       var result = C.copy(value),
-        unified = self.hub.card(g.id);
+        unified = self.hub.card(self.hub.merging === false ? raw.contentId : g.id);
       result.playback = C.copy(value);
       result.contentId = g.id;
       result.canonicalId = g.id;
@@ -685,6 +819,15 @@
       result.selectedVariant = raw.contentId;
       result.providerNames = unified.providerNames;
       result.providerCount = unified.providerCount;
+      result.type = unified.type;
+      result.title = unified.title;
+      result.originalTitle = unified.originalTitle || result.originalTitle;
+      result.seasonSources = unified.variants.filter(function (v) {
+        return Number(v.sourceSeason) > 0;
+      });
+      result.seasonSourcePlayable =
+        result.type === 'series' && value.type === 'movie' && Number(raw.sourceSeason) > 0;
+      result.sourceSeason = Number(raw.sourceSeason) || null;
       result.episodes = result.episodes || [];
       result.episodes.forEach(function (e) {
         e.canonicalId = self.hub.resolveId(e.contentId);

@@ -50,6 +50,9 @@
       },
       registerCache: function (key, policy) {
         self.registerCache(prefix + key, policy);
+      },
+      protectionChanged: function () {
+        self.protectionChanged();
       }
     };
   };
@@ -79,6 +82,7 @@
       try {
         var data = JSON.parse(self.raw.getItem(key));
         if (!object(data) || data.version !== 1 || !object(data.items)) return;
+        var sizeCache = Object.create(null);
         self.policies[key] = {
           candidates: function () {
             return Object.keys(data.items).map(function (id) {
@@ -86,12 +90,13 @@
               return {
                 id: id,
                 at: (row && (row.used || row.at)) || 0,
-                bytes: JSON.stringify(row).length * 2 + id.length * 2
+                bytes: sizeCache[id] || (sizeCache[id] = JSON.stringify(row).length * 2 + id.length * 2)
               };
             });
           },
           evict: function (id) {
             delete data.items[id];
+            delete sizeCache[id];
           },
           serialize: function () {
             return JSON.stringify(data);
@@ -140,8 +145,10 @@
   Coordinator.prototype.setItem = function (key, value) {
     if (this.blocked[key]) throw fault('Okunamayan kayıt korunuyor.');
     if (!this.raw) throw fault('Depolama kullanılamıyor.');
-    this.trim(false);
     var policy = this.policies[key];
+    // Progress/preferences do not add disposable cache bytes. Only cache writes
+    // or an actual quota error need a global budget pass.
+    if (policy) this.trim(false);
     if (policy) value = policy.serialize();
     try {
       this.raw.setItem(key, value);
@@ -155,6 +162,9 @@
         throw second;
       }
     }
+  };
+  Coordinator.prototype.protectionChanged = function () {
+    if (this.raw) this.trim(false);
   };
 
   function read(storage, key, fallback, valid, notify) {

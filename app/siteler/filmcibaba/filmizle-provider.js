@@ -9,7 +9,7 @@
  Provider.prototype.list = function (query, next, force) {
   query = query || {}; var filters = query.filters || {}, hint = query.type === 'series' ? 'series' : null;
   if (filters.year || filters.language || filters.imdb) return Promise.reject(new Error('Bu site yıl/dil/IMDb birleşik filtre isteği sunmuyor.'));
-  var url = next && next.url || filters.genre || query.url || (hint ? BASE + '/Kategori/dizi-izle/' : this.links.new), parsed;
+  var url = next && next.url || filters.genre || query.url || (hint ? BASE + '/Kategori/dizi-izle/' : this.links.new);
   if (hint && filters.genre) return Promise.reject(new Error('Bu sitede dizi ve tür birleşimi doğrulanmadı.'));
   if (!next && query.order) url = P.withSort(url, /^(date|views|imdb|comments)$/.test(query.order) ? query.order : /avg/.test(query.order) ? 'comments' : 'imdb');
   return this.fetch(url, function (body) { var value = P.list(body, url, hint); if (!hint) value.cards = value.cards.filter(function (c) { return c.type !== 'series'; }); return value; }, force, 'list');

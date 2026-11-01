@@ -413,7 +413,7 @@
                   : request(item.url, page, 'page', undefined, false, end)
               )
                 .then(function (response) {
-                  var wrapper = D.frame(response.body, item.url);
+                  var wrapper = item.frameUrl || D.frame(response.body, item.url);
                   return request(wrapper, item.url, 'embed', undefined, false, end).then(
                     function (remote) {
                       var inner = D.wrappedFrame(remote.body);
