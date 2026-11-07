@@ -1,11 +1,13 @@
 # Film Merkezi — bağımsız site eklentileri
 
-Bu özellik **Film Merkezi Update Test 1.4.0** uygulamasındadır. Ana 14 siteli Film Merkezi 1.2.0 ve Apps2Samsung kaydı bu denemeden etkilenmez.
+Güncel deneme **Film Merkezi Update Test 1.4.1** uygulamasıdır. HDF video parçaları native TLS üzerinden alınır; katalog HTML erişiminin çalışan taşıma yolu korunur. Ana 14 siteli Film Merkezi 1.2.0 ve Apps2Samsung kaydı bu denemeden etkilenmez.
 
-- [İmzasız test WGT’sini indir](app/Film-Merkezi-Update-Test-1.4.0-public.wgt). Apps2Samsung gibi bir kurucu bunu TV’ye uygun sertifikayla imzalamalıdır; dosya doğrudan her TV’ye kurulabilen evrensel imzalı paket değildir.
-- [Eklenti geliştirme SDK’sı 1.0.1](sdk/Film-Merkezi-Plugin-SDK-1.0.1.zip).
+- [İmzasız test WGT’sini indir](app/Film-Merkezi-Update-Test-1.4.1-public.wgt). Apps2Samsung gibi bir kurucu bunu TV’ye uygun sertifikayla imzalamalıdır; dosya doğrudan her TV’ye kurulabilen evrensel imzalı paket değildir.
+- [Eklenti geliştirme SDK’sı 1.0.2](sdk/Film-Merkezi-Plugin-SDK-1.0.2.zip).
 - [Geliştirici kılavuzu, dosya haritası ve sınırlar](DEVELOPER.md).
-- [Native TLS ve decoder üretim kaynakları / lisansları](../updates/pilot/sources/Film-Merkezi-Update-Test-Kaynak-1.4.0.zip).
+- [Native TLS ve decoder üretim kaynakları / lisansları](../updates/pilot/sources/Film-Merkezi-Update-Test-Kaynak-1.4.1.zip).
+
+1.4.1, dönen CDN numaraları için dar kapsamlı `https://*.cdnimages{n}.cyou` izinlerini destekler. `{n}` yalnız 1–6 rakam eşler; genel `.cyou` izni verilmez. TLS, yayıncı imzası ve 8/12 MiB medya sınırları korunur. Bu yeni native yetenek için WGT bir kez güncellenmelidir. Sayısal izin kullanan eklentiler minimum uygulama sürümünü 1.4.1 bildirmelidir.
 
 ## Kullanım
 

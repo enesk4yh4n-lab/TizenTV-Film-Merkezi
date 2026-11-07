@@ -1,5 +1,7 @@
 # Film Merkezi — bağımsız eklenti depoları, API v1
 
+**Update Test 1.4.1 / SDK 1.0.2:** imzalı ağ izinlerinde `https://*.cdnimages{n}.cyou` gibi sınırlı sayısal DNS aileleri desteklenir. `{n}` tek DNS etiketinde 1–6 rakam eşler; harf, boş eşleşme veya bütün `.cyou` alanları kabul edilmez. Her DNS kalıbında en fazla bir `{n}` işareti olabilir. Bu kalıbı kullanan `addon.json` için `minAppVersion: "1.4.1"` gerekir; SDK daha düşük sürüm bildirilirse paketlemeyi reddeder. Normal tam host/`*.alan` eklentileri 1.4.0 ile uyumlu kalır. TLS, imza, özel IP, boyut ve eşzamanlı istek sınırları değişmez.
+
 Update Test **1.4.0** kullanıcıların kendi GitHub veya uyumlu HTTPS depolarını eklemesini sağlar. Film Merkezi'nin yayın anahtarı veya onayı gerekmez. Her yayıncı kendi RSA-2048 anahtarını üretir; kullanıcı ilk eklemede yayıncının SHA-256 parmak izini görüp güvenmeyi seçer. TLS sertifika/hostname kontrolü devam eder. Eklentiler uygulamayla aynı JavaScript yetkilerindedir; ayrı klasörler bir sandbox değildir.
 
 ## Kullanıcı akışı
