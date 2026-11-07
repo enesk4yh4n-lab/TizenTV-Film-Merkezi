@@ -1,0 +1,501 @@
+{
+  "schemaVersion": 1,
+  "loaderVersion": 1,
+  "version": "1.2.0",
+  "minAppVersion": "1.3.1",
+  "shell": "runtime-shell.html",
+  "sites": "site-listesi.json",
+  "scripts": [
+    "ortak/uyumluluk/compat.js",
+    "ortak/dil/i18n.js",
+    "ortak/dil/en.js",
+    "vendor/hls-1.7.3.min.js",
+    "ortak/ag/network.js",
+    "ortak/ag/secure-http.js",
+    "ortak/ag/native-file-bytes.js",
+    "ortak/ag/native-media.js",
+    "ortak/ag/media-network.js",
+    "ortak/ag/native-hls-loader.js",
+    "app-info.js",
+    "ortak/katalog/site-addresses.js",
+    "ortak/player/player-core.js",
+    "ortak/kayit/storage-coordinator.js",
+    "ortak/kayit/playback-store.js",
+    "ortak/kayit/playback-compatibility.js",
+    "ortak/player/playback-capabilities.js",
+    "ortak/player/subtitle-manager.js",
+    "ortak/player/player-extras.js",
+    "ortak/player/browser-player.js",
+    "ortak/player/avplay-player.js",
+    "ortak/player/engine-router.js",
+    "ortak/player/compatibility-trials.js",
+    "ortak/player/player-controller.js",
+    "ortak/player/player-view.js",
+    "ortak/player/player-input.js",
+    "ortak/tani/diagnostics.js",
+    "ortak/katalog/catalog-utils.js",
+    "ortak/katalog/catalog-client.js",
+    "ortak/kayit/series-state.js",
+    "ortak/kayit/catalog-store.js",
+    "ortak/katalog/catalog-images.js",
+    "ortak/katalog/catalog-runtime.js",
+    "ortak/kayit/catalog-preferences.js",
+    "ortak/katalog/recommendations.js",
+    "ortak/katalog/catalog-experience.js",
+    "ortak/katalog/catalog-app.js",
+    "vendor/crypto-js.js",
+    "cozumleyiciler/hotstream/hotstream.js",
+    "cozumleyiciler/youtube/youtube-source.js",
+    "ortak/player/source-progress.js",
+    "ortak/katalog/catalog-site-kit.js",
+    "cozumleyiciler/literal-media.js",
+    "cozumleyiciler/web-player-data.js",
+    "cozumleyiciler/vidara.js",
+    "site-listesi.js",
+    "ortak/player/multi-site-sources.js",
+    "ortak/player/source-dispatcher.js",
+    "ortak/arayuz/site-selection.js",
+    "ortak/katalog/content-identity.js",
+    "ortak/kayit/unified-library.js",
+    "ortak/katalog/unified-provider.js",
+    "ortak/katalog/catalog-unified-app.js",
+    "ortak/katalog/catalog-search-app.js",
+    "ortak/katalog/catalog-collections.js",
+    "ortak/arayuz/legal.js",
+    "main.js"
+  ],
+  "styles": [
+    "ortak/player/player.css",
+    "ortak/katalog/catalog.css",
+    "ortak/arayuz/site-selection.css",
+    "ortak/katalog/catalog-experience.css",
+    "ortak/arayuz/legal.css"
+  ],
+  "files": [
+    {
+      "path": "LICENSE",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "size": 7706,
+      "sha256": "34b2b1f1c0d3b5c0f5e97142f708e1427d930c74eb75f553b71aceb9c2afe138"
+    },
+    {
+      "path": "app-info.js",
+      "size": 3958,
+      "sha256": "f2209e0ad5b4e1eebda1cd6302565c6ad39a12acb69238732457f78be0c4ec8a"
+    },
+    {
+      "path": "cozumleyiciler/hotstream/hotstream.js",
+      "size": 3662,
+      "sha256": "04e76ef38ab9a1a5f543857a4ab69da16ac6d87e5790fea0c369b9ca9e57617b"
+    },
+    {
+      "path": "cozumleyiciler/literal-media.js",
+      "size": 38643,
+      "sha256": "a71003ef26d49b2d3acd614dc678290cd3f1b0a1fe408ea5401f54c1aa400cc2"
+    },
+    {
+      "path": "cozumleyiciler/vidara.js",
+      "size": 2528,
+      "sha256": "8de592dc8cad8bda4ed3386901be81c3d2b05dc48242f80157d635a4232f938e"
+    },
+    {
+      "path": "cozumleyiciler/web-player-data.js",
+      "size": 16905,
+      "sha256": "ba10b826f9b001c6d6481e1b4680a38d23f73fd6054b69c5a3899e26a750bf78"
+    },
+    {
+      "path": "cozumleyiciler/youtube/youtube-extractor.js",
+      "size": 1688141,
+      "sha256": "008d4e361480c3a60714a5815875b751a2344a861eed29aef5b922acf13e1b3b"
+    },
+    {
+      "path": "cozumleyiciler/youtube/youtube-hls.js",
+      "size": 5411,
+      "sha256": "8ba3a00adfd5bb1c0904109dcc10d3d8dc62236ac25fb2095f743b6cf165de01"
+    },
+    {
+      "path": "cozumleyiciler/youtube/youtube-network.js",
+      "size": 11088,
+      "sha256": "fd82b74ac08774c9fd3acedb60bf313fe56d5ff11971ea6a24bed4f703fd15a8"
+    },
+    {
+      "path": "cozumleyiciler/youtube/youtube-polyfills.js",
+      "size": 731448,
+      "sha256": "54b605be73aa3cedf7eabcc30623b5ae272a3a4ad9396a5d290650c509991702"
+    },
+    {
+      "path": "cozumleyiciler/youtube/youtube-source.js",
+      "size": 5335,
+      "sha256": "e4b7004c77de0aa4b59d51d92cea50f32f3dc3dd158da487bde94eb2918c4db4"
+    },
+    {
+      "path": "main.js",
+      "size": 4505,
+      "sha256": "198894f200814672b13f2a503bcd909e310bac7bf24a7c6ff8bf175546cc09db"
+    },
+    {
+      "path": "ortak/ag/media-network.js",
+      "size": 12809,
+      "sha256": "5297d207015cae13cc9408a971b4a0a2a2584900629c49f7bd14ac0a81294d90"
+    },
+    {
+      "path": "ortak/ag/native-file-bytes.js",
+      "size": 5015,
+      "sha256": "89334c09081ca695128d51aeb2990d80265365814d591ddd062f52e0c0831324"
+    },
+    {
+      "path": "ortak/ag/native-hls-loader.js",
+      "size": 8890,
+      "sha256": "ddf84676f23730dd76b55e1c19beb0b8724b5a7569405d2cae554511a46c5c40"
+    },
+    {
+      "path": "ortak/ag/native-media.js",
+      "size": 12054,
+      "sha256": "01155ae053c5d5edf13608a3c5e1f35443cf9bc35c4d652f463c28103f654fb8"
+    },
+    {
+      "path": "ortak/ag/network.js",
+      "size": 10950,
+      "sha256": "c7b09068e6ae606b44c15bf827ee4873837284a79d9ab4ac6e69771d60b2dce3"
+    },
+    {
+      "path": "ortak/ag/secure-http.js",
+      "size": 4986,
+      "sha256": "86d9e9a83f420746791fa712ccf74fb97b8dcdba52baf523e85afbdfacaa758e"
+    },
+    {
+      "path": "ortak/arayuz/legal.css",
+      "size": 1954,
+      "sha256": "0ab2befe022f27cca15ba66f6d20a4a0681636ae748379e24539f2b4d7e962b9"
+    },
+    {
+      "path": "ortak/arayuz/legal.js",
+      "size": 17743,
+      "sha256": "afc4b234261ca3f52b4b54b30a106b11434dc323599c48d7e46497f2d582c6a4"
+    },
+    {
+      "path": "ortak/arayuz/site-selection.css",
+      "size": 2837,
+      "sha256": "9ed53222f97ca4686461dce8d9e2e1fb5f57a0a5fcc706a38c16980cdd7080c0"
+    },
+    {
+      "path": "ortak/arayuz/site-selection.js",
+      "size": 8292,
+      "sha256": "0eb15c1c56d80761db9ac68adf6a5b8f7bfb6a6fec419ad137bebc9b07c1cf50"
+    },
+    {
+      "path": "ortak/dil/en.js",
+      "size": 56534,
+      "sha256": "bbb56354e063f35efc8b0c919bcf3ee20266e33dcce9e98c75948ca500bf2d7e"
+    },
+    {
+      "path": "ortak/dil/i18n.js",
+      "size": 5811,
+      "sha256": "cffb9951617cfdeaca5c70eebc7763a35de4700c4fc7313104ef0bd39d74c5b9"
+    },
+    {
+      "path": "ortak/katalog/catalog-app.js",
+      "size": 76696,
+      "sha256": "849f99d9e74969c4d4469049bbce490b3f08296a84e98dfd51259727995c3d28"
+    },
+    {
+      "path": "ortak/katalog/catalog-client.js",
+      "size": 6177,
+      "sha256": "59a1278d09b66e80d4b3f7a9e4cbed58eb6195d7f22b3b24c7eaa51ab4b9fc99"
+    },
+    {
+      "path": "ortak/katalog/catalog-collections.js",
+      "size": 13615,
+      "sha256": "0df0d57948bff222bc056614386835dd8c1e8dc841633a80ced51823f8fccd05"
+    },
+    {
+      "path": "ortak/katalog/catalog-experience.css",
+      "size": 4994,
+      "sha256": "594355c743e9af97b4feaeed6330194005cebd1d187e5752164e13024a7b64ca"
+    },
+    {
+      "path": "ortak/katalog/catalog-experience.js",
+      "size": 17204,
+      "sha256": "09e70facf9554b3702e2dbaae319f2fcc8b9b2a67264a70ce9013532aefa5079"
+    },
+    {
+      "path": "ortak/katalog/catalog-images.js",
+      "size": 6587,
+      "sha256": "49f62b272edd50f4d13ebd7813fe5705baf2f8e3a15297b807cdfa0f25593132"
+    },
+    {
+      "path": "ortak/katalog/catalog-runtime.js",
+      "size": 1446,
+      "sha256": "ffa9eff929217212397e4a36b2f23fb89e526b350a705d3d9bf3771f2d556c0a"
+    },
+    {
+      "path": "ortak/katalog/catalog-search-app.js",
+      "size": 13206,
+      "sha256": "969eb999a1d93e8898dcf8cc90ab25ce7da6dffa807ee0ea5cd77144875f5525"
+    },
+    {
+      "path": "ortak/katalog/catalog-site-kit.js",
+      "size": 17309,
+      "sha256": "3c53042702d43906872bf2328370c783ee6e7e146fe4d995bd43ff564d4584d7"
+    },
+    {
+      "path": "ortak/katalog/site-addresses.js",
+      "size": 10037,
+      "sha256": "2a12032f447ae16c7f960be3e16f017ce33c5e219c115bdf2719fe798f50b2b8"
+    },
+    {
+      "path": "ortak/katalog/catalog-unified-app.js",
+      "size": 29226,
+      "sha256": "a28556971616343df0c0c0976ea563b038a17b06f240c9f4b758bc229c22852c"
+    },
+    {
+      "path": "ortak/katalog/catalog-utils.js",
+      "size": 3827,
+      "sha256": "d1b546d87a2f0d0283f0a34ee938c0ae1f1d5f3c07cc49eefca8f406a81a9ac1"
+    },
+    {
+      "path": "ortak/katalog/catalog.css",
+      "size": 11451,
+      "sha256": "e95833615b51cef7ece70ae6e1e4d3de295f761c968566264cb8b623a4a117e6"
+    },
+    {
+      "path": "ortak/katalog/content-identity.js",
+      "size": 28673,
+      "sha256": "d85877cdda89a60432025ba5d155e72d1ca4cdfbd11e0ce5d7bf64defd4c3199"
+    },
+    {
+      "path": "ortak/katalog/recommendations.js",
+      "size": 11618,
+      "sha256": "a2e0cde4fe1f76eabc9338e625c63db493ca2c86e12cb49c72b6300ee528ac33"
+    },
+    {
+      "path": "ortak/katalog/unified-provider.js",
+      "size": 35373,
+      "sha256": "ab85a6ad809ce4e7a2ab1110e8c36cbf0062b706558c68f83359bdfe2c1e59f0"
+    },
+    {
+      "path": "ortak/kayit/catalog-preferences.js",
+      "size": 4408,
+      "sha256": "d4803997318f709d260d40190ec90f75761bdc0e889846c4663d46a7d7ee3402"
+    },
+    {
+      "path": "ortak/kayit/catalog-store.js",
+      "size": 14131,
+      "sha256": "d3cd85f89ca9aae1c122a1ff7e78f076a5f4bef59d98f75037b505a1b8a8dec6"
+    },
+    {
+      "path": "ortak/kayit/playback-compatibility.js",
+      "size": 8311,
+      "sha256": "cae764d52da22281f677cee677a24cd5189e6ef310723c906f44d4fe43756411"
+    },
+    {
+      "path": "ortak/kayit/playback-store.js",
+      "size": 10390,
+      "sha256": "b4276b32cc5fdd5a3d3b3211bb2db0df2b0ed119f23215b14464fa3c6ddd9b9b"
+    },
+    {
+      "path": "ortak/kayit/series-state.js",
+      "size": 10679,
+      "sha256": "f5448380429b37a589da43ddba170ce2757cdf04a2bfb324d5059206d885941c"
+    },
+    {
+      "path": "ortak/kayit/storage-coordinator.js",
+      "size": 6018,
+      "sha256": "bf808c99eed46f2f5a20bf3cdf5a54fa7a0feb738045f55a6cced100eeb2f33f"
+    },
+    {
+      "path": "ortak/kayit/unified-library.js",
+      "size": 48948,
+      "sha256": "7f76ffc63a641faedd033b69da69bf74fa195f1304af9f02df14e64060670c26"
+    },
+    {
+      "path": "ortak/player/avplay-player.js",
+      "size": 19679,
+      "sha256": "b21de17f90327262fb9ff34829ff6fac61c52899c7ad34c656ea552869ba86e5"
+    },
+    {
+      "path": "ortak/player/browser-player.js",
+      "size": 30609,
+      "sha256": "b2844f53a451c115016dbabec9d8b5ee8be75aaa96d74f176b822c027b82b816"
+    },
+    {
+      "path": "ortak/player/compatibility-trials.js",
+      "size": 5925,
+      "sha256": "c4c14eedc34f0ff9806d8b992e52b48e7584cdb38c869593c7643c57608adc9b"
+    },
+    {
+      "path": "ortak/player/engine-router.js",
+      "size": 4025,
+      "sha256": "8874f95457409d77ce09c0f52bfc6f6e7df863799fe8cd034d9a3380ef2b3526"
+    },
+    {
+      "path": "ortak/player/multi-site-sources.js",
+      "size": 21723,
+      "sha256": "794c47bf4063480c16b438c105e3d7d141077d0876d7ff047f3badff004fd5af"
+    },
+    {
+      "path": "ortak/player/playback-capabilities.js",
+      "size": 5634,
+      "sha256": "5a005951adda60c56fd0113df85ae05921ea7748c941fa30f3689d742c348027"
+    },
+    {
+      "path": "ortak/player/player-controller.js",
+      "size": 70060,
+      "sha256": "c21f00e03c073328038cd45f02b595edb6025d840886a51f073afad9c2550966"
+    },
+    {
+      "path": "ortak/player/player-core.js",
+      "size": 6705,
+      "sha256": "f69c4a0064f77b5227198785a689492eba2b72dd6cf38c5745f5c81d86aa0349"
+    },
+    {
+      "path": "ortak/player/player-extras.js",
+      "size": 6989,
+      "sha256": "0f1c7736ba8bdc0b60241fcd1a84954b04c8de744d10dec44521c67251315c20"
+    },
+    {
+      "path": "ortak/player/player-input.js",
+      "size": 4144,
+      "sha256": "bfec7e460f8a44c210dc43f0aeba705508285fad0adca1a7f57e12b94f09e377"
+    },
+    {
+      "path": "ortak/player/player-view.js",
+      "size": 48789,
+      "sha256": "20fa6bd5c4404beace1710d974475ef9fb050dd4f5e50fc0fde90e60db738fd2"
+    },
+    {
+      "path": "ortak/player/player.css",
+      "size": 8613,
+      "sha256": "e3477988bb70074bafde895fc1b6358219a84171fa206d96bf32d667cc0a0188"
+    },
+    {
+      "path": "ortak/player/source-dispatcher.js",
+      "size": 4423,
+      "sha256": "974eb10685e147674629872e51c6d41806acfbfb7ce5eb93de92be9b745181e3"
+    },
+    {
+      "path": "ortak/player/source-progress.js",
+      "size": 6078,
+      "sha256": "32e4c1fd6fcce9e5c7000ec561a54352a59bf1ac4994a8377eefbebd5254c15f"
+    },
+    {
+      "path": "ortak/player/subtitle-manager.js",
+      "size": 6819,
+      "sha256": "4dfce8836958456ec184192e979166add0fdddd47b583f46159af9d8d72dda47"
+    },
+    {
+      "path": "ortak/tani/diagnostics.js",
+      "size": 3488,
+      "sha256": "74134a49bf1427bac05cfa36e4fbf29b4a112c84ce1d2e62ce301c64032444c9"
+    },
+    {
+      "path": "ortak/uyumluluk/compat.js",
+      "size": 731,
+      "sha256": "5f96427a88eb53a328a9187c8fd971b90230719ef25c5be5c7fdb32f29bc1cf4"
+    },
+    {
+      "path": "site-listesi.js",
+      "size": 4100,
+      "sha256": "b184fea634554bc458599b6b7a6c71200cc80ab6f6eeddbee9bd8a926b8b6dee"
+    },
+    {
+      "path": "siteler/hdfilmcehennemi/catalog-parser.js",
+      "size": 9007,
+      "sha256": "2b32406be7b9b61b8afd3ca95b2ccb6fc52c84b8d432eb9460d06312f7232166"
+    },
+    {
+      "path": "siteler/hdfilmcehennemi/catalog-provider.js",
+      "size": 3778,
+      "sha256": "b0552f7aa5204692ccd71c0a04b4d4a2532e6202defadee65af53f06e1cd93e6"
+    },
+    {
+      "path": "siteler/hdfilmcehennemi/decoder.js",
+      "size": 7845,
+      "sha256": "b9c5d6388c8643f7f96182b95521124b4c6c5175ee7007ce8efba4cb41607719"
+    },
+    {
+      "path": "siteler/hdfilmcehennemi/site.js",
+      "size": 951,
+      "sha256": "589510852b30f1fd6256ef4d83a5a59f66be0e6a48be82f64d7c126d1f4a236f"
+    },
+    {
+      "path": "siteler/hdfilmcehennemi/source-resolver.js",
+      "size": 9090,
+      "sha256": "7c4cb5c04a162963a38b3bc6f905b71235977fb8f01b7a398ba376b133ce130c"
+    },
+    {
+      "path": "vendor/CRYPTO_JS_LICENSE.txt",
+      "size": 1169,
+      "sha256": "f729d14b7e1bf8adca0dcc38b93b929d14d53fcd5db56c3d1c9b2daa7aa69396"
+    },
+    {
+      "path": "vendor/HLS_APACHE_2_LICENSE.txt",
+      "size": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "vendor/HLS_LICENSE.txt",
+      "size": 1338,
+      "sha256": "ca8773cf798c7ed997d4dd7c8e23c348699f8d5b7462636694cc14de6cda12db"
+    },
+    {
+      "path": "vendor/crypto-js.js",
+      "size": 82189,
+      "sha256": "85a0ce76aacb9c852aaa80e52a37da0176d49e0caabd0e73f0226810a4ad1ef3"
+    },
+    {
+      "path": "vendor/hls-1.7.3.min.js",
+      "size": 619692,
+      "sha256": "a12e7ee1cd64a69dcdb314157e45dafcba705bfb0b1440b7935cb265d374423e"
+    },
+    {
+      "path": "runtime-shell.html",
+      "size": 10424,
+      "sha256": "34d954288778f11178983d2ee5e3b5ed45e8330b77fced96e7748aa9f0ce4738"
+    },
+    {
+      "path": "site-listesi.json",
+      "size": 443,
+      "sha256": "d9d04167a35b1a74342adf6812645ce842d9bbf043d3d31494880b0045f157e1"
+    },
+    {
+      "path": "siteler/filmcibaba/filmizle-parser.js",
+      "size": 11538,
+      "sha256": "5e17bfcbc27c22d477eaef98b270407831b5fec5c06c7f61a711b9ab7141bde9"
+    },
+    {
+      "path": "siteler/filmcibaba/filmizle-provider.js",
+      "size": 3683,
+      "sha256": "37e34259e79351ba92875469ea29fff22fdc59f19f9ad7d2eb23aea6beaa2768"
+    },
+    {
+      "path": "siteler/filmcibaba/filmizle-resolver.js",
+      "size": 6474,
+      "sha256": "e3ee5d1c0e5faec62fdee12440cb0adc64914fc7af85cb157ac81b3bf7e5b924"
+    },
+    {
+      "path": "siteler/filmcibaba/site.js",
+      "size": 904,
+      "sha256": "e8355495b96d1dfe1eeba7e1cb88caf8db5b31301860c1b29f4c74238747831c"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 92,
+      "sha256": "331c70bf9d425f449c473d508042d1eeb7c9808748d4314f872ba4dadd78dc49"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "4167dd827047d668fd58345e1568072907072d7406a695e7d79860c33fab4631"
+    }
+  ],
+  "nativeTransport": 1,
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  }
+}
