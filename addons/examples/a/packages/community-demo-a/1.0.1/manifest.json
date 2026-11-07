@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "community-demo-a",
+  "name": "Community A",
+  "version": "1.0.1",
+  "minAppVersion": "1.4.0",
+  "site": {
+    "id": "community-demo-a",
+    "prefix": "community-demo-a:",
+    "name": "Community A",
+    "base": "https://test-streams.mux.dev"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 3844,
+      "sha256": "07070c52c84d6e276e549c3bdf2f7fa760c1446bc6e8b1fd0d42e9ac767e9e3b"
+    },
+    {
+      "path": "catalog.json",
+      "size": 170,
+      "sha256": "a3a29684f3b74f90e2f555f6ce2f538bfced41aa1f1497a8ac543aece38f8bdb"
+    },
+    {
+      "path": "streams.json",
+      "size": 91,
+      "sha256": "c1f5d899b28098b4614fb7ab4d159c62a381fde2f187918ddfd0306ae8dcb66d"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 52,
+      "sha256": "1af502d6b4babf2855fd34084f16302da4e428280096833a062f852b15331900"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "353ef73e5cf93de2bc1c0efd185ca5dae6a04755706d4bf6a69d1fcbfba5633a"
+    }
+  ]
+}

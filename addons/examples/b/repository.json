@@ -3,15 +3,15 @@
   "id": "example-b",
   "name": "Example publisher B",
   "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4oTt3tJArQjREM+ILXZFDQCyTM63SxMzg/kmsrTDgpM1o99YYFTHYCvd11qdJvNwoT+Bw5bVfOAdR77MLIN20s0aMXvJaC+BM4tKwln7GKn8lAABJaJuiiFIkoibmdeXve6YBcMBKFKAeogKz1StB0TBNpbYs5XbfysuRH4q5HJsG0CrDIWUBHEl3UMGcDGUHzXeH3rJbzRX09jlfB5RoxDxPB1i+XVzjFgUyWduntJ7z6BMqIAdnOlQkQTJd9z2HEx30TzGkgOwYmB2kPmkFFxVdtSm4VgJXiuRo7BtMId9CpvZJujze7+MPybSrioKS/fEBwtvPhmH/vRwpM3DPwIDAQAB",
-  "revision": 2,
+  "revision": 3,
   "plugins": [
     {
       "id": "community-demo-b",
       "name": "Community B",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "description": "A working ES5 community plugin example. Replace demo data and parser with your site.",
-      "manifest": "packages/community-demo-b/1.0.0/manifest.json",
-      "manifestSha256": "4b2f4efd545367565c4ee5420d05c5572b23214189e9f83210837cd962bb95ba"
+      "manifest": "packages/community-demo-b/1.0.1/manifest.json",
+      "manifestSha256": "a0176c94e50cf7abe4977db8d68df2fd1c72697a1e4d6f3708e4f521563ac407"
     }
   ]
 }
