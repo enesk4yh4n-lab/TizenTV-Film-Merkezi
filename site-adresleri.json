@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "sites": {
+    "hdf": {
+      "base": "https://www.hdfilmcehennemi.nl",
+      "aliases": [
+        "https://hdfilmcehennemi.nl"
+      ]
+    },
+    "filmizle": {
+      "base": "https://filmizle.ink"
+    },
+    "dizibox": {
+      "base": "https://www.dizibox.live"
+    },
+    "turkcefilmler": {
+      "base": "https://turkcefilmler.to"
+    },
+    "hdfilmdelisi": {
+      "base": "https://hdfilmdelisi.one"
+    },
+    "ddizi": {
+      "base": "https://www.ddizi.tel"
+    },
+    "fixfullfilmizle": {
+      "base": "https://www.fixfullfilmizle.net"
+    },
+    "sinemacc": {
+      "base": "https://sinemacc.com"
+    },
+    "filmizlebabam": {
+      "base": "https://filmizlebabam.icu",
+      "aliases": [
+        "https://www.filmizlebabam.com",
+        "https://filmizlebabam.com",
+        "http://www.filmizlebabam.com",
+        "http://filmizlebabam.com"
+      ]
+    },
+    "filmifullizle": {
+      "base": "https://www.filmifullizle.news"
+    },
+    "filmizlehell": {
+      "base": "https://filmizlehell.net"
+    },
+    "lovefilmizle": {
+      "base": "https://lovefilmizle.net"
+    },
+    "fullhdfilmizlesene": {
+      "base": "https://www.fullhdfilmizlesene.now"
+    },
+    "filmmakinesi": {
+      "base": "https://filmmakinesi.to"
+    }
+  }
+}
