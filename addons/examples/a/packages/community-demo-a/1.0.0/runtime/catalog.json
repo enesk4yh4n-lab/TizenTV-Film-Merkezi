@@ -1,0 +1,9 @@
+{
+  "cards": [
+    {
+      "id": "sample",
+      "title": "Community A test stream",
+      "synopsis": "Public test stream for the community plugin example."
+    }
+  ]
+}
