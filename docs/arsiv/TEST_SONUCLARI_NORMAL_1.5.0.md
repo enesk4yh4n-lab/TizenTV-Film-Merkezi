@@ -32,7 +32,7 @@ Loki gerçek TV yanıtlarıyla her iki sitede tek dizi kartı doğrulandı; öne
 
 ## TV kabulünün sınırı ve araçlar
 
-Ara aşamadaki 1.5.0 WGT'nin TV'ye yerinde kurulması runner tarafından tamamlandı; çalıştırma/doğrulama `closed` döndürdü. Bu paket 22 yerel başlangıç kopyası eklenmeden önceki taslaktı. Son 262 dosyalı WGT'nin fiziksel kumanda/ses veya TV ilk açılış kabulü, ayrıca başarı kanıtı olmadan tamamlandı sayılmaz. Sonraki SDB denemesinde cihaz bağlantısı da düştü. Uygulama kaldırılmadı, kayıt sıfırlanmadı.
+Son **262 dosyalı WGT'nin TV'ye yerinde kurulması** runner tarafından tamamlandı (`20261108T200006-3c3a10`); çalıştırma/doğrulama `closed` döndürdü. Ayrı başlatma denemesinde TV `app_id[FMUpTest01.Film-Merkezi-TV-1] launched` yazdı; runner manifestteki kimlikle birebir eşleşmediği için hata raporladı. Son paketin fiziksel kumanda/ses veya TV ilk açılış kabulü, ayrıca başarı kanıtı olmadan tamamlandı sayılmaz. Bir ara düşen SDB bağlantısı yeniden kuruldu. Uygulama kaldırılmadı, kayıt sıfırlanmadı.
 
 SDK runner, `../sdk-output/Debug/stage.wgt` çıktısını ürettiği hâlde proje içinde aradığı için “Package file not found after build” raporladı. SDK günlüğü derleme/paketlemeyi başarılı gösterdi. Dağıtım paketi açık dosya listesinden, önceki author kimliğiyle hazırlanıp bağımsız audit ile doğrulandı. Bu runner sonucu başarılı olarak değiştirilmedi.
 
@@ -40,6 +40,6 @@ Yerel makine kanıtları WGT'ye/yayına girmez: `tools/test-results/stable150/{b
 
 ## Yayın kapsamı
 
-Normal `updates/` kanalı ve 22 site deposu için GitHub yayını hazırlanır; HDF/Filmci Baba ayrı paket olarak sunulur. `updates/pilot` eski istemcilerin değişmez uyumluluk arşivi olarak kalır. Genel Release ve Apps2Samsung kataloğu bu çalışmada değiştirilmez. Yayımlama sonrası indirilen dosya özetleri ayrıca `download-verification.json` kanıtına kaydedilir.
+Normal `updates/` kanalı ve 22 site deposu [2d6e804](https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/commit/2d6e804c8f551ecefd663dec58df2f1ee7cc49b4) ile yayımlandı; HDF/Filmci Baba ayrı paket olarak sunuluyor. `updates/pilot` eski istemcilerin değişmez uyumluluk arşivi olarak kaldı. Genel Release ve Apps2Samsung kataloğu değiştirilmedi. GitHub'dan **32 dosya** yeniden indirilip yerelle karşılaştırıldı: normal kanal/çekirdek imzaları, site indeksi ve HDF/Filmci Baba/Diziyou/Diziboxum paketleri, public WGT ve kaynak ZIP'i geçti. Yerel kanıt: `download-verification.json`.
 
 Arama, birleştirme, filtreleme ortak çekirdek kodudur; olağan değişiklikleri çekirdek güncellemesiyle gelir. Siteye özel katalog/çözümleme ilgili site paketiyle gelir. Sabit yükleyici, native TLS/CA, CSP ve uygulama kimliği gibi değişiklikler WGT gerektirir.
