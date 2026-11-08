@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "p005",
+  "name": "P005",
+  "version": "1.0.0",
+  "minAppVersion": "1.6.0",
+  "site": {
+    "id": "lovefilmizle",
+    "prefix": "lovefilmizle:",
+    "name": "P005",
+    "base": "https://lovefilmizle.net"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 8448,
+      "sha256": "17a16c1275d18384f93371ef983e6239f4d0b78732d64b8c235f7dc372d63d13"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 451,
+      "sha256": "62129ef6faa0e5c587e8e7d45e90d9cb26371ed2f57917578309d952ed3830d2"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "e17b4d51e502a48bfea7c51d68f68753e1209909fd5ae3198c87d789472e6bfe"
+    }
+  ]
+}

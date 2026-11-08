@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "p019",
+  "name": "P019",
+  "version": "1.0.0",
+  "minAppVersion": "1.6.0",
+  "site": {
+    "id": "roketdizi",
+    "prefix": "roketdizi:",
+    "name": "P019",
+    "base": "https://roketdizi.life"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 1661,
+      "sha256": "b46d692d54c63f2de509e9f9356d124ea548eac596061ccbe39f3bac2aa64b55"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 134,
+      "sha256": "da6903278a85df1d0654b9ed336f17131d3abcf06f7ce64c6cb16fd73079610b"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "8be84a26e9b1bd0c585a2fa3ac0d32a860f01fb304f0035ac2106cf2137e5531"
+    }
+  ]
+}

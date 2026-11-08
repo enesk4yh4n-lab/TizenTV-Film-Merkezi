@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "p007",
+  "name": "P007",
+  "version": "1.0.0",
+  "minAppVersion": "1.6.0",
+  "site": {
+    "id": "filmifullizle",
+    "prefix": "filmifullizle:",
+    "name": "P007",
+    "base": "https://www.filmifullizle.news"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 5675,
+      "sha256": "aefff1ebedc3f8e287ebe0d94303e37d2ec65bf9030b26c46e6ca3807fa50a09"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 241,
+      "sha256": "8e5057a8204a8f82ccca201b072327f94941faaa270b408a2bf14ddfcdbad88a"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "1ffce4fa2b6d3886b29ed921fed213c7caff23dd9584019ee0202616ea9f1aa3"
+    }
+  ]
+}

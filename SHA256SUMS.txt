@@ -1,1 +1,2 @@
 2eea193e06feec8803efda44369a94684989ba5b3ed02175cad59589d0aab820  Film-Merkezi-TV-1.6.0-public.wgt
+2fbac8ec139d037eea2b6a1052f232a269f40c33162e85864ee48a2aea7a44a3  Film-Merkezi-SDK-1.1.0.zip

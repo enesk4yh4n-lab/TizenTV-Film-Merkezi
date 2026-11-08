@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "p013",
+  "name": "P013",
+  "version": "1.0.0",
+  "minAppVersion": "1.6.0",
+  "site": {
+    "id": "turkcefilmler",
+    "prefix": "turkcefilmler:",
+    "name": "P013",
+    "base": "https://turkcefilmler.to"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 20541,
+      "sha256": "5279df41fed24b40ed3d7210b0429026d9f00ec43cf6d67c551165bd7c3f7729"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 104,
+      "sha256": "cb8f70c4118e27820a93fe5c0eb8d09e15227a7ca5a049ab4a7d8e4446f60bc2"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "a884ebc27bb55fc9b2797b840ba042c8d5623cf8bbb99538fa56d7d016cbb63a"
+    }
+  ]
+}

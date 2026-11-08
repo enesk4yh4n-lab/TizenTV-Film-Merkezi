@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "p004",
+  "name": "P004",
+  "version": "1.0.0",
+  "minAppVersion": "1.6.0",
+  "site": {
+    "id": "fullhdfilmizlesene",
+    "prefix": "fullhdfilmizlesene:",
+    "name": "P004",
+    "base": "https://www.fullhdfilmizlesene.now"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 5204,
+      "sha256": "f005b977cbb0723dafc51132c0915256eb2d1c4f57267fad9fe0cc5122656103"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 138,
+      "sha256": "7c7d5195fd54589d8c4ce5cbedc90339e48642c85f6f7bcdbdfc687576329166"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "799c21646870d723e03e33d23cbf2d01ba18b5e080eaf87365a46d761f76acf6"
+    }
+  ]
+}

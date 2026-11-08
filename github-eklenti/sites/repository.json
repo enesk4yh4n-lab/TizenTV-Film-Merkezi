@@ -3,6 +3,183 @@
   "id": "film-merkezi-eklentiler",
   "name": "Film Merkezi Eklentileri",
   "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5asyOWYkiWXZNeUMmYocbH2+VxPU+BkA/Yk22PhuRpWMo/h1nw/LfWL7ZrPcxo8loJ2VPwbeo05KAtE1H1LUieNRHgMMBMwJaeuV2JvyS8+JNMqrGDhkywDMNNZT4H32uOpQlfZmkNf+tE5EKfFKBNuj5dwlPN0E5/y1B0230WlcIb6JsE40ZmZqzfSuGtprwrNSc0Mx4MQhD56NBmQZUyfrUCYuh27x0ozzUjNLx3JJKpXeS2xWuZv69gFjO+R/Pkl1su0B/cgF2vPqMPKqMWTDUU0SHkUk320Xdv7YbMbAyKkuOYPAi7wZzCVZggU6NBr9nMwhcjWZeUWyFyy/2wIDAQAB",
-  "revision": 1,
-  "plugins": []
+  "revision": 23,
+  "plugins": [
+    {
+      "id": "p001",
+      "name": "P001",
+      "version": "1.0.0",
+      "description": "P001 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p001/1.0.0/manifest.json",
+      "manifestSha256": "43324a786a343a18384905a2860e538b67ca0a9d57c322bfb486b05c463b0a61"
+    },
+    {
+      "id": "p002",
+      "name": "P002",
+      "version": "1.0.0",
+      "description": "P002 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p002/1.0.0/manifest.json",
+      "manifestSha256": "a514b10b04663206cc51c9f353e3da1637302f097a53aca9e3ea34209f7e1a51"
+    },
+    {
+      "id": "p003",
+      "name": "P003",
+      "version": "1.0.0",
+      "description": "P003 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p003/1.0.0/manifest.json",
+      "manifestSha256": "81454ddb793f0dea0554ae5db3183394b7d862e2a4ccabda593a93f16d23e62e"
+    },
+    {
+      "id": "p004",
+      "name": "P004",
+      "version": "1.0.0",
+      "description": "P004 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p004/1.0.0/manifest.json",
+      "manifestSha256": "dd19baf282602fca23b3100d29b899e45e68c8e2022ccaeb6185162a6e039067"
+    },
+    {
+      "id": "p005",
+      "name": "P005",
+      "version": "1.0.0",
+      "description": "P005 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p005/1.0.0/manifest.json",
+      "manifestSha256": "c2d37bb8c1b146609df3df777f6f6e901e3528deb7bb0617e2e41b8c711f5083"
+    },
+    {
+      "id": "p006",
+      "name": "P006",
+      "version": "1.0.0",
+      "description": "P006 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p006/1.0.0/manifest.json",
+      "manifestSha256": "85a4ab7562a9cea3965b9ff62dc43df7120a67905bdd70f7c8c7013f760508f3"
+    },
+    {
+      "id": "p007",
+      "name": "P007",
+      "version": "1.0.0",
+      "description": "P007 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p007/1.0.0/manifest.json",
+      "manifestSha256": "76186f7c0d9fed41fc2d9960ecedc2c4bab632c1a302f859c408bce82ba403e7"
+    },
+    {
+      "id": "p008",
+      "name": "P008",
+      "version": "1.0.0",
+      "description": "P008 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p008/1.0.0/manifest.json",
+      "manifestSha256": "a80a252b5fc664ef8db84014fcf57dc4327c191628ff552a942fe3a1d606426e"
+    },
+    {
+      "id": "p009",
+      "name": "P009",
+      "version": "1.0.0",
+      "description": "P009 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p009/1.0.0/manifest.json",
+      "manifestSha256": "6c13cbacf074f857f45bf97b47466b0206b86c4b59cedae25408385562e828f8"
+    },
+    {
+      "id": "p010",
+      "name": "P010",
+      "version": "1.0.0",
+      "description": "P010 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p010/1.0.0/manifest.json",
+      "manifestSha256": "aaf5107e8e3db83bb372c382311e57c78d6138f73cea09a125136f724f037057"
+    },
+    {
+      "id": "p011",
+      "name": "P011",
+      "version": "1.0.0",
+      "description": "P011 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p011/1.0.0/manifest.json",
+      "manifestSha256": "1580e54e0040fada604f9f3addf3ca0186513637c8609a5f5e6686266d1b59f4"
+    },
+    {
+      "id": "p012",
+      "name": "P012",
+      "version": "1.0.0",
+      "description": "P012 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p012/1.0.0/manifest.json",
+      "manifestSha256": "324ce2835e39a013eb80cc3e0c81a8827458fa5968db270453b490bf981b19bc"
+    },
+    {
+      "id": "p013",
+      "name": "P013",
+      "version": "1.0.0",
+      "description": "P013 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p013/1.0.0/manifest.json",
+      "manifestSha256": "476f3e1625ce2ec81ed9a1f87188e100849a21f2951cfcd3e4f829bdbeab30c2"
+    },
+    {
+      "id": "p014",
+      "name": "P014",
+      "version": "1.0.0",
+      "description": "P014 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p014/1.0.0/manifest.json",
+      "manifestSha256": "bf634e805713b1e83f2eedee994420687e1a7e82a445a3f18536105df91fa63b"
+    },
+    {
+      "id": "p015",
+      "name": "P015",
+      "version": "1.0.0",
+      "description": "P015 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p015/1.0.0/manifest.json",
+      "manifestSha256": "1508cccb04e0d09514464e82e06419bcf07867c24f848cdfb0e41aa555477f36"
+    },
+    {
+      "id": "p016",
+      "name": "P016",
+      "version": "1.0.0",
+      "description": "P016 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p016/1.0.0/manifest.json",
+      "manifestSha256": "ad0f0e03f11346d40f21ee9a1fbb6b55da702029dc788a215914a6b2339caf12"
+    },
+    {
+      "id": "p017",
+      "name": "P017",
+      "version": "1.0.0",
+      "description": "P017 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p017/1.0.0/manifest.json",
+      "manifestSha256": "a2aef404430be81ac31c7b6b03eaf87934e8cd9dfe1c7e278fc5e8694d57f99c"
+    },
+    {
+      "id": "p018",
+      "name": "P018",
+      "version": "1.0.0",
+      "description": "P018 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p018/1.0.0/manifest.json",
+      "manifestSha256": "4b0c19bd4ecc0f3cddec4b3376ef300c2eac5796dcbb3e0f81babd49486a3cd8"
+    },
+    {
+      "id": "p019",
+      "name": "P019",
+      "version": "1.0.0",
+      "description": "P019 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p019/1.0.0/manifest.json",
+      "manifestSha256": "01acb9552b83e7e2379817e5410b7df96fe58549a73c8e23b05685ab80b0947e"
+    },
+    {
+      "id": "p020",
+      "name": "P020",
+      "version": "1.0.0",
+      "description": "P020 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p020/1.0.0/manifest.json",
+      "manifestSha256": "572e4d16f97742b974be4e7649a060335be65851622d647e2d86a365a2284891"
+    },
+    {
+      "id": "p021",
+      "name": "P021",
+      "version": "1.0.0",
+      "description": "P021 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p021/1.0.0/manifest.json",
+      "manifestSha256": "d3459370b998e2a8544f5ccc7e24cfe45eea44ffb9676f0960300d47ba501e19"
+    },
+    {
+      "id": "p022",
+      "name": "P022",
+      "version": "1.0.0",
+      "description": "P022 sayfa uyumluluk eklentisi. Çekirdek 1.10.0 gerekir.",
+      "manifest": "packages/p022/1.0.0/manifest.json",
+      "manifestSha256": "d7afca07743bf7ed69b55a84e5c0ae8e7c9cf787dcff425168830940d4033430"
+    }
+  ]
 }

@@ -1,17 +1,15 @@
-# Boş Film Merkezi dağıtımı
+# Film Merkezi dağıtımı
 
-WGT 1.6.0 / çekirdek 1.10.0. Genel GitHub kaynağı `uygulama/`, imzalı güncelleme kanalı `github-eklenti/` dizinidir. WGT hiçbir site içermez. Site deposu başlangıçta boştur; yeni site yalnız proje sahibinin talimatıyla yayımlanır.
+WGT **1.6.0**, içindeki başlangıç çekirdeği **1.10.0**. WGT sitesi olmayan erişim/oynatma kabuğudur; uygulama/ tam paket kaynağıdır. Çevrim içi çekirdek **1.10.1** ve isteğe bağlı P001–P022 paketleri github-eklenti/ altında sunulur. Bunlar WGT'nin içine eklenmez.
 
-Yalnız yerelde tutulan sağlayıcı kaynakları `deneme/saglayicilar/p001`–`p022` altındadır. Bunlar genel GitHub ağacına aktarılmaz. Eski site/izleme kimlikleri dosya adları olarak kullanılmaz. Üçüncü taraf telif ve lisans bildirimleri korunur.
+Desteklenen sayfalar, kullanıcı tarafından kurulan eklentilerle Tizen'e uyarlanır. Uygulama genel amaçlı bir web tarayıcısı değildir. Eklenti geliştirmek ve kendi deponuzdan yayımlamak için [SDK rehberine](../../SDK/README.md) bakın. Gerçek adresler kod/izinlerde, zorunlu telif bildirimleri lisanslarda korunur.
 
 Genel kaynaktan imzasız paket hazırlamak:
 
-```text
-python tools/distribution/package.py
-```
+    python tools/distribution/package.py
 
-İmzalı cihaz paketi için mevcut `uygulama/tizen_web_project.yaml` projesi kendi Tizen SDK imzalama profilinizle SDK build runner üzerinden derlenir. Özel anahtarlar, sertifikalar ve QA kayıtları genel kaynakta bulunmaz. `Film-Merkezi-TV-1.6.0-public.wgt` geliştirici imzası içermez; kurulumu yapan araç/kişi cihazına uygun sertifikalarla imzalar.
+Üretim dosyaları açık izin listesiyle seçilir. SDK, testler, özel anahtarlar ve cihaz sertifikaları WGT'ye alınmaz. İmzalı cihaz paketi için mevcut uygulama/tizen_web_project.yaml projesini kendi Tizen SDK profilinizle derleyin. Yayımlanan public WGT imzasızdır; kurulum aracı/kişi kendi TV'sine uygun sertifikalarla imzalar.
 
-Native kaynaklar `kaynak/ortak/ag/native/` altındadır. Pepper 47 SDK ve hazırlanmış Mbed TLS 3.6.7 kütüphaneleriyle `tools/build-native-http.py --source kaynak/ortak/ag/native/secure-http.cpp --out uygulama/ortak/ag/native` kullanılır. Mozilla CA girdisi ve MPL-2.0, Apache-2.0 ve diğer zorunlu bildirimler korunur. TLS doğrulamasını kapatmayın.
+Native kaynaklar kaynak/ortak/ag/native/ altındadır. Pepper 47 SDK ve hazırlanmış Mbed TLS 3.6.7 kütüphaneleriyle tools/build-native-http.py --source kaynak/ortak/ag/native/secure-http.cpp --out uygulama/ortak/ag/native kullanılır. Mozilla CA girdisi, MPL-2.0, Apache-2.0 ve diğer zorunlu bildirimler korunur. TLS doğrulaması kapatılmaz.
 
-Uygulama açılışta yalnız güncelleme bilgisini denetler; kod kendiliğinden indirilmez. Güncelleme gelince seçim ekranı açılır; yeni siteler işaretli başlamaz. İnternet yoksa boş ana sayfa kullanılabilir, Güncelleme Merkezi'nden yeniden denetlenebilir.
+Güncelleme bilgisi açılışta denetlenir; indirme/kurulum kullanıcı seçimiyle olur. Yeni eklentiler işaretli başlamaz. İnternet yoksa boş ana sayfa açılabilir; katalog ve medya erişiminin çalıştığı varsayılmaz.

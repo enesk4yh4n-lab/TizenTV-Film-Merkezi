@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "p008",
+  "name": "P008",
+  "version": "1.0.0",
+  "minAppVersion": "1.6.0",
+  "site": {
+    "id": "filmizlebabam",
+    "prefix": "filmizlebabam:",
+    "name": "P008",
+    "base": "https://filmizlebabam.icu"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 11105,
+      "sha256": "4efdb396de7f05ae5a3d8ccc4ef434a19e3f382d14fa01e0e0c1a821d6117d67"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 344,
+      "sha256": "d2ad30c8cca8be4239285da4052d6b65f8913e0d0838500909c1352a74a12442"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "8445643e603c121687bd37208c257cd166db2b702483f25494e442bf2a3abe52"
+    }
+  ]
+}

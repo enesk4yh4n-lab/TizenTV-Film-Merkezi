@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "p012",
+  "name": "P012",
+  "version": "1.0.0",
+  "minAppVersion": "1.6.0",
+  "site": {
+    "id": "ddizi",
+    "prefix": "ddizi:",
+    "name": "P012",
+    "base": "https://www.ddizi.tel"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 41301,
+      "sha256": "29f3e00baeb8c872765c6c1f741a592d2e1527e3cc9a0c0aa25033badfed84b3"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 210,
+      "sha256": "fc53a2207f070a8b6ea03eb6d16f6db6e39e1f788338ba24beeaedbcdbfb55af"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "ce7ca5679ea81998fa2b22efde4c8a5961d486f24d90c8e4372ea6fd69053c2e"
+    }
+  ]
+}

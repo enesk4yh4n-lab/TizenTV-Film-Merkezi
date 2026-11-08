@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "p018",
+  "name": "P018",
+  "version": "1.0.0",
+  "minAppVersion": "1.6.0",
+  "site": {
+    "id": "izle7",
+    "prefix": "izle7:",
+    "name": "P018",
+    "base": "https://www.izle7.com"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 1691,
+      "sha256": "1e40c4d7d8590fddf63295a72e3e4e7ac55dcf011989d0ab8d4ff97cc523c32c"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 101,
+      "sha256": "bc3304333bd14a30b6b608158b83b2e0032e5f8ddc35a2bdb41f995f2a01772d"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "885c7fb265a3d2b4eb8e2ec725870b08fa3d8b24b01606fddc5a62a32073aaaf"
+    }
+  ]
+}
