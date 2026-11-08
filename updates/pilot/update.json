@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "channel": "pilot",
-  "revision": 7,
-  "updateVersion": "1.3.1",
+  "revision": 8,
+  "updateVersion": "1.3.2",
   "minAppVersion": "1.4.1",
-  "manifest": "versions/1.3.1/manifest.json",
-  "manifestSha256": "5acb8567cafb6fdb8dd19dc80d132cf838e5f72fb39ce65f50c20b8743f4c2b3"
+  "manifest": "versions/1.3.2/manifest.json",
+  "manifestSha256": "eeae8ee9960ef578c3c37b53bd4c68e4fadc9e0dba30674fed3b6fa3d4ec2e7a"
 }
