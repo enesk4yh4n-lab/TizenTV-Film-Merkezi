@@ -27,8 +27,6 @@ Silme GitHub'daki güncel dosyalar ve eski Release indirme ekleri içindir; Git 
 
 Güncel ana daldan **3775 dosya** (171.6 MiB mantıksal dosya toplamı) kaldırıldı. Bu sayı Git geçmişinden geri kazanılan fiziksel alan anlamına gelmez. İki eski Release (`v1.0.0`, `v1.1.7`) ve indirme ekleri kaldırıldı; tag/commit geçmişi yeniden yazılmadı. Yerel `updates/`, `addons/` ve 22 sağlayıcı kaynağı korundu. Yeni genel ağaç 243 dosyadır.
 
-Yayın: https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/commit/bfe67c75c1eb7a5dd085eee00fe15a08246eb1f1
-
 Yedi dosya GitHub’dan tekrar indirilip yerel SHA-256 ile karşılaştırıldı. Çekirdek/manifest/site indeksi imzaları ve boş indeks ayrıca denetlendi.
 
 - Film-Merkezi-TV-1.6.0.wgt: 4411005 bayt, 131 dosya, SHA-256 `da2ba142437ca9ea14c3855ee872ace1d3149a95d55cc79009b4ff15fcff9496`
