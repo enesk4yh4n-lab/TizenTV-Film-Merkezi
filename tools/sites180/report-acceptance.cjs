@@ -26,5 +26,6 @@ lines.push('', 'Başarılı her farklı biçimde 90 saniyelik örnekleme ayrıca
 '- Eklentiye gereken çekirdek sürümü WGT 1.4.1 şemasında ayrı kurulum öncesi alan olarak bulunmuyor. Önce çekirdek 1.8.0 kurulması gerekir; eski çekirdekte açık modül uyumluluk kontrolü vardır. Bu, tam kurulum öncesi bağımlılık denetimi değildir.',
 `- Teknik WGT/CA değişmedi; son izin birleşimi ${verify&&verify.originUnion}/128 ve eklenti dosyaları ${verify&&verify.codePackageBytes} bayt/8 MiB. TLS doğrulaması kapatılmadı.`,
 '- Genel Release, Apps2Samsung yayını veya gerçek TV kabulü yapılmadı. Bu kanal pilot dağıtımdır.');
+lines.push('', '## Sonraki gerçek TV turu', '', 'Kullanıcının TV’yi hazır etmesinden sonra yapılan ayrı kurulum, kaynak/kontrol turları ve TRDizi 1.0.3 düzeltmesi [gerçek TV raporunda](TEST_SONUCLARI_TV_SITELER_1.8.0.md) bulunur. Bu bölümün yukarısındaki emülatör sonuçları TV sonucu olarak yeniden etiketlenmez.');
 const f=path.join(root,'docs/arsiv/TEST_SONUCLARI_SITELER_1.8.0.md');fs.appendFileSync(f,lines.join('\n')+'\n');
 console.log(JSON.stringify({appended:true,playbackRows:playback&&playback.rows.length||0}));

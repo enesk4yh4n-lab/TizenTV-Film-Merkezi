@@ -14,7 +14,7 @@
 
 İlgili testler: `node --test tools/sites180/tests.cjs tools/hdf-series132.test.cjs tools/filmizlebabam-host.test.cjs tools/ddizi.test.cjs tools/multisite0140.test.cjs tools/plugins/numeric-origins.test.cjs`.
 
-`new-sites.cjs` mevcut kanonik dosyaların üzerine yazmaz. Yayımlanmış çekirdek ve paketler değişmezdir. Site düzeltmesi örneği: `node tools/sites180/build-packages.cjs trdiziizle --version=1.0.2` (yeni sürüm seçilmelidir). İlk 1.0.0 paketleri korunur; TRDizi 1.0.2 ve FixFull 1.0.1 canlı kontrolden çıkan bağımsız düzeltmelerdir.
+`new-sites.cjs` mevcut kanonik dosyaların üzerine yazmaz. Yayımlanmış çekirdek ve paketler değişmezdir. Site düzeltmesi örneği: `node tools/sites180/build-packages.cjs trdiziizle --version=1.0.2` (yeni sürüm seçilmelidir). İlk 1.0.0 paketleri korunur; TRDizi 1.0.3 ve FixFull 1.0.1 canlı kontrolden çıkan bağımsız düzeltmelerdir.
 
 Fixture testleri yerel `tools/test-results/sites180/captures/` yanıtlarını kullanır. Ham HTML ve geçici medya tokenları herkese açık depoya taşınmaz. Temiz checkout'ta önce envanter/yakalama araçları çalıştırılmalı; erişilemeyen yanıt varsa eksik fixture açıkça raporlanmalıdır. Bunlar ağdan bağımsız, dağıtılmış tam fixture takımı değildir.
 
