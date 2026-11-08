@@ -1,9 +1,9 @@
 {
   "id": "trdiziizle",
   "name": "TR Dizi İzle",
-  "description": "TR Dizi İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
-  "version": "1.0.3",
-  "minAppVersion": "1.4.1",
+  "description": "TR Dizi İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.9.1 gerektirir.",
+  "version": "1.0.5",
+  "minAppVersion": "1.5.0",
   "site": {
     "id": "trdiziizle",
     "prefix": "trdiziizle:",

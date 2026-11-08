@@ -6,6 +6,11 @@
   "series": /^\/diziler\/[^/]+\/?$/,
   "episode": /^\/[^/]+-bolum[^/]*\/?$/,
   "searchPath": "/?s=",
+  "cards": ".listepisodes",
+  "title": ".bolum-alt",
+  "image": "a > img",
+  "boundEpisodeContainer": true,
+  "episodeLinks": ".custom-scrollbar .bolumust a[href]",
   "playerFrames": "iframe[src*=\"/player/oynat/\"]",
   "episodeFeed": true,
   "parentLinks": ".breadcrumb a, .breadcrumbs a, a[rel=\"category tag\"]"
@@ -37,17 +42,20 @@ D.resolve=function(entry,get,request,check){
   });
 };
 var BaseResolver=root.WebPlayerData.createResolver(P,D);
+function Provider(cache,network){a.Provider.call(this,cache,network||root.ChainNetwork.createClient({destination:'downloads',preferXHR:false}));}
+Provider.prototype=Object.create(a.Provider.prototype);Provider.prototype.constructor=Provider;
+Provider.prototype.fetch=function(url,parse,force,scope){url=P.safe(url);if(!url)return Promise.reject(new Error('Site dışı katalog isteği reddedildi.'));return this.request(url,null,parse,force,'trdizi104-'+scope);};
 function Resolver(log,now){
   BaseResolver.call(this,log,now);
   var active=[],generation=0;
   this.network.cancel();
-  // The page and wrapper need different fallback paths on Tizen 3. Do not inherit
-  // the page request's transport preference when fetching the next URL.
+  // TV Download accepts the real page/wrapper where the separate TLS client is
+  // challenged. Keep request ownership separate; TLS verification stays enabled.
   this.network={get:function(url,ref,headers,policy){
-    var token=generation,client=root.ChainNetwork.createClient({destination:'downloads',preferXHR:true});active.push(client);
+    var token=generation,client=root.ChainNetwork.createClient({destination:'downloads',preferXHR:false});active.push(client);
     function release(){var i=active.indexOf(client);if(i>=0)active.splice(i,1);client.cancel();}
     return client.get(url,ref,headers,policy).then(function(value){release();if(token!==generation)throw root.WebPlayerData.fail('cancel','İptal edildi');return value;},function(error){release();throw error;});
   },cancel:function(){generation++;var clients=active.slice();active=[];clients.forEach(function(client){client.cancel();});}};
 }
 Resolver.prototype=Object.create(BaseResolver.prototype);Resolver.prototype.constructor=Resolver;
-root.SiteRegistry.register({id:c.id,name:c.name,base:P.base,prefix:c.id+':',storagePrefix:'site.'+c.id+'.',mark:c.name.slice(0,2),subtitle:c.name,contentTypes:['series'],collectionKeys:['new'],Provider:a.Provider,Resolver:Resolver,ui:{movieRail:'Filmler',seriesRail:'Diziler',filterHint:'Sitenin sunduğu katalog',defaultOrder:'date'},collectionQuery:function(type){return {type:type,url:P.base+(type==='movie'?c.movieList||c.listPath||'/':c.listPath||'/')};},filterFields:function(){return [];}});})(window);
+root.SiteRegistry.register({id:c.id,name:c.name,base:P.base,prefix:c.id+':',storagePrefix:'site.'+c.id+'.',mark:c.name.slice(0,2),subtitle:c.name,contentTypes:['series'],collectionKeys:['new'],Provider:Provider,Resolver:Resolver,ui:{movieRail:'Filmler',seriesRail:'Diziler',filterHint:'Sitenin sunduğu katalog',defaultOrder:'date'},collectionQuery:function(type){return {type:type,url:P.base+(type==='movie'?c.movieList||c.listPath||'/':c.listPath||'/')};},filterFields:function(){return [];}});})(window);

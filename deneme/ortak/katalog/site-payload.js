@@ -18,7 +18,7 @@
     function safe(v, page) { var u = U.url(v, page || base + '/'); if (root.SiteAddresses) u = root.SiteAddresses.resolve(u); if (!u) return ''; var p = new root.URL(u); return p.origin === base && !p.username && !p.password && !p.port ? u : ''; }
     function kind(v) { var u = safe(v); if (!u) return ''; var p = new root.URL(u).pathname; return c.episode && c.episode.test(p) ? 'episode' : c.series && c.series.test(p) ? 'series' : c.movie && c.movie.test(p) ? 'movie' : ''; }
     function id(v) { var u = safe(v), p = u && new root.URL(u).pathname, key = c.numericTailId && p && /-(\d+)\/?$/.exec(p); return u && kind(u) ? c.id + ':' + kind(u) + ':' + (key ? key[1] : p.replace(/^\/+|\/+$/g, '')) : ''; }
-    function image(n, page) { var img = n.querySelector('img[data-src], img[data-original], img.lazy') || n.querySelector('img'); return U.url(img && (img.getAttribute('data-src') || img.getAttribute('data-original') || img.getAttribute('data-catalog-src')), page); }
+    function image(n, page) { var img = c.image && n.querySelector(c.image) || n.querySelector('img[data-src], img[data-original], img.lazy') || n.querySelector('img'); return U.url(img && (img.getAttribute('data-src') || img.getAttribute('data-original') || img.getAttribute('data-catalog-src')), page); }
     function searchPage(page) { var u = new root.URL(page); return /(?:^|[?&])s=/.test(u.search) || /^\/search\//.test(u.pathname); }
     function cards(body, page) {
       var d = U.envelope(body).doc, out = [], seen = {}, searching = searchPage(page), scope = searching && c.searchRoot ? d.querySelector(c.searchRoot) : d;

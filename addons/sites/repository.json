@@ -3,7 +3,7 @@
   "id": "film-merkezi-sites",
   "name": "Film Merkezi Siteleri",
   "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5asyOWYkiWXZNeUMmYocbH2+VxPU+BkA/Yk22PhuRpWMo/h1nw/LfWL7ZrPcxo8loJ2VPwbeo05KAtE1H1LUieNRHgMMBMwJaeuV2JvyS8+JNMqrGDhkywDMNNZT4H32uOpQlfZmkNf+tE5EKfFKBNuj5dwlPN0E5/y1B0230WlcIb6JsE40ZmZqzfSuGtprwrNSc0Mx4MQhD56NBmQZUyfrUCYuh27x0ozzUjNLx3JJKpXeS2xWuZv69gFjO+R/Pkl1su0B/cgF2vPqMPKqMWTDUU0SHkUk320Xdv7YbMbAyKkuOYPAi7wZzCVZggU6NBr9nMwhcjWZeUWyFyy/2wIDAQAB",
-  "revision": 92,
+  "revision": 94,
   "plugins": [
     {
       "id": "filmmakinesi",
@@ -142,14 +142,6 @@
       "manifestSha256": "b24f7957815ce01c8c1ec430fe81dd9dbdcc5eaf9318ca69c58ea8745c26ce56"
     },
     {
-      "id": "trdiziizle",
-      "name": "TR Dizi İzle",
-      "version": "1.0.3",
-      "description": "TR Dizi İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
-      "manifest": "packages/trdiziizle/1.0.3/manifest.json",
-      "manifestSha256": "d2439e68fd9fae5788c81c8d0c3c6b16e486c24608e75e9325492caa4c330781"
-    },
-    {
       "id": "hdf",
       "name": "HDfilmCehennemi",
       "version": "1.0.0",
@@ -180,6 +172,14 @@
       "description": "Diziboxum katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.9.0 gerektirir.",
       "manifest": "packages/diziboxum/1.0.2/manifest.json",
       "manifestSha256": "8baa1983bcdb80fae7d8fb9818598de096690620f8b1713370fbdf07c4f061b2"
+    },
+    {
+      "id": "trdiziizle",
+      "name": "TR Dizi İzle",
+      "version": "1.0.5",
+      "description": "TR Dizi İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.9.1 gerektirir.",
+      "manifest": "packages/trdiziizle/1.0.5/manifest.json",
+      "manifestSha256": "f3879152842f2e75840fe9ce75165e256f1c8e9fa7067f85a5aaca86171805bb"
     }
   ]
 }

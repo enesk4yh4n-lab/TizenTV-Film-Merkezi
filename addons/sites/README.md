@@ -1,5 +1,7 @@
 # Film Merkezi site eklentileri
 
+**TRDizi 1.0.5**, çekirdek **1.9.1** ile TV'nin çalışan HTTPS Download yolunu kullanır; 403 veren özel TLS metin yolu bu site için seçilmez. Sertifika doğrulaması açıktır. [Ölçüm ve sınırlar](../../docs/arsiv/TEST_SONUCLARI_TRDIZI_1.9.1.md).
+
 Bu imzalı depo **22 bağımsız site paketi** sunar. HDFilmCehennemi ve Filmci Baba (Filmizle.ink) da çevrimiçi eklentidir; WGT'de yerleşik sağlayıcı yoktur. Güncelleme Merkezi üzerinden kurulabilir, güncellenebilir, kapatılabilir, kaldırılabilir veya önceki sürüme dönülebilir.
 
 Güncel normal başlangıç: **WGT 1.5.0 + çekirdek 1.9.0**. Yeni HDF/Filmci Baba ve Diziyou/Diziboxum 1.0.2 bu WGT'yi ister. Önceden yayımlanmış diğer paketlerin minimum sürümü ve eski dosyaları korunur. Son 22 paket WGT içinde de vardır; ilk açılışta ayrıca indirilmez. Sonraki güncellemeler ve yeni site kurulumları kullanıcı onayına bağlıdır.
