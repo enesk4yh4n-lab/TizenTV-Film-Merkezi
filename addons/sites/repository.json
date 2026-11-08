@@ -3,7 +3,7 @@
   "id": "film-merkezi-sites",
   "name": "Film Merkezi Siteleri",
   "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5asyOWYkiWXZNeUMmYocbH2+VxPU+BkA/Yk22PhuRpWMo/h1nw/LfWL7ZrPcxo8loJ2VPwbeo05KAtE1H1LUieNRHgMMBMwJaeuV2JvyS8+JNMqrGDhkywDMNNZT4H32uOpQlfZmkNf+tE5EKfFKBNuj5dwlPN0E5/y1B0230WlcIb6JsE40ZmZqzfSuGtprwrNSc0Mx4MQhD56NBmQZUyfrUCYuh27x0ozzUjNLx3JJKpXeS2xWuZv69gFjO+R/Pkl1su0B/cgF2vPqMPKqMWTDUU0SHkUk320Xdv7YbMbAyKkuOYPAi7wZzCVZggU6NBr9nMwhcjWZeUWyFyy/2wIDAQAB",
-  "revision": 81,
+  "revision": 84,
   "plugins": [
     {
       "id": "filmmakinesi",
@@ -62,14 +62,6 @@
       "manifestSha256": "9b7415f8e793181e804d59a5f39090f1d585cdeb340b3c041332400750056bca"
     },
     {
-      "id": "fixfullfilmizle",
-      "name": "Fix Full Film İzle",
-      "version": "1.0.0",
-      "description": "Fix Full Film İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
-      "manifest": "packages/fixfullfilmizle/1.0.0/manifest.json",
-      "manifestSha256": "7998ec00eb9c0b0d64adc075dfecf86b91bb560efcfa270a972be9473ac03aea"
-    },
-    {
       "id": "hdfilmdelisi",
       "name": "HD Film Delisi",
       "version": "1.0.0",
@@ -100,14 +92,6 @@
       "description": "Dizibox katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
       "manifest": "packages/dizibox/1.0.0/manifest.json",
       "manifestSha256": "7259b089dbf432abeb4a4e785751817b46466d84621ae8d72fe10b65773da691"
-    },
-    {
-      "id": "trdiziizle",
-      "name": "TR Dizi İzle",
-      "version": "1.0.0",
-      "description": "TR Dizi İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
-      "manifest": "packages/trdiziizle/1.0.0/manifest.json",
-      "manifestSha256": "92b9d013e5551cf2580886788f6bff006c022cac1445c72691969b4f3261778a"
     },
     {
       "id": "dizipal21",
@@ -164,6 +148,22 @@
       "description": "Diziboxum katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
       "manifest": "packages/diziboxum/1.0.0/manifest.json",
       "manifestSha256": "9809abe550c91817a479066eb76e02d295014398ba01b59f78910f61c443bbdd"
+    },
+    {
+      "id": "fixfullfilmizle",
+      "name": "Fix Full Film İzle",
+      "version": "1.0.1",
+      "description": "Fix Full Film İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/fixfullfilmizle/1.0.1/manifest.json",
+      "manifestSha256": "b24f7957815ce01c8c1ec430fe81dd9dbdcc5eaf9318ca69c58ea8745c26ce56"
+    },
+    {
+      "id": "trdiziizle",
+      "name": "TR Dizi İzle",
+      "version": "1.0.1",
+      "description": "TR Dizi İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/trdiziizle/1.0.1/manifest.json",
+      "manifestSha256": "9a414ad6105ca4c8dbd660ad0507dc324751bfbab209b4d2789d4af30b26859c"
     }
   ]
 }

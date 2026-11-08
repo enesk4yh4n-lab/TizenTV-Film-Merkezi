@@ -2,7 +2,7 @@
   "id": "trdiziizle",
   "name": "TR Dizi İzle",
   "description": "TR Dizi İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "1.4.1",
   "site": {
     "id": "trdiziizle",
@@ -18,6 +18,14 @@
     "LICENSE.txt"
   ],
   "origins": [
-    "https://www.trdiziizle.tv"
+    "https://www.trdiziizle.tv",
+    "https://cms-tabii-public-video.tabii.com",
+    "https://downloader.disk.yandex.ru",
+    "https://eu1.tabii.com",
+    "https://puhu-p3.mncdn.com",
+    "https://rtuk-p.mncdn.com",
+    "https://streambox.xyz",
+    "https://streambox1.xyz",
+    "https://video.twimg.com"
   ]
 }

@@ -2,7 +2,7 @@
   "id": "fixfullfilmizle",
   "name": "Fix Full Film İzle",
   "description": "Fix Full Film İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "1.4.1",
   "site": {
     "id": "fixfullfilmizle",
@@ -24,6 +24,7 @@
     "https://myplayersvideo.xyz",
     "https://oynat.fixfullfilmizle.net",
     "https://vevocloud.com",
-    "https://vidara.to"
+    "https://vidara.to",
+    "https://ynll3vo5a4qr.drewimplemnt.top"
   ]
 }
