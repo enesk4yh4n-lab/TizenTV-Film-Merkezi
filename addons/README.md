@@ -2,6 +2,8 @@
 
 Güncel deneme **Film Merkezi Update Test 1.4.1** uygulamasıdır. HDF video parçaları native TLS üzerinden alınır; katalog HTML erişiminin çalışan taşıma yolu korunur. Ana 14 siteli Film Merkezi 1.2.0 ve Apps2Samsung kaydı bu denemeden etkilenmez.
 
+**HDF bölüm listesi düzeltmesi:** 1.4.1 WGT kuruluysa **Seçenekler → Güncellemeler → Kontrol et → İndir → Uygula ve yeniden aç** ile **1.3.2 bileşenini** alın. Yeni WGT gerekmez. Sonunda eğik çizgi olmayan bölüm adresleri ve önceki boş dizi önbelleği düzeltildi.
+
 - [İmzasız test WGT’sini indir](app/Film-Merkezi-Update-Test-1.4.1-public.wgt). Apps2Samsung gibi bir kurucu bunu TV’ye uygun sertifikayla imzalamalıdır; dosya doğrudan her TV’ye kurulabilen evrensel imzalı paket değildir.
 - [Eklenti geliştirme SDK’sı 1.0.2](sdk/Film-Merkezi-Plugin-SDK-1.0.2.zip).
 - [Geliştirici kılavuzu, dosya haritası ve sınırlar](DEVELOPER.md).
