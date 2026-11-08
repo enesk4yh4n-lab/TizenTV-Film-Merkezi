@@ -13,7 +13,7 @@ const families={
  fullhdfilmizlesene:['https://rapidvid.net','https://*.imgz.me'],
  lovefilmizle:['https://*.vmpx.online','https://*.okcdn.ru','https://*.vkuser.net'],
  filmifullizle:['https://*.vmpx.online','https://*.okcdn.ru','https://*.vkuser.net'],
- filmizlebabam:['https://*.97bf1.com','https://*.pilavyerplay.top','https://*.okcdn.ru','https://*.vkuser.net'],
+ filmizlebabam:['https://gasobni.com','https://*.97bf1.com','https://*.pilavyerplay.top','https://*.okcdn.ru','https://*.vkuser.net'],
  dizibox:['https://*.molystream.org','https://*.vmpx.online','https://*.okcdn.ru','https://*.vkuser.net'],
  ddizi:['https://video.twimg.com','https://streambox.xyz','https://eu1.tabii.com','https://puhu-p3.mncdn.com','https://*.googlevideo.com']
 };

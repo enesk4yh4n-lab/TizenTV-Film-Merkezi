@@ -17,7 +17,23 @@ D.resolve=function(entry,get,request,check){
   return get(url,entry.pageUrl||P.base+'/','embed').then(function(response){
     check();
     if(!root.WebPlayerData.doc(response.body).querySelector('#player'))throw root.WebPlayerData.fail('decode','TRDizi etkin oynatıcı alanı bulunamadı.');
-    var data=root.WebPlayerData.jw(response.body,url);data.referer=url;return data;
+    var data=root.WebPlayerData.jw(response.body,url);data.referer=url;
+    if(data.type!=='hls')return data;
+    return request(data.url,url,'manifest').then(function(manifest){
+      check();
+      if(!/^\s*#EXTM3U/.test(manifest.body))throw root.WebPlayerData.fail('manifest','TRDizi HLS yerine farklı yanıt verdi.');
+      var lines=manifest.body.split(/\r?\n/),variants=[];
+      lines.forEach(function(line,i){if(/^#EXT-X-STREAM-INF:/.test(line)){for(var n=i+1;n<lines.length;n++){if(lines[n].replace(/\s/g,'')&&lines[n].charAt(0)!=='#'){variants.push(lines[n].replace(/^\s+|\s+$/g,''));break;}}}});
+      // Single-variant masters can contain incorrect dimensions. Use their real
+      // child URI rather than inventing codec/resolution metadata. Preserve
+      // multi-quality and separate audio/subtitle renditions in the master.
+      if(variants.length===1&&!/^#EXT-X-MEDIA:/m.test(manifest.body)){
+        var child=root.WebPlayerData.publicUrl(variants[0],data.url);
+        if(!child)throw root.WebPlayerData.fail('manifest','TRDizi alt playlist adresi geçersiz.');
+        data.url=child;
+      }
+      return data;
+    });
   });
 };
 var BaseResolver=root.WebPlayerData.createResolver(P,D);

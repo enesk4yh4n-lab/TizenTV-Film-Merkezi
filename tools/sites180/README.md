@@ -13,3 +13,11 @@
 `origins.cjs`: gerçek/historik fixture ve decoder ailelerinden imzalı köken envanteri. `tls.cjs`: WGT native modülünün CA kaynak dosyasıyla bilgisayarda hostname/SNI/zincir kontrolü; gerçek Tizen native testi ayrıca gerekir. `verify.cjs`: imza, ES5, dosya/boyut özetleri, 8 MiB/128 köken ve değişmeyen WGT denetimi.
 
 İlgili testler: `node --test tools/sites180/tests.cjs tools/hdf-series132.test.cjs tools/filmizlebabam-host.test.cjs tools/ddizi.test.cjs tools/multisite0140.test.cjs tools/plugins/numeric-origins.test.cjs`.
+
+`new-sites.cjs` mevcut kanonik dosyaların üzerine yazmaz. Yayımlanmış çekirdek ve paketler değişmezdir. Site düzeltmesi örneği: `node tools/sites180/build-packages.cjs trdiziizle --version=1.0.2` (yeni sürüm seçilmelidir). İlk 1.0.0 paketleri korunur; TRDizi 1.0.2 ve FixFull 1.0.1 canlı kontrolden çıkan bağımsız düzeltmelerdir.
+
+Fixture testleri yerel `tools/test-results/sites180/captures/` yanıtlarını kullanır. Ham HTML ve geçici medya tokenları herkese açık depoya taşınmaz. Temiz checkout'ta önce envanter/yakalama araçları çalıştırılmalı; erişilemeyen yanıt varsa eksik fixture açıkça raporlanmalıdır. Bunlar ağdan bağımsız, dağıtılmış tam fixture takımı değildir.
+
+`emulator-install.cjs`: mevcut uygulamaya çekirdek ve 20 eklenti kurma; `emulator-patch.cjs`: bağımsız düzeltmeyi aynı WGT üzerinde uygulama; `emulator-probe.cjs case-XX ...`: Tizen'in gerçek istemcisiyle çözümleme; `emulator-playback.cjs case-XX ...`: gerçek medya, tuşlar, sarma, kesintisiz yenileme ve 90 saniyelik örnekleme. Testler yalnız tek CDP oturumu açıkken çalıştırılır. Varsayılan host RWI portu 35962'dir; bağlantı değişirse yeniden yönlendirilmelidir. Fiziksel ses/kumanda onayı bu araçlardan çıkarılmaz.
+
+`publish-delta.cjs` yalnız açık izin listesindeki değişen dosyaları GitHub connector için hazırlar; kendisi yayın yapmaz. `report.cjs` ve ardından `report-acceptance.cjs`, son denemeleri eski başarısız ham turlardan ayıran raporu üretir.
