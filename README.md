@@ -1,5 +1,7 @@
 # Film Merkezi
 
+**TRDizi 1.0.7:** Ana sayfa, Diziler ve aramada bölüm yayınları gerçek dizi bağlantıları altında tek karta toplanır; bölümler detayda korunur. Yalnız site güncellemesi gerekir. [İlgili kontroller](docs/arsiv/TRDIZI_KATALOG_1.0.7.md).
+
 **TRDizi düzeltmesi:** çevrimiçi çekirdek **1.9.3** + TRDizi **1.0.6**, TV'de çalışan HTTPS Download yolunu seçer. WGT 1.5.0 değişmez; Güncelleme Merkezi'nden çekirdek ve siteyi birlikte güncelleyin. [Neden ve ilgili kontroller](docs/arsiv/TEST_SONUCLARI_TRDIZI_1.9.3.md).
 
 Samsung Tizen 3.0 TV için film ve dizi uygulaması. **WGT 1.5.0 / çekirdek 1.9.0**, 22 bağımsız çevrimiçi site paketi, ortak katalog/arama, Listem, geçmiş, dizi takibi ve HTML5/hls.js–AVPlay oynatıcısı içerir. Çalışma sırasında PC, proxy veya ek sunucu istemez.

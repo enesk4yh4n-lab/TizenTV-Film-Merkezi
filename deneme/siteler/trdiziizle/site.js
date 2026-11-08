@@ -15,6 +15,45 @@
   "episodeFeed": true,
   "parentLinks": ".breadcrumb a, .breadcrumbs a, a[rel=\"category tag\"]"
 },a=root.SitePayload.adapter(c),P=a.parser,D=root.SiteSourceFamilies.create(P);
+// Lists contain episode releases. Link them to the actual series directory
+// already present in the same response, without requesting every episode.
+function seriesName(value){return root.CatalogUtils.clean(value).replace(/(?:\s+(?:izle|hd))+$/i,'');}
+function nameKey(value){return seriesName(value).replace(/İ/g,'i').replace(/I/g,'ı').toLowerCase();}
+function seriesList(body,page){
+  return root.CatalogUtils.withEnvelope(body,function(){
+    var result=P.list(body,page),doc=root.CatalogUtils.envelope(body).doc,
+      names={},titles={},seen={},cards=[];
+    Array.prototype.forEach.call(doc.querySelectorAll('a[href*="/diziler/"]'),function(link){
+      var url=P.safe(link.getAttribute('href'),page),key='$'+nameKey(link.textContent||link.getAttribute('title'));
+      if(!url||!c.series.test(new root.URL(url).pathname)||key==='$')return;
+      if(!names[key])names[key]={url:url,ambiguous:false};
+      else if(names[key].url!==url)names[key].ambiguous=true;
+    });
+    Array.prototype.forEach.call(doc.querySelectorAll(c.cards),function(box){
+      var link=box.querySelector('a[href]'),name=box.querySelector('[id="dizi-ismi"]'),
+        url=P.safe(link&&link.getAttribute('href'),page);
+      if(url&&name)titles['$'+url]=seriesName(name.textContent);
+    });
+    result.cards.forEach(function(row){
+      var title=titles['$'+row.pageUrl],entry=title&&names['$'+nameKey(title)],key=row.contentId;
+      if(row.type==='episode'&&title){
+        var episodeUrl=row.pageUrl,stem=/^\/(.+?)-(?:\d+-sezon-)?\d+-bolum(?:-|\/|$)/.exec(new root.URL(episodeUrl).pathname);
+        if(entry&&!entry.ambiguous){
+          row.pageUrl=entry.url;row.seriesPageUrl=entry.url;key=P.id(entry.url);
+        }else if(stem){
+          // A directory-less response still has an explicit series label and
+          // episode slug. Keep the real episode URL for detail-time lookup;
+          // never manufacture a series URL or merge merely similar titles.
+          key=c.id+':series-feed:'+stem[1];
+        }else title='';
+        if(title){row.type='series';row.title=title;row.contentId=key;row.aggregateSeries=true;row.latestEpisodePageUrl=episodeUrl;}
+      }
+      if(!seen['$'+key]){seen['$'+key]=true;cards.push(row);}
+    });
+    result.cards=cards;return result;
+  });
+}
+P.seriesList=seriesList;
 // Only the active same-site wrapper is a player. Its hidden challenge iframe is not.
 D.resolve=function(entry,get,request,check){
   var url=root.WebPlayerData.publicUrl(entry.url,P.base),u=url&&new root.URL(url);
@@ -44,7 +83,20 @@ D.resolve=function(entry,get,request,check){
 var BaseResolver=root.WebPlayerData.createResolver(P,D);
 function Provider(cache,network){a.Provider.call(this,cache,network||root.ChainNetwork.createClient({destination:'downloads',preferXHR:false,platformText:true}));}
 Provider.prototype=Object.create(a.Provider.prototype);Provider.prototype.constructor=Provider;
-Provider.prototype.fetch=function(url,parse,force,scope){url=P.safe(url);if(!url)return Promise.reject(new Error('Site dışı katalog isteği reddedildi.'));return this.request(url,null,parse,force,'trdizi104-'+scope);};
+Provider.prototype.fetch=function(url,parse,force,scope){url=P.safe(url);if(!url)return Promise.reject(new Error('Site dışı katalog isteği reddedildi.'));return this.request(url,null,parse,force,'trdizi107-'+scope);};
+Provider.prototype.home=function(force){return this.fetch(P.base+'/',function(body){var cards=seriesList(body,P.base+'/').cards;return {hero:cards.filter(function(row){return row.type==='series';})[0]||null,movies:[],series:cards};},force,'home');};
+Provider.prototype.list=function(query,next,force){
+  if(query&&query.type==='movie')return Promise.resolve({cards:[],next:null});
+  var url=next&&next.url||query&&query.url||P.base+'/';
+  return this.fetch(url,function(body){return seriesList(body,url);},force,'list');
+};
+Provider.prototype.search=function(query,force,next){
+  query=root.CatalogUtils.clean(query);
+  if(!query||query.length>100)return Promise.reject(new Error('Arama 1–100 karakter olmalı.'));
+  var url=next&&next.url||P.base+c.searchPath+encodeURIComponent(query);
+  return this.fetch(url,function(body){return seriesList(body,url);},force,'search');
+};
+Provider.prototype.detail=function(card,force){return a.Provider.prototype.detail.call(this,card,force).then(function(detail){if(card.aggregateSeries&&detail.type==='series')delete detail.selectedEpisodePageUrl;return detail;});};
 function Resolver(log,now){
   BaseResolver.call(this,log,now);
   var active=[],generation=0;
