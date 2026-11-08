@@ -1,0 +1,4 @@
+{
+  "tr": "Aynı kaynak seçili motorda iki kez başarısız olursa motor değişimi için onay istenir. Ret veya Geri mevcut motorda devam eder. Kullanıcı kararı beklenirken toparlama saati durur; otomatik deneme sınırları korunur.",
+  "en": "Ask before switching engines after two failed openings of the same source. Decline or Back keeps the current engine. Waiting for consent pauses the recovery clock without increasing its attempt limit."
+}
