@@ -1,5 +1,5 @@
 /* Generated from canonical site sources; edit deneme/siteler, then rebuild. */
-(function(shared){'use strict';if(!shared.SitePluginRuntime)throw Error('Update core component to 1.9.1 before installing this site.');var context=shared.FilmPlugins.context(),window=shared.SitePluginRuntime.scope(context,'1.9.1');
+(function(shared){'use strict';if(!shared.SitePluginRuntime)throw Error('Update core component to 1.9.2 before installing this site.');var context=shared.FilmPlugins.context(),window=shared.SitePluginRuntime.scope(context,'1.9.2');
 
 /* siteler/trdiziizle/site.js */
 /* Independent site adapter; canonical source for the signed plugin. */
@@ -46,7 +46,7 @@ D.resolve=function(entry,get,request,check){
   });
 };
 var BaseResolver=root.WebPlayerData.createResolver(P,D);
-function Provider(cache,network){a.Provider.call(this,cache,network||root.ChainNetwork.createClient({destination:'downloads',preferXHR:false}));}
+function Provider(cache,network){a.Provider.call(this,cache,network||root.ChainNetwork.createClient({destination:'downloads',preferXHR:false,platformText:true}));}
 Provider.prototype=Object.create(a.Provider.prototype);Provider.prototype.constructor=Provider;
 Provider.prototype.fetch=function(url,parse,force,scope){url=P.safe(url);if(!url)return Promise.reject(new Error('Site dışı katalog isteği reddedildi.'));return this.request(url,null,parse,force,'trdizi104-'+scope);};
 function Resolver(log,now){
@@ -56,7 +56,7 @@ function Resolver(log,now){
   // TV Download accepts the real page/wrapper where the separate TLS client is
   // challenged. Keep request ownership separate; TLS verification stays enabled.
   this.network={get:function(url,ref,headers,policy){
-    var token=generation,client=root.ChainNetwork.createClient({destination:'downloads',preferXHR:false});active.push(client);
+    var token=generation,client=root.ChainNetwork.createClient({destination:'downloads',preferXHR:new root.URL(url).origin!==P.base,platformText:true});active.push(client);
     function release(){var i=active.indexOf(client);if(i>=0)active.splice(i,1);client.cancel();}
     return client.get(url,ref,headers,policy).then(function(value){release();if(token!==generation)throw root.WebPlayerData.fail('cancel','İptal edildi');return value;},function(error){release();throw error;});
   },cancel:function(){generation++;var clients=active.slice();active=[];clients.forEach(function(client){client.cancel();});}};
