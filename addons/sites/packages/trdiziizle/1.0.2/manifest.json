@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "trdiziizle",
+  "name": "TR Dizi İzle",
+  "version": "1.0.2",
+  "minAppVersion": "1.4.1",
+  "site": {
+    "id": "trdiziizle",
+    "prefix": "trdiziizle:",
+    "name": "TR Dizi İzle",
+    "base": "https://www.trdiziizle.tv"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 3196,
+      "sha256": "20490cb2c6bc8512ae15fa3059dc8d97097a33908d8784e88506394a7b6c4d17"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 266,
+      "sha256": "72338d2caff0800f07b002e5724a1ff395de9c72d143ad53e564d56ec3d90e75"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "afd15aee1c3b2ba36ba8b86669e161c1209a35e69e9ae3327a1956738edbc60d"
+    }
+  ]
+}

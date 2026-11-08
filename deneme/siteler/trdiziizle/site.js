@@ -20,4 +20,18 @@ D.resolve=function(entry,get,request,check){
     var data=root.WebPlayerData.jw(response.body,url);data.referer=url;return data;
   });
 };
-root.SiteRegistry.register({id:c.id,name:c.name,base:P.base,prefix:c.id+':',storagePrefix:'site.'+c.id+'.',mark:c.name.slice(0,2),subtitle:c.name,contentTypes:['series'],collectionKeys:['new'],Provider:a.Provider,Resolver:root.WebPlayerData.createResolver(P,D),ui:{movieRail:'Filmler',seriesRail:'Diziler',filterHint:'Sitenin sunduğu katalog',defaultOrder:'date'},collectionQuery:function(type){return {type:type,url:P.base+(type==='movie'?c.movieList||c.listPath||'/':c.listPath||'/')};},filterFields:function(){return [];}});})(window);
+var BaseResolver=root.WebPlayerData.createResolver(P,D);
+function Resolver(log,now){
+  BaseResolver.call(this,log,now);
+  var active=[],generation=0;
+  this.network.cancel();
+  // The page and wrapper need different fallback paths on Tizen 3. Do not inherit
+  // the page request's transport preference when fetching the next URL.
+  this.network={get:function(url,ref,headers,policy){
+    var token=generation,client=root.ChainNetwork.createClient({destination:'downloads',preferXHR:true});active.push(client);
+    function release(){var i=active.indexOf(client);if(i>=0)active.splice(i,1);client.cancel();}
+    return client.get(url,ref,headers,policy).then(function(value){release();if(token!==generation)throw root.WebPlayerData.fail('cancel','İptal edildi');return value;},function(error){release();throw error;});
+  },cancel:function(){generation++;var clients=active.slice();active=[];clients.forEach(function(client){client.cancel();});}};
+}
+Resolver.prototype=Object.create(BaseResolver.prototype);Resolver.prototype.constructor=Resolver;
+root.SiteRegistry.register({id:c.id,name:c.name,base:P.base,prefix:c.id+':',storagePrefix:'site.'+c.id+'.',mark:c.name.slice(0,2),subtitle:c.name,contentTypes:['series'],collectionKeys:['new'],Provider:a.Provider,Resolver:Resolver,ui:{movieRail:'Filmler',seriesRail:'Diziler',filterHint:'Sitenin sunduğu katalog',defaultOrder:'date'},collectionQuery:function(type){return {type:type,url:P.base+(type==='movie'?c.movieList||c.listPath||'/':c.listPath||'/')};},filterFields:function(){return [];}});})(window);
