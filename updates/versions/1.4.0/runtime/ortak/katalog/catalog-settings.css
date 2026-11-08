@@ -1,0 +1,23 @@
+/* Chromium 47: flex layout, no animation, backdrop filter, grid or CSS gap. */
+#catalog-modal.fm-settings{background:#0b1019;overflow:hidden}
+#catalog-modal.fm-settings #catalog-modal-card{position:fixed;left:0;top:0;right:0;bottom:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:32px 64px 22px;border:0;border-radius:0;background:#0b1019;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;color:#e8edf5}
+.settings-header{display:flex;align-items:center;flex-shrink:0;margin-bottom:22px;min-height:76px}
+.settings-header img{width:84px;height:84px;max-width:88px;max-height:88px;margin-right:19px}
+.settings-header h1{font-size:43px!important;line-height:1.2;margin:0!important;flex:1;white-space:nowrap}
+.settings-back{width:160px;min-height:68px;font-size:27px!important}
+.settings-layout{display:flex;flex:1;min-height:0;overflow:hidden}
+.settings-categories{width:26.3%;flex-shrink:0;overflow-y:auto;padding:11px 29px 11px 0;box-sizing:border-box}
+#catalog-modal-card .settings-category,#catalog-modal-card .settings-row,#catalog-modal-card .settings-back{background:#1c2939;border:1px solid #35465c;border-radius:6px;color:#e8edf5;box-sizing:border-box;text-align:left;box-shadow:none;transition:none}
+#catalog-modal-card .settings-category{display:block;width:100%;height:87px;min-height:44px;padding:0 21px;margin:0 0 .97px;font-size:26px;line-height:1.25}
+#catalog-modal-card .settings-category[aria-pressed=true]{background:#26384d}
+#catalog-modal-card .settings-category:focus,#catalog-modal-card .settings-row:focus,#catalog-modal-card .settings-back:focus{outline:3px solid #ffc344;outline-offset:-3px;background:#293d55;color:#fff;transform:none}
+.settings-options{flex:1;min-width:0;overflow-y:auto;padding:0 0 11px .154px}
+#catalog-modal-card .settings-row{display:block;width:100%;min-height:94px;margin:0 0 13px;padding:19px 27px;white-space:normal}
+.settings-row strong{display:block;font-size:30px;line-height:1.2;font-weight:700}
+.settings-row .settings-value{display:block;color:#ffc344;font-size:25px;line-height:1.3;margin-top:.32px}
+.settings-row small{display:block;color:#aab7c9;font-size:20px;line-height:1.3;margin-top:.65px}
+.settings-info{opacity:.85}
+.settings-options-title{font-size:31px!important;line-height:1.4;margin:0 0 11px!important;white-space:normal}
+.settings-help{font-size:20px!important;color:#97a7bd;flex-shrink:0;margin:18px 0 0!important;line-height:1.4}
+.fm-large-text .settings-category{font-size:30px!important}.fm-large-text .settings-row strong{font-size:34px}.fm-large-text .settings-row .settings-value{font-size:29px}
+.fm-large-text .catalog-card-title{font-size:25px}.fm-large-text .catalog-note{font-size:25px}.fm-large-text .catalog-nav .nav-tab{font-size:26px}

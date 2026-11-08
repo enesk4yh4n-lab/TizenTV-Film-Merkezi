@@ -19,9 +19,11 @@
     function kind(v) { var u = safe(v); if (!u) return ''; var p = new root.URL(u).pathname; return c.episode && c.episode.test(p) ? 'episode' : c.series && c.series.test(p) ? 'series' : c.movie && c.movie.test(p) ? 'movie' : ''; }
     function id(v) { var u = safe(v), p = u && new root.URL(u).pathname, key = c.numericTailId && p && /-(\d+)\/?$/.exec(p); return u && kind(u) ? c.id + ':' + kind(u) + ':' + (key ? key[1] : p.replace(/^\/+|\/+$/g, '')) : ''; }
     function image(n, page) { var img = n.querySelector('img[data-src], img[data-original], img.lazy') || n.querySelector('img'); return U.url(img && (img.getAttribute('data-src') || img.getAttribute('data-original') || img.getAttribute('data-catalog-src')), page); }
+    function searchPage(page) { var u = new root.URL(page); return /(?:^|[?&])s=/.test(u.search) || /^\/search\//.test(u.pathname); }
     function cards(body, page) {
-      var d = U.envelope(body).doc, out = [], seen = {};
-      Array.prototype.forEach.call(d.querySelectorAll(c.cards || 'a[href]'), function (box) {
+      var d = U.envelope(body).doc, out = [], seen = {}, searching = searchPage(page), scope = searching && c.searchRoot ? d.querySelector(c.searchRoot) : d;
+      if (!scope) return out;
+      Array.prototype.forEach.call(scope.querySelectorAll(searching && c.searchCards || c.cards || 'a[href]'), function (box) {
         var a = box.tagName === 'A' ? box : box.querySelector('a[href]'), url = safe(a && a.getAttribute('href'), page), type = kind(url), img = box.querySelector('img');
         if (!type || !img || seen[id(url)] || type === 'episode' && !c.episodeFeed) return;
         var title = clean(c.title && text(box, c.title) || a.getAttribute('title') || a.getAttribute('aria-label') || img.getAttribute('alt') || text(a)).replace(/\s+izle$/i, '');
@@ -34,7 +36,8 @@
       if (c.jsonSearch && /^\s*\{/.test(body)) return jsonSearch(body, page);
       var values = cards(body, page), d = U.envelope(body).doc, next = null;
       Array.prototype.some.call(d.querySelectorAll('a[rel~="next"], .pagination a, .page-numbers'), function (a) { var u = safe(a.getAttribute('href'), page); if (u && u !== page && (/next/.test(a.getAttribute('rel') || '') || /^(?:Sonraki|İleri|Next|›|»)$/i.test(text(a)))) { next = { url: u, from: page }; return true; } return false; });
-      if (!values.length && !/sonuç.{0,40}(?:yok|bulunamad)|no results/i.test(text(d.body))) throw Error(c.name + ' katalog alanı bulunamadı veya erişim engellendi.');
+      var emptySearch = searchPage(page) && c.searchRoot && d.querySelector(c.searchRoot) && /arama sonuçları|üzgünüz, aradığınız.+bulunamadı/i.test(text(d, c.searchRoot + ' h1'));
+      if (!values.length && !emptySearch && !/sonuç.{0,40}(?:yok|bulunamad)|no results/i.test(text(d.body))) throw Error(c.name + ' katalog alanı bulunamadı veya erişim engellendi.');
       return { cards: values, next: next };
     }
     function jsonSearch(body, page) {

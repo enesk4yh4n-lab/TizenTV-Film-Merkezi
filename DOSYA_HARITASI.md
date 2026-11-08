@@ -1,4 +1,22 @@
-# Dosya haritası — ana uygulama v1.2.0 / ayrı pilot v1.4.1
+# Dosya haritası — Film Merkezi WGT 1.5.0 / çekirdek 1.9.0
+
+| Güncel dosya/klasör | Görev |
+| --- | --- |
+| `tools/updates/stable/` | WGT'nin sabit doğrulayıcısı, normal kanal ayarı ve ilk site kurulum ekranı |
+| `tools/updates/build-stable.cjs` | Ortak son bileşen setini, 22 imzalı eklentinin WGT başlangıç kopyalarını ve açık dosya listesini üretir |
+| `updates/update.json`, `updates/versions/1.9.0/` | Etkin normal kanal ve imzalı tam çekirdek seti |
+| `updates/pilot/` | Eski WGT'lerin dondurulmuş uyumluluk arşivi |
+| `addons/sites/repository.json`, `packages/` | HDF/Filmci Baba dahil 22 bağımsız çevrimiçi site paketi |
+| WGT `bundled/sites/`, `bootstrap/plugins-manager.js` | Salt okunur imzalı site başlangıcı; indirilmiş yeni sürümlerin önceliği ve bir defalık geçiş; ilk açılış indirme ekranı gerekmez |
+| `deneme/ortak/katalog/update-coordinator.js` | Açılışta/elle ortak çekirdek-site kontrolü; isteğe bağlı indirme ve yeniden açma |
+| `deneme/ortak/katalog/management-panel.js` | Güncelleme Merkezi'nde tek Kontrol et ve site yönetimi |
+| `deneme/ortak/katalog/site-payload.js` | Ortak inert site ayrıştırıcısı; doğrulanmış arama alanı/boş sonuç ayrımı |
+| `tools/plugins/native/` | TLS doğrulaması açık native üretim kaynakları; normal updates yolu izinli |
+| `tools/updates/*stable*`, `coordinator.test.cjs`, `sites-fixes.test.cjs` | Paketleme, kaynak ZIP'i ve yalnız ilgili kontroller; WGT dışında |
+
+Site adresleri menüsü kaldırılmıştır; eski bağlantıların alias hizmeti korunur. Uygulama/paket kimliği kayıtları korumak için değişmez. [Güncel sürüm](docs/arsiv/SURUM_NORMAL_1.5.0.md).
+
+## Önceki sürümlerin mimari kayıtları
 
 **Son bileşen 1.7.0 — tampon ve kaynak tarama:** `PlayerCore.bufferPolicy()` üç profilin ortak, sınırlı ayarlarını üretir; HTML5 ve AVPlay adaptörleri motorun desteklediği kısmını uygular. `PlaybackStore` mevcut v1 kaydında `bufferProfile` ve `sourceScanMode` tutar. `player-controller.js` ilk kaynaktan sonra durma/bir yedek hazırlama/menüde devam etme davranışını mevcut iptal ve kurtarma akışında uygular. Ayarlar yolu **Oynatma ve kaynaklar → Tampon ve kaynak tarama**. `buffering170-build/browser/emulator/verify.cjs` ve ilgili testler WGT dışında kalır. WGT/native/taşıma/siteler aynı kalmıştır. [Profil tablosu ve test raporu](docs/arsiv/TEST_SONUCLARI_TAMPON_1.7.0.md).
 

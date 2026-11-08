@@ -6,6 +6,8 @@
   "series": /^\/(?!wp-|tag|category|page|player|iletisim|diziler|yabanci-dizi)[^/]+\/$/,
   "episode": /^\/[^/]+-\d+-sezon-\d+-bolum\/?$/,
   "cards": ".listepisodes a, .single-item",
+  "searchRoot": "#content",
+  "searchCards": "#list-series, .single-item",
   "title": ".cat-title a",
   "listPath": "/dizi-arsivi/",
   "searchPath": "/?s=",

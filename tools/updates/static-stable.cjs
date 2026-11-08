@@ -1,0 +1,4 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),assert=require('node:assert/strict'),acorn=require('acorn');const root=path.resolve(__dirname,'../..'),out=path.join(root,'tools/test-results/stable150'),stage=path.join(out,'stage'),names=JSON.parse(fs.readFileSync(path.join(out,'package-files.json')));let syntax=0,es5=0;
+for(const n of names){assert(fs.existsSync(path.join(stage,n)),n);if(!n.endsWith('.js'))continue;cp.execFileSync(process.execPath,['--check',path.join(stage,n)],{stdio:'pipe'});syntax++;if(!n.startsWith('vendor/')&&!n.endsWith('youtube-extractor.js')){acorn.parse(fs.readFileSync(path.join(stage,n),'utf8'),{ecmaVersion:5});es5++;}}
+const report={passed:true,syntaxFiles:syntax,es5Files:es5,distributionFiles:names.length,siteProviders:22};fs.writeFileSync(path.join(out,'static.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report));

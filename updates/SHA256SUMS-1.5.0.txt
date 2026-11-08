@@ -1,0 +1,4 @@
+84cea338eb334a9ae1bc9400a32954fae62c6b2ff306801c0c302735514f1182  Film-Merkezi-TV-1.5.0-public.wgt
+cc58b9e48444becd60f98d30ab72417e290317d96a65c2c92b580bc216762f8d  updates/sources/Film-Merkezi-Kaynak-1.5.0.zip
+7b29f1222c2c937de57639eed200d8d1a43eb4c65c7bf91f25e25113adc64f74  updates/versions/1.9.0/manifest.json
+34a60d6c4743aaf8c4ab88e77859742c065686e187966e85cb58f3296039b16e  addons/sites/repository.json

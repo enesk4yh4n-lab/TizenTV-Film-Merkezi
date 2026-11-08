@@ -1,9 +1,9 @@
 {
   "id": "diziyou",
   "name": "Diziyou",
-  "description": "Diziyou katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
-  "version": "1.0.0",
-  "minAppVersion": "1.4.1",
+  "description": "Diziyou katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.9.0 gerektirir.",
+  "version": "1.0.2",
+  "minAppVersion": "1.5.0",
   "site": {
     "id": "diziyou",
     "prefix": "diziyou:",

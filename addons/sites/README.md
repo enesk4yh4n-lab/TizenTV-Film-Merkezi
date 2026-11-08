@@ -1,6 +1,8 @@
 # Film Merkezi site eklentileri
 
-Bu imzalı depo, **WGT 1.4.1 + çekirdek bileşen 1.8.0** için 20 bağımsız site paketi sunar. HDFilmCehennemi ve Filmizle.ink çekirdekte kalır. Diğer siteler Güncelleme Merkezi → Eklenti depoları üzerinden ayrı kurulabilir, kapatılabilir, kaldırılabilir veya önceki sürüme döndürülebilir.
+Bu imzalı depo **22 bağımsız site paketi** sunar. HDFilmCehennemi ve Filmci Baba (Filmizle.ink) da çevrimiçi eklentidir; WGT'de yerleşik sağlayıcı yoktur. Güncelleme Merkezi üzerinden kurulabilir, güncellenebilir, kapatılabilir, kaldırılabilir veya önceki sürüme dönülebilir.
+
+Güncel normal başlangıç: **WGT 1.5.0 + çekirdek 1.9.0**. Yeni HDF/Filmci Baba ve Diziyou/Diziboxum 1.0.2 bu WGT'yi ister. Önceden yayımlanmış diğer paketlerin minimum sürümü ve eski dosyaları korunur. Son 22 paket WGT içinde de vardır; ilk açılışta ayrıca indirilmez. Sonraki güncellemeler ve yeni site kurulumları kullanıcı onayına bağlıdır.
 
 Depo adresi: `https://raw.githubusercontent.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/main/addons/sites/repository.json`
 

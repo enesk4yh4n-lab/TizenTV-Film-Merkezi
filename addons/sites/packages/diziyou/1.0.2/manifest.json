@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "diziyou",
+  "name": "Diziyou",
+  "version": "1.0.2",
+  "minAppVersion": "1.5.0",
+  "site": {
+    "id": "diziyou",
+    "prefix": "diziyou:",
+    "name": "Diziyou",
+    "base": "https://www.diziyou.one"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 1609,
+      "sha256": "33f010c3e2930d38f3c6f952e78a0aa0eeb463827888b46dfcbaed8da824afd5"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 126,
+      "sha256": "5bcc866992f575da538008549ebae43cab5390d07b416d3b29247a7415e7e716"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "e401e95c53bb2d067fd5ccc57619be834cbe09afd11678cdde096c53bc01ec1d"
+    }
+  ]
+}

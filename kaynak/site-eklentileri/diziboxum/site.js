@@ -1,5 +1,5 @@
 /* Generated from canonical site sources; edit deneme/siteler, then rebuild. */
-(function(shared){'use strict';if(!shared.SitePluginRuntime)throw Error('Update core component to 1.8.0 before installing this site.');var context=shared.FilmPlugins.context(),window=shared.SitePluginRuntime.scope(context,'1.8.0');
+(function(shared){'use strict';if(!shared.SitePluginRuntime)throw Error('Update core component to 1.9.0 before installing this site.');var context=shared.FilmPlugins.context(),window=shared.SitePluginRuntime.scope(context,'1.9.0');
 
 /* siteler/diziboxum/site.js */
 /* Independent site adapter; canonical source for the signed plugin. */
@@ -13,6 +13,9 @@
   "searchPath": "/?s=",
   "episodeFeed": true,
   "cards": "a.r-still, a.r-card",
+  "searchRoot": "#content",
+  "searchCards": ".single-item",
+  "title": ".cat-title a",
   "playerFrames": "iframe[src*=\"ksdpictures.site/dzembed.php\"]",
   "parentLinks": "a.r-dizi-btn, .breadcrumb a",
   "numericTailId": true,

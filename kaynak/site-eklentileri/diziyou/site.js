@@ -1,5 +1,5 @@
 /* Generated from canonical site sources; edit deneme/siteler, then rebuild. */
-(function(shared){'use strict';if(!shared.SitePluginRuntime)throw Error('Update core component to 1.8.0 before installing this site.');var context=shared.FilmPlugins.context(),window=shared.SitePluginRuntime.scope(context,'1.8.0');
+(function(shared){'use strict';if(!shared.SitePluginRuntime)throw Error('Update core component to 1.9.0 before installing this site.');var context=shared.FilmPlugins.context(),window=shared.SitePluginRuntime.scope(context,'1.9.0');
 
 /* siteler/diziyou/site.js */
 /* Independent site adapter; canonical source for the signed plugin. */
@@ -10,6 +10,8 @@
   "series": /^\/(?!wp-|tag|category|page|player|iletisim|diziler|yabanci-dizi)[^/]+\/$/,
   "episode": /^\/[^/]+-\d+-sezon-\d+-bolum\/?$/,
   "cards": ".listepisodes a, .single-item",
+  "searchRoot": "#content",
+  "searchCards": "#list-series, .single-item",
   "title": ".cat-title a",
   "listPath": "/dizi-arsivi/",
   "searchPath": "/?s=",

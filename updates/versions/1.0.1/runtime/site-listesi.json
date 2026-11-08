@@ -1,0 +1,1 @@
+{"schemaVersion":1,"sites":[{"id":"hdf","modules":["siteler/hdfilmcehennemi/decoder.js","siteler/hdfilmcehennemi/catalog-parser.js","siteler/hdfilmcehennemi/catalog-provider.js","siteler/hdfilmcehennemi/source-resolver.js","siteler/hdfilmcehennemi/site.js"]}]}

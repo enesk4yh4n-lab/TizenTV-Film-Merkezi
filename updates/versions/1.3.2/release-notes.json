@@ -1,0 +1,4 @@
+{
+  "tr": "HDF dizi bölümlerinde son eğik çizgi zorunluluğu kaldırıldı; eski boş bölüm önbelleği yeniden alınır. WGT değişmedi.",
+  "en": "Read HDF episode links with or without a trailing slash and refresh outdated empty series caches. No WGT reinstall."
+}
