@@ -1,0 +1,26 @@
+{
+  "id": "roketdizi",
+  "name": "Roket Dizi",
+  "description": "Roket Dizi katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.1",
+  "site": {
+    "id": "roketdizi",
+    "prefix": "roketdizi:",
+    "name": "Roket Dizi",
+    "base": "https://roketdizi.life"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "files": [
+    "site.js",
+    "LICENSE.txt"
+  ],
+  "origins": [
+    "https://roketdizi.life",
+    "https://file.macellan.online",
+    "https://four.pichive.online",
+    "https://images.macellan.online"
+  ]
+}

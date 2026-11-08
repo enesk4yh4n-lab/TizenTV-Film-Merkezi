@@ -1,0 +1,25 @@
+{
+  "id": "izle7",
+  "name": "İzle7",
+  "description": "İzle7 katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.1",
+  "site": {
+    "id": "izle7",
+    "prefix": "izle7:",
+    "name": "İzle7",
+    "base": "https://www.izle7.com"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "files": [
+    "site.js",
+    "LICENSE.txt"
+  ],
+  "origins": [
+    "https://www.izle7.com",
+    "https://izle7com.haber7.net",
+    "https://www.dailymotion.com"
+  ]
+}

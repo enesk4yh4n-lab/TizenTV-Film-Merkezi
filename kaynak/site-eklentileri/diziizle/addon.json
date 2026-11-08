@@ -1,0 +1,25 @@
+{
+  "id": "diziizle",
+  "name": "Dizi İzle",
+  "description": "Dizi İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.1",
+  "site": {
+    "id": "diziizle",
+    "prefix": "diziizle:",
+    "name": "Dizi İzle",
+    "base": "https://diziizle.cloud"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "files": [
+    "site.js",
+    "LICENSE.txt"
+  ],
+  "origins": [
+    "https://diziizle.cloud",
+    "https://pilavyer6.top",
+    "https://play2.pilavyerplay.top"
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "id": "film-merkezi-sites",
+  "name": "Film Merkezi Siteleri",
+  "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5asyOWYkiWXZNeUMmYocbH2+VxPU+BkA/Yk22PhuRpWMo/h1nw/LfWL7ZrPcxo8loJ2VPwbeo05KAtE1H1LUieNRHgMMBMwJaeuV2JvyS8+JNMqrGDhkywDMNNZT4H32uOpQlfZmkNf+tE5EKfFKBNuj5dwlPN0E5/y1B0230WlcIb6JsE40ZmZqzfSuGtprwrNSc0Mx4MQhD56NBmQZUyfrUCYuh27x0ozzUjNLx3JJKpXeS2xWuZv69gFjO+R/Pkl1su0B/cgF2vPqMPKqMWTDUU0SHkUk320Xdv7YbMbAyKkuOYPAi7wZzCVZggU6NBr9nMwhcjWZeUWyFyy/2wIDAQAB",
+  "revision": 81,
+  "plugins": [
+    {
+      "id": "filmmakinesi",
+      "name": "Film Makinesi",
+      "version": "1.0.0",
+      "description": "Film Makinesi katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/filmmakinesi/1.0.0/manifest.json",
+      "manifestSha256": "7748a502f846fac229fa2865f2cecf47ff480793fe679877903fa2711474f456"
+    },
+    {
+      "id": "fullhdfilmizlesene",
+      "name": "Full HD Film İzlesene",
+      "version": "1.0.0",
+      "description": "Full HD Film İzlesene katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/fullhdfilmizlesene/1.0.0/manifest.json",
+      "manifestSha256": "193d48fd873041c8c3056f553fdeda17b0574441aae103b2f9dda253e01a007e"
+    },
+    {
+      "id": "lovefilmizle",
+      "name": "Love Film İzle",
+      "version": "1.0.0",
+      "description": "Love Film İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/lovefilmizle/1.0.0/manifest.json",
+      "manifestSha256": "c663feefe95eaaa34308203f9dba8027eccb4d4b6113a73e69db6e6ba7001529"
+    },
+    {
+      "id": "filmizlehell",
+      "name": "Film İzle Hell",
+      "version": "1.0.0",
+      "description": "Film İzle Hell katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/filmizlehell/1.0.0/manifest.json",
+      "manifestSha256": "72aafc5502eba3a1dd9babf008595d51d54165443e792255c226bdbd9c0514bc"
+    },
+    {
+      "id": "filmifullizle",
+      "name": "Filmi Full İzle",
+      "version": "1.0.0",
+      "description": "Filmi Full İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/filmifullizle/1.0.0/manifest.json",
+      "manifestSha256": "1d1d30dbf9d255039bfca9eb83084321248b8ad42b4b704f529f627d78baa953"
+    },
+    {
+      "id": "filmizlebabam",
+      "name": "Film İzle Babam",
+      "version": "1.0.0",
+      "description": "Film İzle Babam katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/filmizlebabam/1.0.0/manifest.json",
+      "manifestSha256": "319680e4d7572866b20fe44239317b7995df8ceadbdaf37de5278a48a6b555c7"
+    },
+    {
+      "id": "sinemacc",
+      "name": "SinemaCC",
+      "version": "1.0.0",
+      "description": "SinemaCC katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/sinemacc/1.0.0/manifest.json",
+      "manifestSha256": "9b7415f8e793181e804d59a5f39090f1d585cdeb340b3c041332400750056bca"
+    },
+    {
+      "id": "fixfullfilmizle",
+      "name": "Fix Full Film İzle",
+      "version": "1.0.0",
+      "description": "Fix Full Film İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/fixfullfilmizle/1.0.0/manifest.json",
+      "manifestSha256": "7998ec00eb9c0b0d64adc075dfecf86b91bb560efcfa270a972be9473ac03aea"
+    },
+    {
+      "id": "hdfilmdelisi",
+      "name": "HD Film Delisi",
+      "version": "1.0.0",
+      "description": "HD Film Delisi katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/hdfilmdelisi/1.0.0/manifest.json",
+      "manifestSha256": "13696686fe4e34e78c4b6545fa9298b37555d18f815745a6d785f216890b4f6d"
+    },
+    {
+      "id": "ddizi",
+      "name": "DDizi",
+      "version": "1.0.0",
+      "description": "DDizi katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/ddizi/1.0.0/manifest.json",
+      "manifestSha256": "029807d3d03052d50162d109983ecb62738de7ef02d0b088e8ed82d7003e7696"
+    },
+    {
+      "id": "turkcefilmler",
+      "name": "Türkçe Filmler",
+      "version": "1.0.0",
+      "description": "Türkçe Filmler katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/turkcefilmler/1.0.0/manifest.json",
+      "manifestSha256": "aec3bc76ba7a1a1def83c45304dd4f93620a47819571a9572100e129bd0e433a"
+    },
+    {
+      "id": "dizibox",
+      "name": "Dizibox",
+      "version": "1.0.0",
+      "description": "Dizibox katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/dizibox/1.0.0/manifest.json",
+      "manifestSha256": "7259b089dbf432abeb4a4e785751817b46466d84621ae8d72fe10b65773da691"
+    },
+    {
+      "id": "trdiziizle",
+      "name": "TR Dizi İzle",
+      "version": "1.0.0",
+      "description": "TR Dizi İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/trdiziizle/1.0.0/manifest.json",
+      "manifestSha256": "92b9d013e5551cf2580886788f6bff006c022cac1445c72691969b4f3261778a"
+    },
+    {
+      "id": "dizipal21",
+      "name": "Dizipal Orijinal",
+      "version": "1.0.0",
+      "description": "Dizipal Orijinal katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/dizipal21/1.0.0/manifest.json",
+      "manifestSha256": "ec1dfa8451645e74a49cb873a9b8ef936f8cc9b1626573a459b43f7e14b16295"
+    },
+    {
+      "id": "diziyou",
+      "name": "Diziyou",
+      "version": "1.0.0",
+      "description": "Diziyou katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/diziyou/1.0.0/manifest.json",
+      "manifestSha256": "abbca28dcf1c99239b0d1790352db0e915124dcf695673db8a88260d1f5d4179"
+    },
+    {
+      "id": "izle7",
+      "name": "İzle7",
+      "version": "1.0.0",
+      "description": "İzle7 katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/izle7/1.0.0/manifest.json",
+      "manifestSha256": "4bc0176ed41494a1b7c618057d066f36e845dc801d1fad73e79fb2b38fde9a0a"
+    },
+    {
+      "id": "roketdizi",
+      "name": "Roket Dizi",
+      "version": "1.0.0",
+      "description": "Roket Dizi katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/roketdizi/1.0.0/manifest.json",
+      "manifestSha256": "7a190fbde6d9aa1c36589b3559cfb8b195901c7253fd164f6dd4e41f3408183b"
+    },
+    {
+      "id": "diziizle",
+      "name": "Dizi İzle",
+      "version": "1.0.0",
+      "description": "Dizi İzle katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/diziizle/1.0.0/manifest.json",
+      "manifestSha256": "bac5e3ad7550a2d1d710b1b25eae29be756800aa4367adabcef0c9c8bce51eca"
+    },
+    {
+      "id": "dizipal19",
+      "name": "Dizipal Orjinal",
+      "version": "1.0.0",
+      "description": "Dizipal Orjinal katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/dizipal19/1.0.0/manifest.json",
+      "manifestSha256": "aaeb8d0ed8a95c669647e18d03904668de411f2fd54cda6a7cdf437a767ae4b8"
+    },
+    {
+      "id": "diziboxum",
+      "name": "Diziboxum",
+      "version": "1.0.0",
+      "description": "Diziboxum katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+      "manifest": "packages/diziboxum/1.0.0/manifest.json",
+      "manifestSha256": "9809abe550c91817a479066eb76e02d295014398ba01b59f78910f61c443bbdd"
+    }
+  ]
+}

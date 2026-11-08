@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "filmizlebabam",
+  "name": "Film İzle Babam",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.1",
+  "site": {
+    "id": "filmizlebabam",
+    "prefix": "filmizlebabam:",
+    "name": "Film İzle Babam",
+    "base": "https://filmizlebabam.icu"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 11061,
+      "sha256": "2e63394fb136f0dfefbfd58a2f9449be42081af01f79bc452d50a4516b56cf3b"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 318,
+      "sha256": "98c6ef760c1b1d0d7ccd017cfda2073c01f6ceb10d06a0439e2c8003c59271b1"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "844d3eb24d897f11f778133feb7de028092c05765c0faa1e6edb5aaf69a1779e"
+    }
+  ]
+}

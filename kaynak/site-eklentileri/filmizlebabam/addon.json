@@ -1,0 +1,35 @@
+{
+  "id": "filmizlebabam",
+  "name": "Film İzle Babam",
+  "description": "Film İzle Babam katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.1",
+  "site": {
+    "id": "filmizlebabam",
+    "prefix": "filmizlebabam:",
+    "name": "Film İzle Babam",
+    "base": "https://filmizlebabam.icu"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "files": [
+    "site.js",
+    "LICENSE.txt"
+  ],
+  "origins": [
+    "https://filmizlebabam.icu",
+    "https://pilavyerplay.top",
+    "https://*.pilavyerplay.top",
+    "https://vidara.to",
+    "https://gasobni.com",
+    "https://*.97bf1.com",
+    "https://ok.ru",
+    "https://*.okcdn.ru",
+    "https://*.vkuser.net",
+    "https://as9u7bgh9.com",
+    "https://pilavyer5.top",
+    "https://play2.pilavyerplay.top",
+    "https://s10-s501740.97bf1.com"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "dizibox",
+  "name": "Dizibox",
+  "description": "Dizibox katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.1",
+  "site": {
+    "id": "dizibox",
+    "prefix": "dizibox:",
+    "name": "Dizibox",
+    "base": "https://www.dizibox.live"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "files": [
+    "site.js",
+    "LICENSE.txt"
+  ],
+  "origins": [
+    "https://www.dizibox.live",
+    "https://*.molystream.org",
+    "https://*.okcdn.ru",
+    "https://*.vkuser.net",
+    "https://*.vmpx.online",
+    "https://dbx.molystream.org",
+    "https://ok.ru",
+    "https://vidmoly.biz"
+  ]
+}

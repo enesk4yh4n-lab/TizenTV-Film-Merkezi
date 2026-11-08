@@ -1,0 +1,25 @@
+{
+  "id": "hdfilmdelisi",
+  "name": "HD Film Delisi",
+  "description": "HD Film Delisi katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.1",
+  "site": {
+    "id": "hdfilmdelisi",
+    "prefix": "hdfilmdelisi:",
+    "name": "HD Film Delisi",
+    "base": "https://hdfilmdelisi.one"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "files": [
+    "site.js",
+    "LICENSE.txt"
+  ],
+  "origins": [
+    "https://hdfilmdelisi.one",
+    "https://hdfilmdelisi1.com",
+    "https://img.hdfilmdelisi1.com"
+  ]
+}

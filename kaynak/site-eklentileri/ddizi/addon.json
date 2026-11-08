@@ -1,0 +1,30 @@
+{
+  "id": "ddizi",
+  "name": "DDizi",
+  "description": "DDizi katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.1",
+  "site": {
+    "id": "ddizi",
+    "prefix": "ddizi:",
+    "name": "DDizi",
+    "base": "https://www.ddizi.tel"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "files": [
+    "site.js",
+    "LICENSE.txt"
+  ],
+  "origins": [
+    "https://www.ddizi.tel",
+    "https://*.googlevideo.com",
+    "https://eu1.tabii.com",
+    "https://puhu-p3.mncdn.com",
+    "https://streambox.xyz",
+    "https://video.twimg.com",
+    "https://www.ddizi.re",
+    "https://www.youtube.com"
+  ]
+}

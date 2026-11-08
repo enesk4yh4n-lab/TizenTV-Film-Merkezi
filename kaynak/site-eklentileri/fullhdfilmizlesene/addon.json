@@ -1,0 +1,27 @@
+{
+  "id": "fullhdfilmizlesene",
+  "name": "Full HD Film İzlesene",
+  "description": "Full HD Film İzlesene katalog ve kaynak eklentisi. Film Merkezi çekirdek 1.8.0 gerektirir.",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.1",
+  "site": {
+    "id": "fullhdfilmizlesene",
+    "prefix": "fullhdfilmizlesene:",
+    "name": "Full HD Film İzlesene",
+    "base": "https://www.fullhdfilmizlesene.now"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "files": [
+    "site.js",
+    "LICENSE.txt"
+  ],
+  "origins": [
+    "https://www.fullhdfilmizlesene.now",
+    "https://*.imgz.me",
+    "https://rapidvid.net",
+    "https://rapidvid.org",
+    "https://s41.imgz.me"
+  ]
+}

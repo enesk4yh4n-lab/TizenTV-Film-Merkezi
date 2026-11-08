@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "dizipal21",
+  "name": "Dizipal Orijinal",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.1",
+  "site": {
+    "id": "dizipal21",
+    "prefix": "dizipal21:",
+    "name": "Dizipal Orijinal",
+    "base": "https://dizipalorijinal21.vip"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 1486,
+      "sha256": "d0304632eb1b3abaad19539e65f8b47392251495474ec02160fc161102c0fc3d"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 53,
+      "sha256": "691e16ac6dd7646282e27f605f618b862c8f8e75d7fced5b24b47b1aaa59bcb5"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "7a59464fdfc0eb9c204808b1a3d42d1e33adeb142b98949b7d6d63c192481b50"
+    }
+  ]
+}
