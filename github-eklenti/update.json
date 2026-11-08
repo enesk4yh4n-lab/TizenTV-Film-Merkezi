@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "channel": "stable",
+  "revision": 1,
+  "updateVersion": "1.10.0",
+  "minAppVersion": "1.6.0",
+  "manifest": "versions/1.10.0/manifest.json",
+  "manifestSha256": "d48e28a3f1df4d39ee0b85973f7b45a43c7f9a321d39504bc21169df76a9e834"
+}

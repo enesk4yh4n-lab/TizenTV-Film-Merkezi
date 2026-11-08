@@ -1,27 +1,31 @@
 {
   "qa": false,
-  "sourceSha256": "32821b111f2d635fc884b78a83d86586fa6aa019c3a05513c950068ae438fe3b",
+  "sourceSha256": "90b1d551d4b1daca1f4a2b630c0bd0a27005e750d2aefa1b085a0a944f415654",
   "inputs": {
-    "secure-http.cpp": "32821b111f2d635fc884b78a83d86586fa6aa019c3a05513c950068ae438fe3b",
+    "secure-http.cpp": "90b1d551d4b1daca1f4a2b630c0bd0a27005e750d2aefa1b085a0a944f415654",
     "ca-bundle.h": "0bf632e879abbe487c714aaef5439d906908b7c600151fe3b0ff93a23f6eabff",
     "film-tls-config.h": "4522af5585ce00940b9082323fc3a118d92c0628f4c0f9287dc1203253ceb46a",
-    "http-response.h": "cb8a7453e76c86e4cec095d8d2728266988b82a352aa67357b53eaf4615a0b6d",
+    "http-response.h": "0a94a9035d151975fb2c7628639c05f63220441587fd1716db89f053989588cc",
+    "network-policy.h": "6511c8919763adeb265fdec60d0af1cda17f5188dd0d380b4c94318998560cb1",
+    "origin-patterns.inc.h": "b2ed1a57a557bb5c8289516317924ac49c36cd461138ca45f7aa0bbcf6c7b5c0",
+    "repository-policy.h": "c0ab8593d63555512aaa89578e4b8ce2b9ec96dcf275f0ac685e5e494752dbbd",
+    "update-public-key.h": "4bc371c8d88e326dacd31c3cdebec069f2d0d24b57189963fedd2679d2a8f4c5",
     "ca-bundle.pem": "796f1389bfea13c0ed78f663b765baaff54a508e5483786bd6ece73c5e3e3cbe"
   },
   "tlsVersion": "3.6.7",
   "tlsArchiveSha256": "a7e8bcbec0e6f761b4af24f25677626b35f762f68eef79c08677a363212d11f6",
   "files": {
     "https-arm.nexe": {
-      "sha256": "e2b95608082dfc4462db6b6fd75d388dd43c283ec04298b382ed783d8446ab81",
-      "size": 2206208
+      "sha256": "979deb9da98341897376e4bf1c1bea9a412ad8befac5240c7079ccad6a51bd09",
+      "size": 2330860
     },
     "https-x86-32.nexe": {
-      "sha256": "9ae48062b4a417e569b960b2f2ddf0a412c87c4677aa9714a070484e13537527",
-      "size": 2573028
+      "sha256": "8a0355ce55c05d386acdf2e86b0a9212cd8cbfd676b19404c35c6d60dcf531d1",
+      "size": 2757798
     },
     "https-x86-64.nexe": {
-      "sha256": "b4a832d9f958025bec2045dac7357cd11c9eecca027b97ef06c90de88e3bf8a0",
-      "size": 2898408
+      "sha256": "980c78c0927fe2a08451f1254437658c8f378e43ec85df0fbf1bf37ba187c069",
+      "size": 3025446
     }
   }
 }

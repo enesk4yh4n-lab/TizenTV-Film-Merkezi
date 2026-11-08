@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "film-merkezi-eklentiler",
+  "name": "Film Merkezi Eklentileri",
+  "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5asyOWYkiWXZNeUMmYocbH2+VxPU+BkA/Yk22PhuRpWMo/h1nw/LfWL7ZrPcxo8loJ2VPwbeo05KAtE1H1LUieNRHgMMBMwJaeuV2JvyS8+JNMqrGDhkywDMNNZT4H32uOpQlfZmkNf+tE5EKfFKBNuj5dwlPN0E5/y1B0230WlcIb6JsE40ZmZqzfSuGtprwrNSc0Mx4MQhD56NBmQZUyfrUCYuh27x0ozzUjNLx3JJKpXeS2xWuZv69gFjO+R/Pkl1su0B/cgF2vPqMPKqMWTDUU0SHkUk320Xdv7YbMbAyKkuOYPAi7wZzCVZggU6NBr9nMwhcjWZeUWyFyy/2wIDAQAB",
+  "revision": 1,
+  "plugins": []
+}

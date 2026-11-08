@@ -10,7 +10,7 @@
 namespace film_http {
 const size_t kBodyLimit = 2 * 1024 * 1024;
 const size_t kHeaderLimit = 16 * 1024;
-struct Response { int status; std::string body, location, error; Response() : status(0) {} };
+struct Response { int status; std::string body, location, error, mimeType, contentRange; bool tooLarge; Response() : status(0),tooLarge(false) {} };
 inline std::string Lower(std::string value) {
   for (size_t i = 0; i < value.size(); ++i) value[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(value[i])));
   return value;
@@ -19,7 +19,7 @@ inline std::string Trim(const std::string& text) {
   size_t a = text.find_first_not_of(" \t"), b = text.find_last_not_of(" \t");
   return a == std::string::npos ? "" : text.substr(a, b - a + 1);
 }
-inline Response Parse(const std::string& raw) {
+inline Response Parse(const std::string& raw, size_t bodyLimit = kBodyLimit) {
   Response out;
   size_t split = raw.find("\r\n\r\n"), line = raw.find("\r\n");
   if (split == std::string::npos || split > kHeaderLimit || line == std::string::npos || line > split) { out.error = "HTTP basligi gecersiz"; return out; }
@@ -34,7 +34,7 @@ inline Response Parse(const std::string& raw) {
     if (headers.count(key) && headers[key] != value && (key == "content-length" || key == "transfer-encoding" || key == "content-encoding" || key == "location")) { out.error = "Cakisan HTTP alanlari"; return out; }
     headers[key] = value; at = end + 2;
   }
-  out.location = headers["location"];
+  out.location = headers["location"];out.mimeType=headers["content-type"];out.contentRange=headers["content-range"];
   if (headers.count("content-encoding") && Lower(headers["content-encoding"]) != "identity") { out.error = "Desteklenmeyen HTTP sikistirmasi"; return out; }
   std::string payload = raw.substr(split + 4);
   if (headers.count("transfer-encoding")) {
@@ -50,7 +50,8 @@ inline Response Parse(const std::string& raw) {
         if (payload.compare(at, 2, "\r\n") && payload.find("\r\n\r\n", at) == std::string::npos) out.error = "Eksik HTTP sonu";
         return out;
       }
-      if (count > kBodyLimit - out.body.size() || at > payload.size() || count > payload.size() - at || payload.compare(at + count, 2, "\r\n")) { out.error = "Eksik veya buyuk HTTP parcasi"; return out; }
+      if(count>bodyLimit-out.body.size()){out.tooLarge=true;out.error="HTTP boyut siniri";return out;}
+      if (at > payload.size() || count > payload.size() - at || payload.compare(at + count, 2, "\r\n")) { out.error = "Eksik veya buyuk HTTP parcasi"; return out; }
       out.body.append(payload, at, count); at += count + 2;
     }
   }
@@ -58,7 +59,7 @@ inline Response Parse(const std::string& raw) {
     const std::string& value = headers["content-length"];
     if (value.empty() || value.size() > 8 || value.find_first_not_of("0123456789") != std::string::npos || std::strtoul(value.c_str(), NULL, 10) != payload.size()) { out.error = "Eksik HTTP govdesi"; return out; }
   }
-  if (payload.size() > kBodyLimit) { out.error = "HTTP boyut siniri"; return out; }
+  if (payload.size() > bodyLimit) { out.tooLarge=true;out.error = "HTTP boyut siniri"; return out; }
   out.body = payload; return out;
 }
 }  // namespace film_http

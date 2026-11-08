@@ -1,4 +1,0 @@
-{
-  "tr": "TRDizi sayfa ve oynatıcı istekleri TV’de doğrulanan native indirme yolunu kullanır. TLS doğrulaması açık; afiş/dil rozeti ve tarih/başlık seçimi ayrılır. TRDizi eklenti 1.0.5 ile birlikte kullanın.",
-  "en": "Use the TV-verified download route for TRDizi pages and wrappers, keeping TLS verification enabled. Separate poster/badge and date/title selectors. Use with TRDizi plugin 1.0.5."
-}

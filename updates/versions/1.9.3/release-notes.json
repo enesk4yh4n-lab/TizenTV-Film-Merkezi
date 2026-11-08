@@ -1,4 +1,0 @@
-{
-  "tr": "TRDizi platform HTTPS taşıması ve doğru bölüm seçimi. İmzalı ağ modülünün engel sayfası sanılmasına neden olan metin eşleşmesi giderildi; gerçek engel tespiti korunur.",
-  "en": "TRDizi platform HTTPS transport and explicit episode selection. Avoid mistaking the signed network module for a challenge page, retaining actual challenge detection."
-}

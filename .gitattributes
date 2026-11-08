@@ -1,5 +1,0 @@
-# Preserve runtime/native/CA bytes across Windows and Linux checkouts.
-* -text
-app/vendor/** linguist-vendored
-app/cozumleyiciler/youtube/youtube-extractor.js linguist-generated
-app/siteler/hdfilmcehennemi/decoder.js linguist-generated

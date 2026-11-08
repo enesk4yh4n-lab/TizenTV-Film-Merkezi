@@ -1,8 +1,0 @@
-Film Merkezi 1.5.0
-Signed component updates: updates/update.json (stable channel).
-Site packages use independently approved publisher keys and signed network policies.
-TLS certificate and hostname validation remain enabled. No private keys are included.
-Application ID and widget URI are retained to preserve existing local records.
-Native Mozilla CA data remains MPL-2.0. Existing third-party notices are preserved.
-Corresponding native and decoder sources:
-https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/raw/main/updates/sources/Film-Merkezi-Kaynak-1.5.0.zip
