@@ -6,7 +6,9 @@ Update Test **1.4.0** kullanıcıların kendi GitHub veya uyumlu HTTPS depoları
 
 ## Kullanıcı akışı
 
-**Seçenekler → Eklenti depoları → Depo ekle → Adresi düzenle → Depoyu incele → Yayıncıya güven → Eklentilere gözat → Yükle → Uygula ve yeniden aç.**
+**Bileşen 1.5.0:** Seçenekler → Katalog ve siteler → Site yönetimi → Yeni site eklentisi kur → Depo ekle → Adresi düzenle → Depoyu incele → Yayıncıya güven → Eklentilere gözat → Yükle → Uygula ve yeniden aç.
+
+Güncelleme merkezinde uygulama/çekirdek ile site eklentileri ayrı kontrol edilir. Kontrol işlemi eklenti kodu indirmez; kurulum/güncelleme ve yeniden açılış kullanıcı seçimidir. Hazır site değişiklikleri varsa çekirdek uygulama/geri dönüş düğmesi, bunlar site bölümünden uygulanana kadar kapatılır. Böylece çekirdek yeniden açılışı hazır bir siteyi fark edilmeden etkinleştirmez. HDF ve Filmizle yerleşik kalır; bunların ve kalan sitelerin bağımsız paketlere taşınması bu yönetim çalışmasına dahil değildir. Eski sürümlerde depo ekranına doğrudan Seçenekler'den girilir. API v1 ve SDK 1.0.2 değişmedi; eski yayımlanmış SDK ZIP'leri yeniden üretilmez.
 
 Adres `https://sunucu/yol/repository.json` biçimindedir. GitHub `blob` bağlantıları raw adrese çevrilir; yalnız `https://github.com/kullanici/depo` girilirse `main/repository.json` denenir. Farklı dal için tam raw bağlantı verin. Kullanıcı birden çok depo ekleyebilir. Depo ekranında güncelleme kontrolü, aynı yayıncı anahtarını koruyarak adres değiştirme ve depoyu kapatma/kaldırma vardır. Başka yayıncıya geçmek için yeni depo eklenir; anahtar değişimi sessizce kabul edilmez.
 
