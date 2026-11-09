@@ -6,7 +6,7 @@ Player decoder arithmetic, legacy decoding variants, and site-format behavior we
 - https://github.com/Batuhan4/hdfilmcehennemi-stremio
 
 The original MIT license follows. Other parts of this package are covered by LICENSE.
-The adapted build sources are supplied outside the WGT at `kaynak/siteler/hdfilmcehennemi/decoder-kaynak/src/` and in the companion source ZIP. The TV loads the generated decoder files.
+The adapted build sources are supplied outside the WGT at `kaynak/p001/decoder/` and in the companion source ZIP. The TV loads the generated decoder files.
 
 ```text
 MIT License
@@ -61,9 +61,9 @@ Telif ve lisansın tam metni: `vendor/CRYPTO_JS_LICENSE.txt`. Site betikleri ça
 
 YouTube.js 18.3.0 ve ES5 yardımcıları yalnız YouTube kaynağı açılırken yüklenir. Kullanılan kütüphanelerin sürüm, telif ve lisans metinleri `cozumleyiciler/youtube/YOUTUBE_THIRD_PARTY_NOTICES.md` içinde korunur. YouTube.js ve yardımcılarının geliştiricilerine teşekkürler.
 
-## Legacy TV HTTPS helper (v0.11.3)
+## Shared verified native TLS transport
 
-DDizi page/embed requests can use the locally packaged Native Client helper on supported Samsung TVs. The bridge and HTTP adapter are local application code. Samsung's Pepper 47 SDK supplies the TCP and Native Client interfaces; Chromium's BSD license and the SDK's transitive notices are preserved in `ortak/ag/native/notices/Chromium-LICENSE.txt` and `NaCl-SDK-NOTICE.txt`.
+Signed core and plugin requests can use the locally packaged Native Client transport on supported Samsung TVs. Site origins are supplied by signed plugin policies. The bridge and HTTP adapter are local application code. Samsung's Pepper 47 SDK supplies the TCP and Native Client interfaces; Chromium's BSD license and the SDK's transitive notices are preserved in `ortak/ag/native/notices/Chromium-LICENSE.txt` and `NaCl-SDK-NOTICE.txt`.
 
 Mbed TLS **3.6.7** is statically linked with certificate and hostname verification enabled. The application selects **Apache-2.0** from upstream's Apache-2.0 OR GPL-2.0-or-later alternatives. The full upstream license and the notices for Project Everest/HACL*/KreMLin and p256-m are in `ortak/ag/native/notices/MbedTLS-LICENSE.txt` and `MbedTLS-COMPONENT-NOTICES.txt`. Copyright The Mbed TLS Contributors; Project Everest components: Copyright INRIA and Microsoft Corporation; p256-m author: Manuel Pégourié-Gonnard.
 
@@ -74,9 +74,9 @@ The Mozilla CA certificate data converted by curl (2026-10-20), under **MPL-2.0*
 Thanks to the Samsung, Chromium, Native Client, Mbed TLS, Project Everest, Mozilla and curl contributors. No certificate checks are disabled and the helper requires no server.
 
 
-## v0.12.0 native adapter and original reference media
+## Native adapter and development tools
 
-The Samsung AVPlay adapter uses the existing TV SDK; no paid player SDK or new runtime service is included. The short color-bar, timed white marker and synchronized tone clips in `compat-media/` were generated for this application with FFmpeg during development. FFmpeg/ffprobe executables are not distributed in the WGT and are not required on the TV. These patterns are functional references, not display calibration material.
+The Samsung AVPlay adapter uses the existing TV SDK; no paid player SDK or new runtime service is included. Package-local codec reference clips and their trial module are not distributed in this WGT. FFmpeg/ffprobe are development tools only; their executables are not distributed in the WGT and are not required on the TV.
 
 ## In-application acknowledgements and usage notice (v0.23.2)
 
@@ -105,13 +105,12 @@ This public WGT intentionally has no developer signatures. Apps2Samsung signs it
 ## Native TLS module and ca-bundle — MPL-2.0 source availability
 
 - Native TLS modülü: `ortak/ag/native`. ca-bundle, Mozilla CA verisidir ve MPL-2.0 lisanslıdır; paketle birlikte değiştirilmemiş haliyle derlenmiştir.
-- Kaynağa nasıl ulaşılacağı: https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/releases/download/v1.1.7/Film-Merkezi-Kaynak-1.1.7.zip
+- Corresponding source: `Film-Merkezi-Kaynak-1.8.1.zip`, supplied alongside this WGT. It includes the complete native C++/headers, unchanged Mozilla CA data, decoder sources and build tools. The 1.8.1 public repository upload is pending owner approval.
 
 
-## Film Merkezi 1.5.0 corresponding sources
+## Film Merkezi 1.8.1 corresponding sources
 
-The normal update loader, verified native TLS module, unchanged Mozilla CA input and decoder production sources are available at https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/tree/main/kaynak . Native notices and all upstream license texts remain in this WGT. Site providers are separate signed online packages; their source is published alongside each site package. No private keys are included.
+The application and update loader are in `uygulama/`; native build inputs and decoder production sources are in `kaynak/` in the companion source archive. Native notices and all upstream license texts remain in this WGT. Site providers are separate signed online packages; their readable source accompanies each site package. No private keys are included.
 
 
-## Film Merkezi 1.6.0
-This WGT includes no site providers. The signed provider repository is optional and initially empty. Corresponding native, Mozilla CA and decoder sources and all required license texts remain available under the repository kaynak/ directory. No private keys are included.
+This WGT includes no site providers. The signed provider repository is optional and initially empty. Site-specific helpers and permissions belong to the corresponding plugin rather than the WGT.

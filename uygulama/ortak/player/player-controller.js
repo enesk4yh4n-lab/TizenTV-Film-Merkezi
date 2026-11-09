@@ -344,6 +344,7 @@
     }
     this.stop('replace');
     this.content = next;
+    this.errorReport = null; this.sourceReports = {}; this.refreshReport = null;
     this.sourcesMenuOpen = false;
     this.engineTried = {};
     this.engineSwitched = {};
@@ -663,6 +664,7 @@
   Controller.prototype.resolveAndLoad = function (refresh, preserve, recoveryEngine, resumeOnly) {
     var self = this,
       session = self.session;
+    if (refresh) self.refreshReport = null;
     if (!refresh && self.content.sources.length) {
       self.load(self.pickSource(self.content.sources), self.position);
       return;
@@ -799,6 +801,7 @@
           self.mergeSources(failed);
         }
         self.finishDiscoveryOptions(e);
+        if (root.FilmErrorReporter) { var report = root.FilmErrorReporter.player(self, preserve ? 'refresh' : 'resolve', e, null, e.stage || 'resolve'); if (preserve) self.refreshReport = report; else self.errorReport = report; }
         self.log('Kaynak hatası [' + (e.stage || 'unknown') + ']: ' + C.safeMessage(e.message));
         self.emit('sources');
         if (self.discovery.started) {
@@ -843,6 +846,7 @@
       self.previousDesired = self.desiredPlay;
     }
     self.currentSource = index;
+    self.errorReport = null;
     self.position = position || 0;
     self.ready = false;
     self.audioApplied = false;
@@ -870,9 +874,6 @@
         engineId: engineId,
         content: self.content,
         compatibility: self.compatibility,
-        referenceTrial:
-          !!self.content.referenceTrial &&
-          !!(root.PlayerReferences && root.PlayerReferences.valid(source)),
         failedHeights: Object.keys(self.qualityFailures)
           .filter(function (k) {
             return k.indexOf(index + ':') === 0;
@@ -1112,7 +1113,7 @@
     if (!this.ready) return;
     if (this.content && this.content.sourceContext) this.emit('source', this.currentMedia());
     this.engine.setRate(
-      !this.content.referenceTrial && this.verifiedRates().indexOf(this.settings.speed) >= 0
+      this.verifiedRates().indexOf(this.settings.speed) >= 0
         ? this.settings.speed
         : 1
     );
@@ -1192,7 +1193,7 @@
   };
   Controller.prototype.savePref = function (key, value) {
     this.prefs[key] = C.copy(value);
-    if (!this.content.referenceTrial && this.settings.rememberTracks)
+    if (this.settings.rememberTracks)
       this.store.preference(this.content.contentId, key, value);
   };
   Controller.prototype.play = function () {
@@ -1208,7 +1209,7 @@
     this.desiredPlay = true;
     if (
       this.ready &&
-      (!this.dialog || ['rate-test', 'feature-test', 'clear'].indexOf(this.dialog.kind) >= 0) &&
+      (!this.dialog || ['rate-test', 'clear'].indexOf(this.dialog.kind) >= 0) &&
       !this.seekHold
     )
       this.engine.play();
@@ -1251,7 +1252,6 @@
   Controller.prototype.checkpoint = function (ended) {
     if (
       !this.content ||
-      this.content.referenceTrial ||
       !this.ready ||
       this.phase === 'mismatch' ||
       this.engine.requestedSeek
@@ -1415,10 +1415,6 @@
   };
   Controller.prototype.bookmark = function () {
     if (!this.content || !this.ready) return;
-    if (this.content.referenceTrial) {
-      this.notice('Uyumluluk denemesinde yer imi kaydedilmez.');
-      return;
-    }
     this.notice(
       this.store.bookmark(this.content.contentId, this.position)
         ? 'Yer imi eklendi: ' + C.format(this.position)
@@ -1588,6 +1584,7 @@
       ['error', 'ended', 'idle', 'suspended', 'mismatch'].indexOf(this.phase) >= 0
     )
       return;
+    if (root.FilmErrorReporter) { this.errorReport = root.FilmErrorReporter.player(this, 'playback', error); if (!this.sourceReports) this.sourceReports = {}; var reportSource = this.activeSource || this.content.sources[this.currentSource]; if (reportSource) this.sourceReports[reportSource.id] = this.errorReport; }
     this.keepTrackIntent();
     var requestedTarget = this.engine.requestedSeek && this.engine.requestedSeek.target;
     var restoringSeek =
@@ -1874,6 +1871,7 @@
     this.cancelCountdown();
     this.qualityChange = null;
     this.error = C.safeMessage(message);
+    if (root.FilmErrorReporter && !this.errorReport) this.errorReport = root.FilmErrorReporter.player(this, this.activeSource ? 'playback' : 'resolve', { message: this.error });
     var failedSession = this.session;
     this.setPhase('error');
     if (this.content && this.session === failedSession && this.phase === 'error')

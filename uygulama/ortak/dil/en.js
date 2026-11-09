@@ -1,6 +1,9 @@
 /* English UI pack. Turkish source messages are the fallback; site content stays verbatim. */
 FilmI18n.register({
   messages: [
+    ["Hata bildir düğmesine bastığınızda uygulama, bileşen ve eklenti sürümleri, teknik hata bilgileri ve gerekiyorsa sorgu bilgileri temizlenmiş içerik sayfası adresi Cloudflare üzerinden özel GitHub destek deposuna gönderilir. Gönderim isteğe bağlıdır; otomatik rapor gönderilmez. Şifreler, video bağlantıları, tokenlar ve izleme geçmişi rapora eklenmez.","When you press Report error, application, component and plugin versions, technical error details and, if needed, the content page address without query information are sent through Cloudflare to a private GitHub support repository. Sending is optional; reports are never sent automatically. Passwords, video URLs, tokens and viewing history are not included."],
+
+    ['Cihaz onayları ve seçim geçmişi', 'Device confirmations and selection history'],
     ['Beklemede · Bağlantıları yenile ile hazırlanır', 'Waiting · use Refresh links to resolve'],
     ['AVPlay tampon profilinin bazı ayarlarını uygulayamadı; mevcut motor ayarları korunuyor.', 'AVPlay could not apply all buffer settings; existing engine settings remain in use.'],
     ['AVPlay bu cihazda tampon profili ayarını sunmuyor; mevcut motor ayarları korunuyor.', 'AVPlay does not expose buffer settings on this device; existing engine settings remain in use.'],
@@ -30,8 +33,8 @@ FilmI18n.register({
     ['Kullanım bilgilendirmesi', 'Usage information'],
     ['Okudum, anladım ve devam et', 'I have read and understood; continue'],
     [
-      'Film Merkezi, üçüncü taraf internet sitelerindeki içeriklere erişim sağlayan bağımsız bir uygulamadır. Bu sitelerle resmî bağlantısı bulunmaz.',
-      'Film Merkezi is an independent application that provides access to content on third-party websites. It has no official affiliation with those websites.'
+      'Film Merkezi, Tizen’de doğrudan kullanılamayan web ve video sayfalarına kullanıcıların seçtiği eklentilerle uyumlu bir erişim ve oynatma arayüzü sağlayan bağımsız bir uygulamadır. Yalnız eklentilerin desteklediği sayfa yapıları ve medya biçimleri kullanılabilir; genel amaçlı bir web tarayıcısı değildir. Sitelerle resmî bağlantısı bulunmaz.',
+      'Film Merkezi is an independent application that provides a compatible access and playback interface for web and video pages that cannot be used directly on Tizen, through user-selected extensions. Only page structures and media formats supported by extensions are available; it is not a general-purpose web browser. It has no official affiliation with the websites.'
     ],
     [
       'İçeriklerin erişilebilirliği, güvenliği, doğruluğu ve kesintisiz oynatılması garanti edilmez. Kullanıcı, yalnızca erişim hakkına sahip olduğu içerikleri kullanmak ve geçerli mevzuata uymakla yükümlüdür.',
@@ -97,21 +100,15 @@ FilmI18n.register({
     ['Yeni bölümler', 'New episodes'],
     ['Yabancı diziler', 'International series'],
     ['Eski dizi arşivi', 'Classic series archive'],
-    [
-      'DDizi katalog tür/yıl/IMDb filtresi sunmuyor; arşiv sekmelerini kullanın.',
-      'DDizi does not offer genre/year/IMDb filters; use its archive tabs.'
-    ],
+    
     ['Arşiv', 'Archive'],
     ['Yerli ve yabancı diziler', 'Turkish and international series'],
-    ['Dizibox dizileri', 'Dizibox series'],
+    
     ['Efsane diziler', 'Classic series'],
     ['En çok yorumlananlar', 'Most discussed'],
-    [
-      'Dizibox arşivi: tür, yıl, IMDb ve sıralama. Arama sitenin alfabetik dizi dizinini kullanır.',
-      'Dizibox archive: genre, year, IMDb and sorting. Search uses the site’s alphabetical series index.'
-    ],
+    
     ['Dizi filtresi', 'Series filter'],
-    ['dizibox.live · Yabancı diziler', 'dizibox.live · International series'],
+    
     ['Öne çıkan filmler', 'Featured movies'],
     ['En çok izlenenler', 'Most watched'],
     [
@@ -119,7 +116,7 @@ FilmI18n.register({
       'Genre and sort options provided by the site.'
     ],
     ['Site filtresi', 'Site filter'],
-    ['filmizle.ink · Film ve diziler', 'filmizle.ink · Movies and series'],
+    
     ['Yeni filmler', 'New movies'],
     [
       'Sitenin sunduğu alanlarla katalogda ara.',
@@ -219,8 +216,8 @@ FilmI18n.register({
     ],
     ['Oynatma sorunu yaşarsanız', 'If playback fails'],
     [
-      'Önce başka ses veya kaynak seçin; gerekirse bağlantıları yenileyin. Uygun kaynakta diğer motor bir kez denenir; bütün toparlamalar 60 saniye ve beş deneme sınırını paylaşır. HTTP 404, erişim engeli ve hazırlık hatası kaynak başarısı sayılmaz.',
-      'Try another audio track or source, then refresh links if needed. The other engine may be tried once on a suitable source; all recovery shares a 60-second, five-attempt budget. HTTP 404, access blocks and preparation errors are not successful sources.'
+      'Önce başka ses veya kaynak seçin; gerekirse bağlantıları yenileyin. Aynı kaynak seçili motorda iki kez başarısız olursa diğer motora geçiş için onay istenir. Ret veya Geri mevcut motorda devam eder; otomatik toparlama 60 saniye ve beş denemeyle sınırlıdır. HTTP 404, erişim engeli ve hazırlık hatası kaynak başarısı sayılmaz.',
+      'Select another audio track or source first; refresh links if needed. After two failures of the same source in the selected engine, switching engines requires approval. Decline or Back keeps the current engine; automatic recovery is limited to 60 seconds and five attempts. HTTP 404, access blocks and preparation errors are not playback success.'
     ],
     [
       'Bu kaynağı açabilecek doğrulanmış bir oynatma motoru yok.',

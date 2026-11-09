@@ -23,12 +23,30 @@
         state = compare > 0 ? 'available' : compare === 0 ? 'current' : 'older';
         if (compare === 0 && item.manifestSha256 !== active.hash) { state = 'error'; error = 'Aynı eklenti sürümü farklı dosyalarla yayımlanmış.'; }
       } else if (item) state = 'available';
-      rows.push({ key: key, id: p.siteId || p.id, pluginId: p.id, repoId: p.repoId, name: p.name || p.id, builtin: false, enabled: p.enabled && !!repo && repo.enabled, ownEnabled: p.enabled, repositoryEnabled: !!repo && repo.enabled, loaded: !!manager.loaded[key], version: active && active.version || '', pending: pending && pending.version || '', previous: p.previous && p.previous.version || '', available: item && item.version || '', updateState: state, error: error });
+      rows.push({ key: key, id: p.siteId || p.id, pluginId: p.id, repoId: p.repoId, name: p.name || p.id, builtin: false, enabled: p.enabled && !!repo && repo.enabled, ownEnabled: p.enabled, repositoryEnabled: !!repo && repo.enabled, loaded: !!manager.loaded[key], version: active && active.version || '', pending: pending && pending.version || '', previous: p.previous && p.previous.version || '', available: item && item.version || '', updateState: state, error: error, needsDownload: !!p.needsDownload });
     });
     return rows;
   };
-  Manager.prototype.busy = function () { return !!(this.checking || this.plugins && this.plugins.busy || this.core && this.core.busy); };
+  Manager.prototype.packageGroups = function () {
+    var self = this, manager = this.plugins, installed = this.rows().filter(function (r) { return !r.builtin; }), available = [];
+    if (manager) Object.keys(manager.state.repositories).forEach(function (id) {
+      var repo = manager.state.repositories[id], catalog = self.catalogs[id];
+      if (!repo.enabled || !catalog) return;
+      catalog.plugins.forEach(function (item) {
+        var key = id + '/' + item.id;
+        if (manager.state.plugins[key]) return;
+        available.push({ key: key, pluginId: item.id, repoId: id, name: item.name, available: item.version, error: self.failures[id] || '', item: item });
+      });
+    });
+    function order(a, b) { var x = a.name.toLowerCase(), y = b.name.toLowerCase(); return x < y ? -1 : x > y ? 1 : a.key < b.key ? -1 : a.key > b.key ? 1 : 0; }
+    installed.sort(order); available.sort(order);
+    return { installed: installed, updates: installed.filter(function (r) { return r.repositoryEnabled && (r.updateState === 'available' || r.needsDownload || r.version && r.pending && root.FilmPluginSchema.compare(r.pending, r.version) > 0); }), newSites: available, checkedAt: this.checkedAt };
+  };
+  Manager.prototype.busy = function () { return !!(this.batch && this.batch.running || this.checking || this.plugins && this.plugins.busy || this.core && this.core.busy); };
+  Manager.prototype.runBatch = function (action, keys, notify) { return root.FilmPluginBatch.start(this, action, keys, notify); };
+  Manager.prototype.cancelBatch = function () { if (this.batch) this.batch.cancel(); };
   Manager.prototype.checkSites = function (onlyRepo) {
+    if (this.batch && this.batch.running) return Promise.reject(new Error('Toplu eklenti işlemi sürüyor.'));
     var self = this, manager = this.plugins; if (this.checking) return this.checking;
     if (!manager) return Promise.resolve({ checked: [], failed: [], disabled: [] });
     if (manager.busy || this.core && this.core.busy || manager.app && manager.app.controller.content) return Promise.reject(new Error('Önce mevcut işlemden veya oynatıcıdan çıkın.'));
@@ -37,12 +55,12 @@
       task = task.then(function () {
         if (token !== self.generation) throw new Error('Site güncelleme kontrolü iptal edildi.');
         if (!manager.state.repositories[id].enabled) { result.disabled.push(id); return; }
-        return manager.checkRepository(id).then(function (catalog) { if (token !== self.generation) throw new Error('Site güncelleme kontrolü iptal edildi.'); self.catalogs[id] = catalog; delete self.failures[id]; result.checked.push(id); }, function (error) { if (token !== self.generation) throw error; self.failures[id] = error.message; result.failed.push({ id: id, message: error.message }); });
+        return manager.checkRepository(id).then(function (catalog) { if (token !== self.generation) throw new Error('Site güncelleme kontrolü iptal edildi.'); self.catalogs[id] = catalog; delete self.failures[id]; result.checked.push(id); }, function (error) { if (token !== self.generation) throw error; self.failures[id] = error.message; result.failed.push({ id: id, message: error.message, report: root.FilmErrorReporter && root.FilmErrorReporter.capture({scope:'update',stage:'repository-check',error:error}) }); });
       });
     });
     this.checking = task.then(function () { self.checkedAt = Date.now(); self.checking = null; return result; }, function (error) { self.checking = null; throw error; }); return this.checking;
   };
-  Manager.prototype.cancel = function () { if (!this.checking) return; this.generation++; if (this.plugins) this.plugins.cancel(); };
+  Manager.prototype.cancel = function () { this.cancelBatch(); if (!this.checking) return; this.generation++; if (this.plugins) this.plugins.cancel(); };
   Manager.prototype.hasChanges = function () {
     var manager = this.plugins;
     return this.restartNeeded || !!(manager && manager.restartNeeded) || this.rows().some(function (r) { return !!r.pending || r.enabled !== r.loaded; }) || !!(manager && Object.keys(manager.loaded).some(function (key) { return !manager.state.plugins[key]; }));

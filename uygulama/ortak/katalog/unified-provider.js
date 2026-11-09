@@ -697,6 +697,7 @@
                   ? 'blocked'
                   : 'error';
                 state.message = C.safeMessage(error.message);
+                state.failureAt = Date.now(); state.failureStage = error.stage || kind; state.failureCode = error.code || error.type || state.status;
                 results[site.id] = cursors[site.id] || null;
               })
               .then(function () {

@@ -19,11 +19,12 @@
     var current = root.FilmUpdate && root.FilmUpdate.status().current;
     if (!current || root.FilmPluginSchema.compare(current, minimum || '1.8.0') < 0)
       throw new Error('Bu site için önce Güncelleme Merkezi üzerinden çekirdek bileşenini güncelleyin.');
-    var local = {}, keys = ['URL','PlayerCore','CatalogUtils','CatalogClient','CatalogSearch','CatalogSiteKit','ContentIdentity','ChainDecoder','LiteralMediaDecoder','WebPlayerData','VidaraDecoder','Hotstream','CryptoJS','YoutubeSource','ChainNetwork','ChainSecureHttp','MediaNetwork','SourceProgress','SiteAddresses','SitePayload','SiteSourceFamilies'];
+    var local = {}, keys = ['URL','PlayerCore','CatalogUtils','CatalogClient','CatalogSearch','CatalogSiteKit','ContentIdentity','ChainDecoder','LiteralMediaDecoder','WebPlayerData','VidaraDecoder','CryptoJS','YoutubeSource','ChainNetwork','MediaNetwork','SourceProgress','SiteAddresses','SitePayload','SiteSourceFamilies'];
     keys.forEach(function (key) { local[key] = root[key]; });
     local.SiteRegistry = { register: function (site) {
       if (site.id !== context.site.id || site.prefix !== context.site.prefix)
         throw new Error('Site eklentisi bildirdiği kimlik dışında kayıt oluşturamaz.');
+      if (site.translations && root.FilmI18n) root.FilmI18n.register({ messages: site.translations });
       root.SiteRegistry.register(site);
     }, get: root.SiteRegistry.get, forContent: root.SiteRegistry.forContent, sites: root.SiteRegistry.sites };
     local.window = local;

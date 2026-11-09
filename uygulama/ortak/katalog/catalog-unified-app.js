@@ -89,7 +89,6 @@
       this.decorateProvider();
       app.controller.on('open', function (content) {
         self.freezeUnified();
-        if (content.referenceTrial) return;
         self.hub.observe(content);
         self.hub.choose(content.contentId, content.contentId);
         self.hub.flush();
@@ -670,6 +669,7 @@
         if (token !== self.generation) return;
         s.findingSites = false;
         s.error = e.message;
+        s.errorReport = root.FilmErrorReporter && root.FilmErrorReporter.catalog(self, s, e);
         self.render(true);
       });
     };
@@ -776,6 +776,11 @@
             s.name + ' · ' + label + (s.message ? ' · ' + s.message : '')
           )
         );
+      });
+      p.progress.sites.forEach(function (site, index) {
+        if (!root.FilmErrorReporter || ['blocked','error','timeout'].indexOf(site.status) < 0) return;
+        var report = root.FilmErrorReporter.capture({scope:'site',siteId:site.id || site.siteId,stage:site.failureStage || 'catalog-request',occurredAt:site.failureAt,error:{message:site.message || site.status,code:site.failureCode || site.code || site.status}});
+        if (report) { var row = box.querySelectorAll('.unified-site-response')[index]; row.appendChild(root.FilmErrorReporter.button(report, 'site-report-' + index)); }
       });
       box.appendChild(
         b('Kapat', 'panel-cancel', function () {

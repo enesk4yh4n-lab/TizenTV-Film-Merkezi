@@ -434,8 +434,7 @@
       else if (
         this.c.dialog.kind === 'resume' ||
         this.c.dialog.kind === 'duration' ||
-        this.c.dialog.kind === 'rate-test' ||
-        this.c.dialog.kind === 'feature-test'
+        this.c.dialog.kind === 'rate-test'
       )
         this.c.answer(this.c.dialog.choices.length - 1);
       else this.c.answer(0);
@@ -567,6 +566,12 @@
         key: key,
         raw: !!raw
       });
+    }
+    function reportItem(report) {
+      var reporter = root.FilmErrorReporter;
+      if (!reporter || !report) return;
+      var key = 'report-' + report.data.reportId;
+      item(reporter.label(report), function () { reporter.send(report, function () { var label = container.querySelector('[data-item-key="' + key + '"] span'); if (label) label.textContent = reporter.label(report); }); }, false, false, '', key, true);
     }
     function menu(label, target, detail, disabled) {
       item(
@@ -842,6 +847,7 @@
                 ),
             o.sourceId
           );
+          if (root.FilmErrorReporter && (failed || ['error','blocked','timeout'].indexOf(o.status) >= 0 || o.refreshStatus === 'error' || o.refreshStatus === 'timeout')) reportItem((c.sourceReports || {})[o.sourceId] || root.FilmErrorReporter.player(c, 'resolve', {message:o.detail || o.status,code:o.status}, o, 'source-resolve'));
         });
       } else
         c.content.sources.forEach(function (s, i) {
@@ -861,7 +867,9 @@
                 : 'Oynatılırken sınanır',
             s.id
           );
+          if (failed) reportItem((c.sourceReports || {})[s.id]);
         });
+      if (c.refreshReport) reportItem(c.refreshReport);
       if (c.discovery && c.discovery.active)
         item(
           c.discovery.manual ? 'Bağlantılar yenileniyor…' : 'Diğer kaynaklar aranıyor…',
@@ -1211,7 +1219,7 @@
       setting('Otomatik sonraki bölüm', 'autoNext', !c.settings.autoNext, c.settings.autoNext);
       item('Bu içerikte ses ve altyazı tercihlerini sıfırla', function () {
         var keys = ['audio', 'subtitle', 'subtitleOffset'];
-        if (!c.content.referenceTrial) c.store.resetPreferences(c.content.contentId, keys);
+        c.store.resetPreferences(c.content.contentId, keys);
         keys.forEach(function (key) {
           delete c.prefs[key];
         });
@@ -1253,30 +1261,10 @@
         );
       });
       menu('Hız seçenekleri', 'speed');
-      menu('TV uyumluluk denemeleri', 'compatibility');
+      menu('Cihaz onayları ve seçim geçmişi', 'compatibility');
       menu('Hakkında', 'about');
     } else if (name === 'compatibility') {
-      title = 'TV uyumluluğu · TV hoparlörleri';
-      item(
-        'Kısa özgün test desenleri uygulamanın içindedir',
-        null,
-        false,
-        true,
-        'Her deneme görüntü ve ses onayı ister. HDR onayı ayrıca TV HDR bilgisini gerektirir.'
-      );
-      if (root.PlayerReferences)
-        root.PlayerReferences.list().forEach(function (ref) {
-          item(
-            ref.name,
-            function () {
-              self.closeMenu();
-              c.trials.start(ref.id);
-            },
-            false,
-            !c.trials || !c.capStore || !c.capStore.available('avplay'),
-            'Bu deneme mevcut oynatmayı kaydederek kısa süreli değiştirir.'
-          );
-        });
+      title = 'Cihaz onayları ve seçim geçmişi';
       item(
         'Tüm cihaz onaylarını sıfırla',
         function () {
@@ -1325,6 +1313,7 @@
       title = 'Oynatma sürdürülemedi';
       item(c.content.title || 'Video', null, false, true);
       item(c.error || 'Bağlantı hatası', null, false, true);
+      reportItem(c.errorReport);
       item('Tekrar dene', function () {
         self.closeMenu();
         c.retry(false);

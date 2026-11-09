@@ -31,6 +31,14 @@
       if (!Array.isArray(m.legacyTextOrigins) || m.legacyTextOrigins.length > 128) throw new Error('Metin taşıma tercihi geçersiz.');
       m.legacyTextOrigins.forEach(function (origin) { var u = new root.URL(origin); if (u.origin !== origin || !policyHost(u.hostname) || origin.indexOf('{n}') >= 0) throw new Error('Metin taşıma kökeni geçersiz.'); networkPolicy('FILM-MERKEZI-ORIGINS-1\n' + origin + '\n'); });
     }
+    if (m.pluginMinimums !== undefined) {
+      var pluginRules = {};
+      if (!Array.isArray(m.pluginMinimums) || m.pluginMinimums.length > 256) throw new Error('Eklenti geçiş kuralları geçersiz.');
+      m.pluginMinimums.forEach(function (rule) {
+        if (!rule || !/^[a-f0-9]{64}$/.test(rule.publisher) || !/^p[0-9]{3}$/.test(rule.id) || !version(rule.version) || pluginRules[rule.publisher + '/' + rule.id]) throw new Error('Eklenti geçiş kuralı geçersiz.');
+        pluginRules[rule.publisher + '/' + rule.id] = true;
+      });
+    }
     if (m.nativeTransport !== undefined && m.nativeTransport !== 1) throw new Error('Native TLS sürümü uyumsuz.');
     if (m.nativeTransport === 1 && (!m.networkPolicy || !seen[m.networkPolicy.file] || !seen[m.networkPolicy.signature] || !/\.txt$/.test(m.networkPolicy.file) || !/\.txt$/.test(m.networkPolicy.signature))) throw new Error('İmzalı TLS izin dosyaları eksik.');
     var entries = {};
@@ -74,5 +82,5 @@
     rows.forEach(function (origin) { var host = origin.replace(/^https:\/\/(?:\*\.)?/, ''); if (origin.indexOf('https://') !== 0 || !policyHost(host) || seen[origin]) throw new Error('TLS origin izni geçersiz.'); seen[origin] = true; });
     return rows;
   }
-  root.FilmUpdateVerify = { Trust: Trust, bytes: bytes, sha: sha, pointer: pointer, manifest: manifest, sites: sites, networkPolicy: networkPolicy, policyMatch: policyMatch };
+  root.FilmUpdateVerify = { Trust: Trust, compatible: compatible, fingerprint: function (key) { return root.crypto.subtle.digest({ name: 'SHA-256' }, binary(key)).then(hex); }, bytes: bytes, sha: sha, pointer: pointer, manifest: manifest, sites: sites, networkPolicy: networkPolicy, policyMatch: policyMatch };
 })(window);

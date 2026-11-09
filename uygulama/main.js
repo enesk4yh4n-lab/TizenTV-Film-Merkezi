@@ -57,7 +57,6 @@
         capabilities: capabilities
       });
       var view = new root.PlayerView(c, d),
-        trials = (c.trials = new root.PlayerCompatibilityTrials(c, capabilities)),
         input = new root.PlayerInput(c, view, document),
         lifecycle = new root.PlayerLifecycle(c, input);
       storageNotices.forEach(function (message) {
@@ -74,7 +73,6 @@
       root.ChainApp = {
         compatibility: compatibility,
         capabilities: capabilities,
-        trials: trials,
         open: open,
         controller: c,
         engine: engine,

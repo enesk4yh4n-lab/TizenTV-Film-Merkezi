@@ -1,7 +1,7 @@
 # Üretim kaynakları
 
-Bu dizin WGT dışındadır. Native TLS modülünün C++/header kaynakları, değiştirilmemiş Mozilla CA girdisi ve build-input özetleri ortak/ag/native/ altındadır. Çalışma zamanı ikilileri ve zorunlu lisans/bildirimler uygulama/ortak/ag/native/ altındadır.
+Native C++/header ve değiştirilmemiş Mozilla CA girdisi ortak/ag/native/; ortak decoder girdileri decoder/ altındadır. Native üretim betikleri uretim/ altındadır; Samsung Pepper47 ve Mbed TLS3.6.7 geliştirme ortamı gerekir.
 
-P001 decoder üretim kaynakları p001/decoder/ altındadır. Okunabilir ES5 sağlayıcı/çözümleyici kodları ve paket lisansları github-eklenti/sites/packages/p001–p022 altında, ortak çekirdek kodu github-eklenti/versions/ altında bulunur. Dosya adlandırması gerçek adresleri veya zorunlu telif bildirimlerini kaldırmaz.
+WGT içindeki geçmiş üretim açıklamalarında geçen kaynak/p001/decoder/ yolu, bu kaynak dağıtımında kaynak/decoder/ yoluna karşılık gelir. Bu bir üretim kaynağı konumudur; TV bu yoldan dosya yüklemez. Kod ve lisanslar değişmedi.
 
-Bağımsız eklenti üretimi için SDK/README.md, WGT ve native üretim açıklamaları için tools/distribution/README.md dosyalarını okuyun. Kaynaklar ve özel anahtarlar ayrı tutulur; burada özel anahtar bulunmaz.
+Güncel okunabilir sağlayıcı kodu github-eklenti/sites/packages/pNNN/ altındaki sürümlü paketlerde bulunur. Bu yayında tools/ ve deneme/ klasörleri yoktur. Özel anahtarlar paylaşılmaz.

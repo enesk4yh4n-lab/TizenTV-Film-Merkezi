@@ -2,15 +2,16 @@
 (function (root) {
   'use strict';
   var KEY = 'filmmerkezi.usage-consent.v1',
-    REVISION = '2026-10-29.1';
+    REVISION = '2026-11-09.2';
   function tr(value) {
     return root.FilmI18n ? root.FilmI18n.text(value) : value;
   }
   var paragraphs = [
-    'Film Merkezi, üçüncü taraf internet sitelerindeki içeriklere erişim sağlayan bağımsız bir uygulamadır. Bu sitelerle resmî bağlantısı bulunmaz.',
+    'Film Merkezi, Tizen’de doğrudan kullanılamayan web ve video sayfalarına kullanıcıların seçtiği eklentilerle uyumlu bir erişim ve oynatma arayüzü sağlayan bağımsız bir uygulamadır. Yalnız eklentilerin desteklediği sayfa yapıları ve medya biçimleri kullanılabilir; genel amaçlı bir web tarayıcısı değildir. Sitelerle resmî bağlantısı bulunmaz.',
     'İçeriklerin erişilebilirliği, güvenliği, doğruluğu ve kesintisiz oynatılması garanti edilmez. Kullanıcı, yalnızca erişim hakkına sahip olduğu içerikleri kullanmak ve geçerli mevzuata uymakla yükümlüdür.',
     'Uygulama herhangi bir içerik için telif veya kullanım izni sağlamaz. Yürürlükteki hukukun izin verdiği ölçüde, uygulama herhangi bir garanti sunulmaksızın sağlanır. Bu bilgilendirme, kanunen kaldırılamayan sorumlulukları ve üçüncü taraf lisanslarının sağladığı hakları ortadan kaldırmaz.'
   ];
+  paragraphs.push('Hata bildir düğmesine bastığınızda uygulama, bileşen ve eklenti sürümleri, teknik hata bilgileri ve gerekiyorsa sorgu bilgileri temizlenmiş içerik sayfası adresi Cloudflare üzerinden özel GitHub destek deposuna gönderilir. Gönderim isteğe bağlıdır; otomatik rapor gönderilmez. Şifreler, video bağlantıları, tokenlar ve izleme geçmişi rapora eklenmez.');
   var youtube = 'cozumleyiciler/youtube/YOUTUBE_THIRD_PARTY_NOTICES.md',
     native = 'ortak/ag/native/notices/';
   var credits = [

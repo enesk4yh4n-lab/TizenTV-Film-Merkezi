@@ -20,8 +20,7 @@
   }
   function textAllowed(value) {
     if (!allowed(value)) return false;
-    var selected = root.FilmUpdate && root.FilmUpdate.selected, legacy = selected && selected.legacyTextOrigins;
-    return !legacy || legacy.indexOf(new root.URL(value).origin) < 0;
+    return true;
   }
   function failAll(e) { Object.keys(jobs).forEach(function (id) { jobs[id].finish(e); }); }
   function ensure() {

@@ -4,7 +4,7 @@
   function tr(value) {
     return root.FilmI18n ? root.FilmI18n.text(value) : value;
   }
-  var info = { version: '1.6.0' };
+  var info = { version: root.FilmUpdateConfig ? root.FilmUpdateConfig.appVersion : '1.8.1' };
   info.support = function (controller) {
     var c = controller || {},
       tracks = c.tracks || {},
@@ -94,7 +94,7 @@
       {
         title: tr('Oynatma sorunu yaşarsanız'),
         detail: tr(
-          'Önce başka ses veya kaynak seçin; gerekirse bağlantıları yenileyin. Uygun kaynakta diğer motor bir kez denenir; bütün toparlamalar 60 saniye ve beş deneme sınırını paylaşır. HTTP 404, erişim engeli ve hazırlık hatası kaynak başarısı sayılmaz.'
+          'Önce başka ses veya kaynak seçin; gerekirse bağlantıları yenileyin. Aynı kaynak seçili motorda iki kez başarısız olursa diğer motora geçiş için onay istenir. Ret veya Geri mevcut motorda devam eder; otomatik toparlama 60 saniye ve beş denemeyle sınırlıdır. HTTP 404, erişim engeli ve hazırlık hatası kaynak başarısı sayılmaz.'
         )
       }
     ];

@@ -36,15 +36,10 @@ bool Url(const std::string& text, std::string* host, std::string* target) {
   if (text.size() > 4096 || text.compare(0, 8, "https://") || (text.find_first_of("\r\n\t #\\") != std::string::npos || text.find('\0') != std::string::npos)) return false;
   size_t slash = text.find('/', 8); if (slash == std::string::npos) return false;
   *host = text.substr(8, slash - 8); *target = text.substr(slash);
-  if (*host == "www.ddizi.tel" && (target->compare(0, 8, "/player/") == 0 || target->compare(0, 6, "/izle/") == 0)) return true;
 #ifdef FILM_HTTP_QA
   if (*host == "self-signed.badssl.com" || *host == "wrong.host.badssl.com" || *host == "test-streams.mux.dev") return true;
 #endif
   return film_policy::Host(*host);
-}
-bool Referrer(const std::string& text) {
-  const std::string prefix = "https://www.ddizi.tel/izle/";
-  return text.size() < 4096 && (text == "https://www.ddizi.tel/" || text.compare(0, prefix.size(), prefix) == 0) && text.find_first_of("\r\n\t #") == std::string::npos;
 }
 class Instance;
 class Job {
@@ -102,10 +97,9 @@ class Instance : public pp::Instance {
     if (!url.is_string() || !ref.is_string() || !Url(url.AsString(), &host, &target)) { Reply(id,"validation",-1,NULL);return; }
     const std::string update_root="/enesk4yh4n-lab/TizenTV-Film-Merkezi/main/github-eklenti/";
     bool github=host=="raw.githubusercontent.com"&&target.compare(0,update_root.size(),update_root)==0&&target.find("..") == std::string::npos&&target.find_first_of("%\\")==std::string::npos;
-    bool legacy=host=="www.ddizi.tel"&&(target.compare(0,8,"/player/")==0||target.compare(0,6,"/izle/")==0);
-    if(!github&&!legacy&&!film_policy::Allowed(host,origins_)&&!repositories_.Allowed(host)&&!repositories_.Request(host,target)){Reply(id,"validation",-1,NULL);return;}
+    if(!github&&!film_policy::Allowed(host,origins_)&&!repositories_.Allowed(host)&&!repositories_.Request(host,target)){Reply(id,"validation",-1,NULL);return;}
     std::string referer=ref.AsString(),rh,rt;
-    if(!referer.empty()&&((legacy&&!Referrer(referer))||(!legacy&&(!Url(referer,&rh,&rt)||(!film_policy::Allowed(rh,origins_)&&!repositories_.Allowed(rh)&&!repositories_.Request(rh,rt)))))){Reply(id,"validation",-1,NULL);return;}
+    if(!referer.empty()&&(!Url(referer,&rh,&rt)||(!film_policy::Allowed(rh,origins_)&&!repositories_.Allowed(rh)&&!repositories_.Request(rh,rt)))){Reply(id,"validation",-1,NULL);return;}
     pp::Var binaryVar=message.Get("binary"),limitVar=message.Get("byteLimit"),methodVar=message.Get("method"),bodyVar=message.Get("body");bool binary=binaryVar.is_bool()&&binaryVar.AsBool();size_t limit=limitVar.is_int()&&limitVar.AsInt()>0?static_cast<size_t>(limitVar.AsInt()):(binary?8*1024*1024:2*1024*1024);
     if(limit>(binary?12*1024*1024:2*1024*1024)){Reply(id,"validation",-1,NULL);return;}std::string method=methodVar.is_string()?methodVar.AsString():"GET",body=bodyVar.is_string()?bodyVar.AsString():"";
     if((method!="GET"&&method!="POST")||body.size()>262144||(method=="GET"&&!body.empty())){Reply(id,"validation",-1,NULL);return;}

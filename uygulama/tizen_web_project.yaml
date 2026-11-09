@@ -34,6 +34,7 @@ files:
   - badge-tr.svg
   - bootstrap/SOURCE_NOTICE.txt
   - bootstrap/boot.js
+  - bootstrap/channel.js
   - bootstrap/config.js
   - bootstrap/manager.js
   - bootstrap/network.js
@@ -41,6 +42,8 @@ files:
   - bootstrap/plugins-manager.js
   - bootstrap/plugins-panel.js
   - bootstrap/plugins-schema.js
+  - bootstrap/progress.js
+  - bootstrap/recovery.js
   - bootstrap/storage.js
   - bootstrap/update-http.js
   - bootstrap/verify.js
@@ -48,20 +51,7 @@ files:
   - bundled/manifest.sig
   - bundled/repository/repository.json
   - bundled/repository/repository.sig
-  - compat-media/ac3.mp4
-  - compat-media/ac3_51.mp4
-  - compat-media/avc1080.mp4
-  - compat-media/avc2160.mp4
-  - compat-media/dts.mp4
-  - compat-media/dts_51.mp4
-  - compat-media/eac3.mp4
-  - compat-media/eac3_51.mp4
-  - compat-media/hdr10.mp4
-  - compat-media/hevc10.mp4
-  - compat-media/hevc2160.mp4
-  - compat-media/manifest.json
   - config.xml
-  - cozumleyiciler/hotstream/hotstream.js
   - cozumleyiciler/literal-media.js
   - cozumleyiciler/site-source-families.js
   - cozumleyiciler/vidara.js
@@ -93,11 +83,12 @@ files:
   - ortak/ag/native/notices/NaCl-SDK-NOTICE.txt
   - ortak/ag/native/secure-http.nmf
   - ortak/ag/network.js
-  - ortak/ag/secure-http.js
   - ortak/arayuz/legal.css
   - ortak/arayuz/legal.js
   - ortak/arayuz/site-selection.css
   - ortak/arayuz/site-selection.js
+  - ortak/destek/config.json
+  - ortak/destek/error-reporter.js
   - ortak/dil/en.js
   - ortak/dil/i18n.js
   - ortak/katalog/catalog-app.js
@@ -116,6 +107,7 @@ files:
   - ortak/katalog/catalog.css
   - ortak/katalog/content-identity.js
   - ortak/katalog/management-panel.js
+  - ortak/katalog/plugin-batch.js
   - ortak/katalog/recommendations.js
   - ortak/katalog/site-addresses.js
   - ortak/katalog/site-management.js
@@ -133,7 +125,6 @@ files:
   - ortak/kayit/unified-library.js
   - ortak/player/avplay-player.js
   - ortak/player/browser-player.js
-  - ortak/player/compatibility-trials.js
   - ortak/player/engine-router.js
   - ortak/player/multi-site-sources.js
   - ortak/player/playback-capabilities.js

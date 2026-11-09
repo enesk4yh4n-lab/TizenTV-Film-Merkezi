@@ -1,8 +1,8 @@
 {
   "qa": false,
-  "sourceSha256": "90b1d551d4b1daca1f4a2b630c0bd0a27005e750d2aefa1b085a0a944f415654",
+  "sourceSha256": "b92d157a0a729e949844e5d5e88a5fac47b92e503e570d527021e2d5af69a791",
   "inputs": {
-    "secure-http.cpp": "90b1d551d4b1daca1f4a2b630c0bd0a27005e750d2aefa1b085a0a944f415654",
+    "secure-http.cpp": "b92d157a0a729e949844e5d5e88a5fac47b92e503e570d527021e2d5af69a791",
     "ca-bundle.h": "0bf632e879abbe487c714aaef5439d906908b7c600151fe3b0ff93a23f6eabff",
     "film-tls-config.h": "4522af5585ce00940b9082323fc3a118d92c0628f4c0f9287dc1203253ceb46a",
     "http-response.h": "0a94a9035d151975fb2c7628639c05f63220441587fd1716db89f053989588cc",
@@ -16,16 +16,16 @@
   "tlsArchiveSha256": "a7e8bcbec0e6f761b4af24f25677626b35f762f68eef79c08677a363212d11f6",
   "files": {
     "https-arm.nexe": {
-      "sha256": "979deb9da98341897376e4bf1c1bea9a412ad8befac5240c7079ccad6a51bd09",
+      "sha256": "032bba68c6803bf39221f9983a01a14a13df4336c9006d8974603414b0490a2e",
       "size": 2330860
     },
     "https-x86-32.nexe": {
-      "sha256": "8a0355ce55c05d386acdf2e86b0a9212cd8cbfd676b19404c35c6d60dcf531d1",
-      "size": 2757798
+      "sha256": "7a3fd561c87adb2ed59751d4d99ab0a1291b7a24fd59ad45bc882a0cc5566626",
+      "size": 2757686
     },
     "https-x86-64.nexe": {
-      "sha256": "980c78c0927fe2a08451f1254437658c8f378e43ec85df0fbf1bf37ba187c069",
-      "size": 3025446
+      "sha256": "f323884559cc97c71a932d12c447811dbd75b648c8542613774c56369a6bcd2c",
+      "size": 3025318
     }
   }
 }

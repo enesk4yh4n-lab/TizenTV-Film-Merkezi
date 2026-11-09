@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "p023",
+  "name": "P023",
+  "version": "1.0.1",
+  "minAppVersion": "1.6.0",
+  "site": {
+    "id": "sinetopya",
+    "prefix": "sinetopya:",
+    "name": "P023",
+    "base": "https://sinetopya.com"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 23401,
+      "sha256": "aef544e40fbc31d4d2aeb4cdc5481541236ab180fcacbe4b24efcabf6172eefc"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 150,
+      "sha256": "cd819caa44bc0006fb1070a7dfdc4fc39b1e05c3acaf52818a536da87c29b993"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "2992be3cdd86793fbed10eb3440d35b19b1ee506fe5c091cb9f1cafa7ee1548b"
+    }
+  ]
+}

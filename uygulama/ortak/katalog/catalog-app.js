@@ -113,7 +113,7 @@
       self.provider.cancel();
       self.images.stop();
       self.images.prune(16);
-      if (!content.referenceTrial) self.library.rememberPlayback(content);
+      self.library.rememberPlayback(content);
     });
     app.controller.on('close', function (result) {
       if (!result.content || result.reason === 'replace') return;
@@ -396,6 +396,7 @@
     if (token !== this.generation || this.screen !== screen || /ptal/.test(error.message)) return;
     screen.loading = false;
     screen.error = error.message;
+    screen.errorReport = root.FilmErrorReporter && root.FilmErrorReporter.catalog(this, screen, error);
     screen.errorKind = error.providerUnavailable ? 'provider-error' : '';
     this.render(true);
   };
@@ -1571,6 +1572,7 @@
               : 'İnternet bağlantısını kontrol edip yeniden deneyin.'
         )
       );
+      if (root.FilmErrorReporter) { if (!s.errorReport) s.errorReport = root.FilmErrorReporter.catalog(this, s, { message: s.error }); if (s.errorReport) box.appendChild(root.FilmErrorReporter.button(s.errorReport, 'catalog-report-error')); }
       box.appendChild(button('Yenile', 'catalog-retry', this.retry.bind(this), 'gold-button'));
       box.appendChild(button('Geri', 'catalog-error-back', this.back.bind(this), 'quiet-button'));
       parent.appendChild(box);
@@ -1745,7 +1747,11 @@
       node(
         'h2',
         '',
-        p.kind === 'exit'
+        p.kind === 'plugins'
+          ? tr('Eklentiler ve depolar')
+          : p.kind === 'updates'
+            ? tr('Güncellemeler')
+          : p.kind === 'exit'
           ? 'Uygulamadan çıkılsın mı?'
           : p.kind === 'tools'
             ? 'Seçenekler'
@@ -1762,7 +1768,11 @@
                     : 'Katalog filtreleri'
       )
     );
-    if (p.kind === 'filters') {
+    if (p.kind === 'plugins') {
+      root.FilmPluginPanel.draw(self, box, p);
+    } else if (p.kind === 'updates') {
+      root.FilmUpdatePanel.draw(self, box, p);
+    } else if (p.kind === 'filters') {
       box.appendChild(node('p', 'catalog-note', this.site.ui.filterHint));
       var fields = [
         ['type', 'İçerik'],
@@ -2215,6 +2225,7 @@
   };
   App.prototype.key = function (event) {
     if (event.defaultPrevented || this.app.controller.content) return;
+    if (root.FilmPluginPanel && root.FilmPluginPanel.key(this, event)) return;
     var code = event.keyCode;
     if (this.editing || document.activeElement === el('catalog-search')) {
       if (code === 65385 || code === 27 || code === 10009) {

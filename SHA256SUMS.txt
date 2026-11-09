@@ -1,2 +1,2 @@
-2eea193e06feec8803efda44369a94684989ba5b3ed02175cad59589d0aab820  Film-Merkezi-TV-1.6.0-public.wgt
-2fbac8ec139d037eea2b6a1052f232a269f40c33162e85864ee48a2aea7a44a3  Film-Merkezi-SDK-1.1.0.zip
+887fd3492d925d78f5c823b7cbea545334c27d84302cd95a882bd86cab9fb91c  Film-Merkezi-TV-1.8.1-public.wgt
+45667c76f588244fba0fe1c205dcd241deb616162017fa8631953678d3ea1324  Film-Merkezi-Kaynak-1.8.1.zip

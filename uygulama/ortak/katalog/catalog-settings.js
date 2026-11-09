@@ -73,7 +73,7 @@
       style('settings-sub-bottom', t('Altyazı alt boşluğu', 'Subtitle bottom margin'), [[3, '%3'], [5, '%5'], [8, '%8'], [12, '%12'], [20, '%20'], [30, '%30']], 'bottom');
     } else if (category === 'updates') {
       panel('tools-updates', t('Uygulama / çekirdek', 'Application / core'), 'update-center', { scope: 'core' });
-      panel('settings-site-packages', t('Kurulu site paketleri', 'Installed site packages'), 'site-management');
+      panel('settings-site-packages', t('Site eklentileri', 'Site plugins'), 'update-center', { scope: 'sites' });
       if (root.FilmPlugins) panel('settings-repositories', t('Eklenti depoları ve yeni paketler', 'Plugin repositories and new packages'), 'plugins', { pluginView: 'repositories' });
     } else if (category === 'storage') {
       row('tools-cache', t('Katalog önbelleğini temizle', 'Clear catalog cache'), '', function () { self.confirm(t('Katalog önbelleğini temizle', 'Clear catalog cache'), t('Listem ve izleme kayıtları korunur.', 'My list and viewing records are preserved.'), function () { a.cache.clear(); a.images.clear(); a.app.view.toast(t('Katalog önbelleği temizlendi.', 'Catalog cache cleared.')); }, 'tools-cache'); });
@@ -81,6 +81,7 @@
       panel('tools-history', t('İzleme geçmişini temizle', 'Clear viewing history'), 'clear-history');
       row('settings-reset-all', t('Tümünü sıfırla', 'Reset everything'), t('İlk kurulum hâline dön', 'Return to first installation'), function () { self.choose(t('Tüm kayıtlar, ayarlar, depolar ve indirilen bileşenler silinecek. WGT içindeki başlangıç sürümüyle yeniden açılacak.', 'All records, settings, repositories and downloaded components will be deleted. The bundled WGT version will restart.'), [[false, t('Vazgeç', 'Cancel')], [true, t('Tümünü sıfırla ve yeniden aç', 'Reset everything and restart')]], false, function (yes) { if (yes) self.resetAll(); }, 'settings-reset-all'); });
     } else if (category === 'about') {
+      row('settings-contact', t('İletişim', 'Contact'), 'destekfilmmerkezi@gmail.com');
       panel('tools-about', t('Hakkında, lisanslar ve teşekkürler', 'About, licenses and credits'), 'about');
       panel('settings-playback-support', t('Oynatma ve motor desteği', 'Playback and engine support'), 'support');
       row('settings-remote-help', t('Kumanda tuşları', 'Remote buttons'), '', function () { self.info(t('Kumanda tuşları', 'Remote buttons'), t('Yön tuşları: gezinme ve sarma. OK: seçme / oynat-duraklat. Geri: menüyü kapatma / çıkış. Fiziksel Durdur: Çıkış menüsü.', 'Arrows: navigation and seeking. OK: select / play-pause. Back: close menu / exit. Physical Stop: exit menu.')); });

@@ -10,8 +10,8 @@
     this.transport = options.transport || root.FilmNativeTLS; this.state = { schemaVersion: 1, seq: 0, repositories: {}, plugins: {} }; this.loaded = {}; this.errors = {}; this.scriptErrors = {}; this.loading = ''; this.busy = ''; this.note = ''; this.blocked = false; this.generation = 0; this.currentTask = null; this.writes = Promise.resolve(); this.sizes = {}; this.inventory = null; this.candidate = null; this.app = null; this.staging = {}; this.siteBlobStaging180 = true;
   }
   Manager.prototype.commit = function (change) {
-    var self = this; if (this.blocked) return Promise.reject(new Error('Eklenti kaydı salt okunur; mevcut veri korunuyor.'));
-    var task = this.writes.then(function () { var next = clone(self.state); change(next); next.seq++; var text = JSON.stringify(next); if (V.bytes(text).length > 1048576) throw new Error('Eklenti kayıt sınırına ulaşıldı.'); return self.store.write(next.seq % 2 ? 'state-a.json' : 'state-b.json', text).then(function () { self.state = next; }); });
+    var self = this; if (this.core.bootStopped) return Promise.reject(new Error('Başlangıç iptal edildi.')); if (this.blocked) return Promise.reject(new Error('Eklenti kaydı salt okunur; mevcut veri korunuyor.'));
+    var task = this.writes.then(function () { if (self.core.bootStopped) throw new Error('Başlangıç iptal edildi.'); var next = clone(self.state); change(next); next.seq++; var text = JSON.stringify(next); if (V.bytes(text).length > 1048576) throw new Error('Eklenti kayıt sınırına ulaşıldı.'); return self.store.write(next.seq % 2 ? 'state-a.json' : 'state-b.json', text).then(function () { self.state = next; }); });
     this.writes = task.then(function () {}, function () {}); return task;
   };
   Manager.prototype.loadBundled = function () {
@@ -144,9 +144,23 @@
     }).then(function () { return serial(Object.keys(self.state.plugins), function (key) { return self.loadPlugin(key); }); }).catch(function (e) { self.note = e.message; });
   };
   Manager.prototype.loadPlugin = function (key) {
-    var self = this, p = this.state.plugins[key], repo = this.state.repositories[p.repoId]; if (!p.enabled || !p.active || !repo || !repo.enabled || this.errors[repo.id]) return Promise.resolve();
+    var self = this, p = this.state.plugins[key], repo = this.state.repositories[p.repoId];
+    if (!p.enabled || !p.active || !repo || !repo.enabled || this.errors[repo.id]) return Promise.resolve();
     var canRestore = !!p.previous;
-    return this.readRecord(repo, p.active).then(function (text) { var m = S.manifest(text, self.core.config.appVersion); if (m.id !== p.id || m.version !== p.active.version) throw new Error('Kurulu eklenti kimliği eşleşmiyor.'); return self.policy(repo, m).then(function (a) { return self.transport.configureRepository(repo.id, p.id, a[0], a[1]); }).then(function () { self.loaded[key] = { manifest: m, repo: repo, record: p.active, prefix: 'plugins/' + key + '/', assets: {} }; }); }).catch(function (e) { if (e.missingBlob) { delete self.loaded[key]; return self.commit(function (s) { s.plugins[key].needsDownload = true;s.plugins[key].error = 'Site paketi yeniden indirilmeli / Download the site package again'; }); } return self.failPlugin(key, e.message).then(function () { if (canRestore) return self.loadPlugin(key); }); });
+    return this.readRecord(repo, p.active).then(function (text) {
+      var m = S.manifest(text, self.core.config.appVersion);
+      if (m.id !== p.id || m.version !== p.active.version) throw new Error('Kurulu eklenti kimliği eşleşmiyor.');
+      return S.fingerprint(repo.publicKey).then(function (publisher) {
+        var rules = self.core.selected && self.core.selected.pluginMinimums || [], blocked = rules.some(function (r) {
+          return r.publisher === publisher && r.id === m.id && S.compare(m.version, r.version) < 0;
+        });
+        if (blocked) { self.errors[key] = 'Eklentiyi güncelleyin / Update this plugin'; delete self.loaded[key]; return; }
+        delete self.errors[key];
+        return self.policy(repo, m).then(function (a) { return self.transport.configureRepository(repo.id, p.id, a[0], a[1]); }).then(function () {
+          self.loaded[key] = { manifest: m, repo: repo, record: p.active, prefix: 'plugins/' + key + '/', assets: {} };
+        });
+      });
+    }).catch(function (e) { return self.failPlugin(key, e.message).then(function () { if (canRestore) return self.loadPlugin(key); }); });
   };
   Manager.prototype.failPlugin = function (key, message) { var self = this; delete this.loaded[key]; return this.commit(function (s) { var p = s.plugins[key]; if (!p) return; p.error = message; p.active = p.previous || null; p.previous = null; p.pending = null; p.enabled = !!p.active; p.booting = false; }).catch(function (e) { self.note = e.message; }); };
   Manager.prototype.groups = function () { var self = this; return Object.keys(this.loaded).map(function (key) { var p = self.loaded[key]; return p.manifest.modules.map(function (f) { return p.prefix + f; }); }); };
@@ -158,7 +172,7 @@
     var self = this, key = this.owner(path), p = this.loaded[key]; if (!p) return Promise.reject(new Error('Eklenti dosyası bulunamadı.'));
     this.loading = key;
     var start = this.state.plugins[key].booting ? Promise.resolve() : this.commit(function (s) { s.plugins[key].booting = true; });
-    return start.then(function () { return self.asset(key, path.slice(p.prefix.length)); }).then(function (text) { var url = root.URL.createObjectURL(new Blob([text], { type: 'application/javascript' })); function release() { root.URL.revokeObjectURL(url); script.removeEventListener('load', release); script.removeEventListener('error', release); if (self.loading === key) self.loading = ''; } script.addEventListener('load', release); script.addEventListener('error', release); script.src = url; document.head.appendChild(script); });
+    return start.then(function () { if (self.core.bootStopped) throw new Error('Başlangıç iptal edildi.'); return self.asset(key, path.slice(p.prefix.length)); }).then(function (text) { if (self.core.bootStopped) throw new Error('Başlangıç iptal edildi.'); if (root.FilmBootProgress) root.FilmBootProgress.stage('Eklenti başlatılıyor: ' + p.manifest.name, 'Starting extension: ' + p.manifest.name); var url = root.URL.createObjectURL(new Blob([text], { type: 'application/javascript' })); function release() { root.URL.revokeObjectURL(url); script.removeEventListener('load', release); script.removeEventListener('error', release); if (self.loading === key) self.loading = ''; } script.addEventListener('load', release); script.addEventListener('error', release); script.src = url; document.head.appendChild(script); });
   };
   Manager.prototype.registryFinished = function (sites) {
     var self = this, failed = [], success = [];

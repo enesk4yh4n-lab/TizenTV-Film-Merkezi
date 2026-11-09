@@ -78,7 +78,6 @@
  function bufferPolicy(source, options) {
   source = source || {}; options = options || {};
   var requested = ['auto', 'low', 'resilient'].indexOf(options.bufferProfile) >= 0 ? options.bufferProfile : 'auto';
-  if (options.referenceTrial) requested = 'auto';
   var mode = options.smallBuffer ? 'low' : requested, stability = source.stability || {};
   var initial = clamp(Number(stability.initialBufferSeconds) || 0, 0, 12);
   var forward = mode === 'low' ? 10 : mode === 'resilient' ? 25 : 15;

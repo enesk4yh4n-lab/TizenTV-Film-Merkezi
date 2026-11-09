@@ -6,10 +6,11 @@
     function line(value, small) { var p = document.createElement('p'); p.className = small ? 'support-description' : 'catalog-note'; p.style.wordWrap = 'break-word'; p.textContent = value; box.appendChild(p); }
     function button(label, key, fn, enabled) { var b = document.createElement('button'); b.type = 'button'; b.className = 'filter-field'; b.setAttribute('data-focus', key); b.textContent = label; b.disabled = enabled === false || !!panel.working && key !== 'plugins-cancel-work'; b.onclick = fn; box.appendChild(b); return b; }
     function show(next, focus) { panel.pluginView = next; catalog.renderPanel(focus); }
-    function work(fn, next, focus) { if (panel.working) return; panel.working = true; var promise; try { promise = fn(); } catch (e) { promise = Promise.reject(e); } catalog.renderPanel('plugins-cancel-work'); promise.then(function () { panel.working = false; if (next) panel.pluginView = next; if (catalog.panel === panel) catalog.renderPanel(focus); }, function (e) { panel.working = false; manager.note = e.message; if (catalog.panel === panel) catalog.renderPanel(); }); }
+    function work(fn, next, focus) { if (panel.working) return; panel.working = true; var promise; try { promise = fn(); } catch (e) { promise = Promise.reject(e); } catalog.renderPanel('plugins-cancel-work'); promise.then(function () { panel.working = false; if (next) panel.pluginView = next; if (catalog.panel === panel) catalog.renderPanel(focus); }, function (e) { panel.working = false; manager.note = e.message; manager.errorReport = root.FilmErrorReporter && root.FilmErrorReporter.capture({scope:'update',stage:'plugin-operation',siteId:panel.pluginId,error:e}); if (catalog.panel === panel) catalog.renderPanel(); }); }
     function back(next) { button(t('← Geri', '← Back'), 'plugins-back', function () { manager.discardCandidate(); show(next); }); }
     if (!manager) { line(t('Eklenti yöneticisi açılamadı.', 'Plugin manager is unavailable.')); return; }
     if (manager.note) line(manager.note);
+    if (manager.errorReport && root.FilmErrorReporter) box.appendChild(root.FilmErrorReporter.button(manager.errorReport, 'plugins-report-error'));
     if (panel.working || manager.busy) { line(t('İşlem sürüyor…', 'Working…')); button(t('İndirmeyi iptal et', 'Cancel transfer'), 'plugins-cancel-work', function () { manager.cancel(); }); return; }
     if (manager.blocked) { line(t('Eklenti kaydı korunuyor; bu oturumda değiştirilemez.', 'Plugin records are preserved and read-only in this session.')); return; }
     if (view === 'repositories') {
@@ -46,12 +47,12 @@
       (panel.index ? panel.index.plugins : []).forEach(function (item) { var key = panel.repoId + '/' + item.id, installed = manager.state.plugins[key]; button(item.name + ' · ' + item.version + (installed ? t(' · Kurulu', ' · Installed') : ''), 'plugins-package-' + item.id, function () { panel.item = item; panel.pluginKey = key; show('plugin'); }); }); back('repository');
     } else if (view === 'installed') {
       if (!Object.keys(manager.state.plugins).length) line(t('Henüz kurulu eklenti yok.', 'No plugins are installed.'));
-      Object.keys(manager.state.plugins).forEach(function (key) { var p = manager.state.plugins[key]; button((p.name || p.id) + (p.enabled ? t(' · Etkin', ' · Enabled') : t(' · Kapalı', ' · Disabled')) + (p.error ? ' ⚠' : ''), 'plugins-owned-' + p.id + '-' + p.repoId, function () { panel.pluginKey = key; panel.repoId = p.repoId; panel.item = null; show('plugin'); }); }); back('repositories');
+      Object.keys(manager.state.plugins).forEach(function (key) { var p = manager.state.plugins[key]; button((p.name || p.id) + (p.enabled ? t(' · Etkin', ' · Enabled') : t(' · Kapalı', ' · Disabled')) + (p.error || manager.errors[key] ? ' ⚠' : ''), 'plugins-owned-' + p.id + '-' + p.repoId, function () { panel.pluginKey = key; panel.repoId = p.repoId; panel.item = null; show('plugin'); }); }); back('repositories');
     } else if (view === 'plugin') {
       var installed = manager.state.plugins[panel.pluginKey], item = panel.item;
       line(item ? item.name : installed ? installed.name || installed.id : '');
       if (item && item.description) line(item.description);
-      if (installed) { line(t('Kurulu: ', 'Installed: ') + (installed.active ? installed.active.version : '—') + (installed.pending ? t(' · Hazır: ', ' · Ready: ') + installed.pending.version : '')); if (installed.error) line(installed.error); }
+      if (installed) { line(t('Kurulu: ', 'Installed: ') + (installed.active ? installed.active.version : '—') + (installed.pending ? t(' · Hazır: ', ' · Ready: ') + installed.pending.version : '')); if (installed.error) line(installed.error); if (manager.errors[panel.pluginKey]) line(manager.errors[panel.pluginKey]); }
       if (item) button(installed ? t('Eklentiyi güncelle / yeniden indir', 'Update / download plugin again') : t('Eklentiyi yükle', 'Install plugin'), 'plugins-install', function () { work(function () { return manager.download(panel.repoId, item.id); }, 'plugin'); });
       if (installed) {
         button(installed.enabled ? t('Devre dışı bırak', 'Disable') : t('Etkinleştir', 'Enable'), 'plugins-toggle', function () { work(function () { return manager.toggle(panel.pluginKey, !installed.enabled).then(function () { manager.restartNeeded = true; }); }); });

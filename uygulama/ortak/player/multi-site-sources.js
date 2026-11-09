@@ -70,7 +70,7 @@
     return true;
   }
   function prepare(content, hub) {
-    if (!content || !hub || content.referenceTrial) return content;
+    if (!content || !hub) return content;
     if (hub.merging === false) {
       if (!content.sourceContext) return content;
       var direct = copy(content);
@@ -219,6 +219,7 @@
           {
             sourceId: id(e, 'site'),
             providerId: s.id,
+            providerPageUrl: e.pageUrl,
             providerName: s.name,
             label: s.name + ' · Kaynaklar',
             status: 'pending',
@@ -353,6 +354,7 @@
           var v = copy(o);
           v.sourceId = id(entry, o.sourceId || o.id || 'source-' + index);
           v.providerId = site.id;
+          v.providerPageUrl = media.pageUrl;
           v.providerName = site.name;
           v.label = site.name + ' · ' + (o.label || 'Kaynak ' + (index + 1));
           return v;

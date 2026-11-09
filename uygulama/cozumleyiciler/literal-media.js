@@ -1,4 +1,4 @@
-/* Generated data-only MIT media decoder; canonical source (outside WGT): kaynak/siteler/hdfilmcehennemi/decoder-kaynak/src/player.js. */
+/* Generated data-only MIT media decoder; canonical source (outside WGT): kaynak/p001/decoder/player.js. */
 (function(root){var module={exports:{}};
 /*
  * Safe player extraction for HDFilmCehennemi. No downloaded JavaScript is run.

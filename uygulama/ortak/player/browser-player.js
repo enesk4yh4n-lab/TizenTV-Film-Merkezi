@@ -579,7 +579,7 @@
       });
       // On a newly opened paused legacy decoder, media seeking alone may not
       // make hls.js fetch the saved-position fragment. Prime this first seek
-      // explicitly; subsequent DDizi seeks keep their media-event transport.
+      // explicitly; subsequent seeks keep their media-event transport.
       if (
         this.hls &&
         (this.initialSeekPending || (!covered && this.source.seekMode !== 'media-event'))
