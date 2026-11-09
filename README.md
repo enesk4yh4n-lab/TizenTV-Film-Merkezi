@@ -13,7 +13,7 @@ Samsung Tizen TV’ler için ücretsiz ve açık kaynaklı bir **medya merkezi**
 
 [1.8.1 WGT paketini](Film-Merkezi-TV-1.8.1-public.wgt) Apps2Samsung ile TV’nize kurabilirsiniz. Kullanım sırasında bilgisayar veya yerel sunucu gerekmez.
 
-Tizen 3.0 hedeflenerek geliştirilmiştir. Uyumluluk TV modeline ve kaynağa bağlıdır. Genel amaçlı bir web tarayıcısı değildir; harici sitelerdeki değişiklikler çalışmasını etkileyebilir. Yetişkin içeriklerini göstermemeye yönelik filtreleme bulunur.
+Tizen 3.0 hedeflenerek geliştirilmiştir. Uyumluluk TV modeline ve kaynağa bağlıdır. Emulatörler de Tizen v8.0, v9.0, v10 versiyonlarında çalıştırılmıştır. Genel amaçlı bir web tarayıcısı değildir; harici sitelerdeki değişiklikler çalışmasını etkileyebilir. Yetişkin içeriklerini göstermemeye yönelik filtreleme bulunur.
 
 ## Lisans ve teşekkürler
 
