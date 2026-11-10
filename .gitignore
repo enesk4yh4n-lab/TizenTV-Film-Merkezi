@@ -1,9 +1,0 @@
-Debug/
-Release/
-node_modules/
-tools/test-results/
-*.p12
-*.pwd
-*private*.pem
-author-signature.xml
-signature1.xml
