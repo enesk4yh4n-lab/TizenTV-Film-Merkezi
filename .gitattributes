@@ -1,4 +1,0 @@
-*.wgt binary
-*.nexe binary
-uygulama/** -text
-github-eklenti/** -text
