@@ -10,15 +10,21 @@ WGT **1.9.1**, çekirdek **1.12.1**, SDK **1.3.0**. Uygulama kimliği değişmed
 
 ## İlgili kontroller
 
-- [Birim sonuçları](../tools/test-results/repository191/unit.json): yeni ad/normalizasyon, eski adın reddi, boş/uzun arama, kullanıcı filtresi, README yolu, traversal, 429 ve iptal/geç yanıt; **77 ES5 çalışma zamanı dosyası** ayrıştırıldı.
-- [SDK sonuçları](../tools/test-results/repository191/sdk.json): yeni indeks/imza adı, alt klasör keşif işareti, README'nin korunması, anahtarın yeniden kullanımı ve minimum WGT sürümü. Eski SDK üretim akışının 5 kontrolü de geçti.
-- [Tarayıcı](../tools/test-results/repository191/browser.json): **6 grup**, Enter ile tek gönderim, arama→README→imza→Ekle, bozuk imza, sonuçlara Geri dönüş, API sınırı, TR/EN ve 1080p/720p. Bunlar yalıtılmış ağ yanıtlarıyla sınandı.
+- Birim sonuçları (local QA record): yeni ad/normalizasyon, eski adın reddi, boş/uzun arama, kullanıcı filtresi, README yolu, traversal, 429 ve iptal/geç yanıt; **77 ES5 çalışma zamanı dosyası** ayrıştırıldı.
+- SDK sonuçları (local QA record): yeni indeks/imza adı, alt klasör keşif işareti, README'nin korunması, anahtarın yeniden kullanımı ve minimum WGT sürümü. Eski SDK üretim akışının 5 kontrolü de geçti.
+- Tarayıcı (local QA record): **6 grup**, Enter ile tek gönderim, arama→README→imza→Ekle, bozuk imza, sonuçlara Geri dönüş, API sınırı, TR/EN ve 1080p/720p. Bunlar yalıtılmış ağ yanıtlarıyla sınandı.
 - Native C++98 keşif testi: **8 izin/red senaryosu** geçti; diğer host/API yolları reddediliyor. Üç mimarinin gerçek derlemesi geçti.
 - Paket: kaynak dosyaları ve **243 imza başvurusu** doğrulandı. Public WGT 120, imzalı WGT 122 dosyadır; QA dosyaları ve geliştirici imzaları public WGT'de yoktur. YouTube CSP hash'i değişmedi.
-- Tizen 3'te **1.9.1 / 1.12.1** açıldı; native HTTPS ile GitHub arama ve README API çağrıları geçti. [Yayın öncesi gerçek API sonucu](../tools/test-results/repository191/emulator-api.json) yeni README henüz yayımlanmadığından boş arama sonucu içerir; eşleşen depo bulunduğu iddia edilmez. Yayın sonrası sonuç ayrıca kaydedilir.
+- Tizen 3'te **1.9.1 / 1.12.1** açıldı; native HTTPS ile GitHub arama ve README API çağrıları geçti. Yayın öncesi gerçek API sonucu (local QA record) yeni README henüz yayımlanmadığından boş arama sonucu içerir; eşleşen depo bulunduğu iddia edilmez. Yayın sonrası sonuç ayrıca kaydedilir.
 
 ## Yayın sınırı ve bilinenler
 
 Bu çalışmada GitHub `main` üzerindeki yeni dosya adı, güncel kaynaklar, SDK, README ve imzasız WGT hazırlanır/yüklenir. Ayrı Release, Apps2Samsung, imzalama anahtarı veya sunucu yayını yapılmaz. Eski WGT'ler yeni dosya adıyla çalışmaz; **1.9.1 kurulumu gerekir**. Fiziksel TV/kumanda/ses testi bu çalışmada yapılmadı.
 
-Önceki turda bulunan P001 **1.0.2** yükleme sırası düzeltmesi yerelde hazırdır; bu dosya adı değişikliğine gizlice dahil edilmez. Yayımdaki P001 1.0.1'in açılış sorunu ayrı güncelleme bekler. [Önceki kurulum/oynatma raporu](DEPO_KURULUM_OYNATMA_1.9.0.md).
+Önceki turda bulunan P001 **1.0.2** yükleme sırası düzeltmesi yerelde hazırdır; bu dosya adı değişikliğine gizlice dahil edilmez. Yayımdaki P001 1.0.1'in açılış sorunu ayrı güncelleme bekler. Önceki kurulum/oynatma raporu (local QA record).
+
+## Yayın sonrası gerçek kabul
+
+GitHub `main` yayını: **a981a38139b7953db242f3caab9982ab98229db8**. Release veya Apps2Samsung değişmedi. Yayımlanan yeni indeks, imza, README ve public WGT yeniden indirildi; yerel dosyalarla SHA-256 değerleri eşleşti. Eski aktif indeks adresi **404** döndü.
+
+Tizen 3'te kullanıcı adı karakter tuş olaylarıyla girildi ve gerçek GitHub aramasında `enesk4yh4n-lab/TizenTV-Film-Merkezi` bulundu. Seçim → yayımdaki README → `github-eklenti/sites/filmmerkezi-repository.json` → 32 paketlik imzalı indeks → kullanıcı onayı → P002 kurulumu → yeniden açılış → gerçek katalog akışının tamamı geçti. Dört aşamalı gerçek kabul (local QA record), indirilen dosya kontrolü (local QA record). Fiziksel TV veya duyulan ses kabulü yapılmadı.
