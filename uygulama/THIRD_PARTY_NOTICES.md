@@ -105,10 +105,12 @@ This public WGT intentionally has no developer signatures. Apps2Samsung signs it
 ## Native TLS module and ca-bundle — MPL-2.0 source availability
 
 - Native TLS modülü: `ortak/ag/native`. ca-bundle, Mozilla CA verisidir ve MPL-2.0 lisanslıdır; paketle birlikte değiştirilmemiş haliyle derlenmiştir.
-- Corresponding source: `Film-Merkezi-Kaynak-1.8.1.zip`, supplied alongside this WGT. It includes the complete native C++/headers, unchanged Mozilla CA data, decoder sources and build tools. The 1.8.1 public repository upload is pending owner approval.
+- Corresponding source: `Film-Merkezi-Kaynak-1.9.1.zip`, supplied alongside this WGT. It includes the complete native C++/headers, unchanged Mozilla CA data, decoder sources and build tools. Sources are supplied in the accompanying archive and the public source repository.
 
 
-## Film Merkezi 1.8.1 corresponding sources
+## Film Merkezi 1.9.1 corresponding sources
+
+For the 1.9.1 distribution, matching application, SDK and native build sources are supplied in `Film-Merkezi-Kaynak-1.9.1.zip`. Native binaries were rebuilt for the repository filename and bounded GitHub discovery endpoints; the Mozilla CA input is unchanged. Signing keys are not included.
 
 The application and update loader are in `uygulama/`; native build inputs and decoder production sources are in `kaynak/` in the companion source archive. Native notices and all upstream license texts remain in this WGT. Site providers are separate signed online packages; their readable source accompanies each site package. No private keys are included.
 

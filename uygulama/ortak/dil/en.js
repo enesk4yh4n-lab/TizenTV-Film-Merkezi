@@ -1,6 +1,11 @@
 /* English UI pack. Turkish source messages are the fallback; site content stays verbatim. */
 FilmI18n.register({
   messages: [
+    ['Eklentiler ve depolar', 'Plugins and repositories'],
+    ['Depolar', 'Repositories'],
+    ['Henüz depo eklenmedi', 'No repository has been added yet'],
+    ['Depo ekle', 'Add repository'],
+    ['Depoları kullanıcı seçer. Eklentiler uygulamanın JavaScript ve ağ yetkileriyle çalışır; yalnız güvendiğiniz yayıncıların depolarını ekleyin. Depo eklemek içerik veya erişim hakkı sağlamaz.', 'You choose repositories. Plugins run with the application\'s JavaScript and network permissions; add repositories only from publishers you trust. Adding a repository does not grant content or access rights.'],
     ["Hata bildir düğmesine bastığınızda uygulama, bileşen ve eklenti sürümleri, teknik hata bilgileri ve gerekiyorsa sorgu bilgileri temizlenmiş içerik sayfası adresi Cloudflare üzerinden özel GitHub destek deposuna gönderilir. Gönderim isteğe bağlıdır; otomatik rapor gönderilmez. Şifreler, video bağlantıları, tokenlar ve izleme geçmişi rapora eklenmez.","When you press Report error, application, component and plugin versions, technical error details and, if needed, the content page address without query information are sent through Cloudflare to a private GitHub support repository. Sending is optional; reports are never sent automatically. Passwords, video URLs, tokens and viewing history are not included."],
 
     ['Cihaz onayları ve seçim geçmişi', 'Device confirmations and selection history'],

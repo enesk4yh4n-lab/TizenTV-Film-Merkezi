@@ -22,6 +22,7 @@
 #include "ca-bundle.h"
 #include "network-policy.h"
 #include "repository-policy.h"
+#include "repository-discovery.h"
 #include "ppapi/cpp/var_array_buffer.h"
 #include "ppapi/cpp/private/net_address_private.h"
 
@@ -97,12 +98,14 @@ class Instance : public pp::Instance {
     if (!url.is_string() || !ref.is_string() || !Url(url.AsString(), &host, &target)) { Reply(id,"validation",-1,NULL);return; }
     const std::string update_root="/enesk4yh4n-lab/TizenTV-Film-Merkezi/main/github-eklenti/";
     bool github=host=="raw.githubusercontent.com"&&target.compare(0,update_root.size(),update_root)==0&&target.find("..") == std::string::npos&&target.find_first_of("%\\")==std::string::npos;
-    if(!github&&!film_policy::Allowed(host,origins_)&&!repositories_.Allowed(host)&&!repositories_.Request(host,target)){Reply(id,"validation",-1,NULL);return;}
+    bool discovery=film_discovery::Allowed(host,target);
+    if(!github&&!discovery&&!film_policy::Allowed(host,origins_)&&!repositories_.Allowed(host)&&!repositories_.Request(host,target)){Reply(id,"validation",-1,NULL);return;}
     std::string referer=ref.AsString(),rh,rt;
     if(!referer.empty()&&(!Url(referer,&rh,&rt)||(!film_policy::Allowed(rh,origins_)&&!repositories_.Allowed(rh)&&!repositories_.Request(rh,rt)))){Reply(id,"validation",-1,NULL);return;}
     pp::Var binaryVar=message.Get("binary"),limitVar=message.Get("byteLimit"),methodVar=message.Get("method"),bodyVar=message.Get("body");bool binary=binaryVar.is_bool()&&binaryVar.AsBool();size_t limit=limitVar.is_int()&&limitVar.AsInt()>0?static_cast<size_t>(limitVar.AsInt()):(binary?8*1024*1024:2*1024*1024);
     if(limit>(binary?12*1024*1024:2*1024*1024)){Reply(id,"validation",-1,NULL);return;}std::string method=methodVar.is_string()?methodVar.AsString():"GET",body=bodyVar.is_string()?bodyVar.AsString():"";
     if((method!="GET"&&method!="POST")||body.size()>262144||(method=="GET"&&!body.empty())){Reply(id,"validation",-1,NULL);return;}
+    if(discovery && (method!="GET" || binary || limit>262144)){Reply(id,"validation",-1,NULL);return;}
     std::string extra;const char* headerNames[]={"Range","Origin","Content-Type","X-Requested-With"};pp::Var hv=message.Get("headers");if(hv.is_dictionary()){pp::VarDictionary headers(hv);for(size_t i=0;i<4;i++){pp::Var v=headers.Get(headerNames[i]);if(!v.is_undefined()){if(!v.is_string()){Reply(id,"validation",-1,NULL);return;}std::string value=v.AsString();if(value.size()>2048||value.find_first_of("\r\n")!=std::string::npos){Reply(id,"validation",-1,NULL);return;}if(i==1){std::string h;if(!film_policy::Origin(value,&h)||(!film_policy::Allowed(h,origins_)&&!repositories_.Allowed(h))){Reply(id,"validation",-1,NULL);return;}}extra+=std::string(headerNames[i])+": "+value+"\r\n";}}}
     if(!pp::TCPSocketPrivate::IsAvailable()||jobs_.size()>=2){Reply(id,"unavailable",PP_ERROR_NOINTERFACE,NULL);return;}
     jobs_[id]=new Job(this,id,host,target,referer,binary,limit,extra,method,body);jobs_[id]->Start();

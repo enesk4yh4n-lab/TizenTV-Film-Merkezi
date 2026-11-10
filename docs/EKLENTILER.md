@@ -1,30 +1,12 @@
-# Eklenti ve güncelleme haritası
+﻿# Eklenti ve güncelleme haritası
 
-Film Merkezi, desteklenen web/video sayfalarını eklentiler aracılığıyla Tizen'e uygun bir arayüzde sunar. Desteklenmeyen her siteyi kendiliğinden açan bir tarayıcı değildir.
+WGT **1.9.1**, çekirdek **1.12.1**, SDK **1.3.0**. Hazır site deposu gelmez; kullanıcı arayıp seçer veya adresini ekler.
 
-    uygulama/                          WGT 1.6.0'ın sitesi olmayan kaynak seti
-    github-eklenti/
-      update.json, update.sig           İmzalı çekirdek sürüm işaretçisi
-      versions/1.10.0/                  Başlangıç seti
-      versions/1.10.1/                  Yeni kullanım bilgilendirmesi (TR/EN)
-      sites/
-        repository.json, repository.sig
-        packages/
-          p001/1.0.0/                  P001 bağımsız paket
-            manifest.json, manifest.sig
-            runtime/site.js
-            runtime/LICENSE.txt
-            runtime/network-policy.txt
-            runtime/network-policy.signature.txt
-          ...
-          p022/1.0.0/                  P022 bağımsız paket
-    SDK/                               Geliştirici aracı ve örnek
-    kaynak/ortak/ag/native/             Native/TLS ve CA kaynakları
+- Depo indeksi: `filmmerkezi-repository.json`; imzası: `filmmerkezi-repository.sig`.
+- **Güncelleme Merkezi → Eklenti depoları → GitHub’da depo ara**: depo adı veya kullanıcı adıyla README araması.
+- SDK, README keşif işaretini otomatik ekler. Alt klasör için `--github-root` kullanılır. [SDK](../SDK/README.md).
+- Sonuç seçmek kurulum veya güven onayı değildir. Depo doğrulanınca **Ekle**, ardından istenen paketler seçilir.
+- Çekirdek işaretçisi `github-eklenti/update.json` ve `update.sig` olarak kalır. Paketler ayrı sürümlenir; `packages/pNNN/sürüm/manifest.json` yolu değişmedi.
+- İmzalar, dosya özetleri, TLS ve ağ bütçeleri korunur. Eklentiler uygulama yetkileriyle çalışır; arama sonucu veya imza içerik/erişim hakkı sağlamaz.
 
-P001–P022 **1.0.0** sürümüyle yayımlanır. Teknik site kimlikleri/önekleri eski izleme kimliklerini korur; dosya yolları ve görünen paket/sağlayıcı adları kod kullanır. Gerçek alan adları olmadan ağ bağlantısı kurulamayacağı için bunlar manifestlerde ve kodda kalır. Lisans/telif adları değiştirilmez.
-
-Kurulum: **Seçenekler → Güncelleme Merkezi → Kontrol et**. Yeni eklentiler varsayılan seçili değildir. Seçilenler indirilir, imzaları ve özetleri doğrulanır; yeniden açılışta tutarlı set etkinleşir. Aktif/pasif seçimi Katalog ve siteler bölümündedir. Kurma, kaldırma ve önceki sürüme dönüş Güncelleme Merkezi'nden yönetilir.
-
-Kendi deponuz için [SDK](../SDK/README.md) ile bağımsız yayıncı anahtarı üretin. Yayın klasörüne yalnız üretilen indeks, imzalar ve paketler konur. Özel anahtar depo dışında tutulur. Kullanıcı depo adresi ve yayıncı güvenini kendisi seçer. Eklentiler sandbox içinde değildir; imzalı olması içeriğin güvenilir veya bütün sayfalarda çalışır olduğunu tek başına kanıtlamaz.
-
-Bu yayın WGT güncellemesi gerektirmez: 1.6.0 WGT'nin SHA-256 değeri değişmez. Yeni kullanım açıklaması çevrim içi 1.10.1 çekirdeğiyle gelir; bilgilendirme sürümü değiştiğinden yeniden onay istenir. Site paketlerinin kurulması tüm canlı adreslerde oynatma başarısı anlamına gelmez.
+Eski depo dosyası adı desteklenmez; yeni WGT kurulmalıdır. Eski sürüm paket dosyaları tarihsel kayıt olarak korunur. [Sürüm notu](SURUM_1.9.1.md).

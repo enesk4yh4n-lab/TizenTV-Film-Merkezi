@@ -29,6 +29,11 @@
   function show() {
     if (!app || app.controller.content) return;
     var cat = app.catalog;
+    if (!sites.length) {
+      cat.panel = { kind: 'plugins', pluginView: 'repositories' };
+      cat.renderPanel('plugins-add-repository');
+      return;
+    }
     if (cat) {
       cat.hideKeyboard(true);
       cat.closePanel(false);

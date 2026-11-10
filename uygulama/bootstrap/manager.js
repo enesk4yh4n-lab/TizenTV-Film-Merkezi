@@ -67,7 +67,7 @@
   Manager.prototype.registerChannel = function (descriptor, id) {
     var c = descriptor || this.channels.current;
     if (!c.sequence && !descriptor) return Promise.resolve();
-    return root.FilmNativeTLS.registerRepository(id || 'core-channel-' + c.sequence, c.channel + '/repository.json', c.publicKey);
+    return root.FilmNativeTLS.registerRepository(id || 'core-channel-' + c.sequence, c.channel + '/filmmerkezi-repository.json', c.publicKey);
   };
   Manager.prototype.migrate = function () {
     var self = this, offer = this.migrationOffer, candidate, raw, pointer, token = this.generation;

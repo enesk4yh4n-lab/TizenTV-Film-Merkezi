@@ -1060,6 +1060,14 @@
   App.prototype.renderHome = function (parent, s) {
     var self = this,
       data = s.data;
+    if (root.FilmPlugins && !Object.keys(root.FilmPlugins.state.repositories).length) {
+      parent.appendChild(node('h1', 'catalog-empty', tr('Henüz depo eklenmedi')));
+      parent.appendChild(button(tr('Depo ekle'), 'home-add-repository', function () {
+        self.panel = { kind: 'plugins', pluginView: 'repositories' };
+        self.renderPanel('plugins-add-repository');
+      }, 'quiet-button'));
+      return;
+    }
     if (!data) return;
     if (!s.heroCard)
       s.heroCard =
@@ -1711,10 +1719,11 @@
     if (!this.panel) return;
     var settings = this.experience.settings;
     if (settings && settings.beforeClose(restore)) return;
-    var key = this.panel.returnKey;
+    var key = this.panel.returnKey, repositoriesChanged = this.panel.kind === 'plugins';
     this.panel = null;
     el('catalog-modal').style.display = 'none';
     el('catalog-modal-card').textContent = '';
+    if (repositoriesChanged && this.screen && this.screen.kind === 'home') this.render(true);
     if (restore) this.focus(key || 'search-activate');
     if (settings) settings.afterClose();
   };
@@ -1741,6 +1750,7 @@
       host = el('catalog-modal'),
       box = el('catalog-modal-card');
     if (!p) return;
+    host.setAttribute('data-panel-kind', p.kind);
     host.style.display = 'block';
     box.textContent = '';
     box.appendChild(
@@ -1748,7 +1758,7 @@
         'h2',
         '',
         p.kind === 'plugins'
-          ? tr('Eklentiler ve depolar')
+          ? tr(p.onboarding ? 'Depolar' : 'Eklentiler ve depolar')
           : p.kind === 'updates'
             ? tr('Güncellemeler')
           : p.kind === 'exit'
@@ -2124,11 +2134,14 @@
       button(
         p.kind === 'exit'
           ? 'Kal'
+          : p.kind === 'plugins'
+            ? 'Geri'
           : ['tools', 'about', 'support', 'site-addresses'].indexOf(p.kind) >= 0
             ? 'Kapat'
             : 'Vazgeç',
         'panel-cancel',
         function () {
+          if (p.kind === 'plugins' && root.FilmPluginPanel.key(self, { keyCode: 10009, preventDefault: function () {} })) return;
           self.closePanel(true);
         },
         'quiet-button'

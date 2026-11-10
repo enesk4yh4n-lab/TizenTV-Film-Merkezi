@@ -38,7 +38,7 @@
       recent: [],
       recommendation: { genre: '', minImdb: 0 },
       language: 'tr',
-      mergeCatalog: false,
+      mergeCatalog: true,
       appearance: appearance(),
       disabledSites: []
     };
@@ -50,7 +50,6 @@
         storage.getItem('filmmerkezi.unified.v1') ||
         storage.getItem('chainprobe.player.v1')
       )));
-      this.data.mergeCatalog = this.existingInstall;
       d = raw && JSON.parse(raw);
       if (raw && (raw.length > 16384 || !d || d.version !== 1 || !Array.isArray(d.recent)))
         throw Error('Unknown preferences');

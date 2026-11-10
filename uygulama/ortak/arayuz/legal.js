@@ -2,7 +2,7 @@
 (function (root) {
   'use strict';
   var KEY = 'filmmerkezi.usage-consent.v1',
-    REVISION = '2026-11-09.2';
+    REVISION = '2026-11-10.1';
   function tr(value) {
     return root.FilmI18n ? root.FilmI18n.text(value) : value;
   }
@@ -11,6 +11,7 @@
     'İçeriklerin erişilebilirliği, güvenliği, doğruluğu ve kesintisiz oynatılması garanti edilmez. Kullanıcı, yalnızca erişim hakkına sahip olduğu içerikleri kullanmak ve geçerli mevzuata uymakla yükümlüdür.',
     'Uygulama herhangi bir içerik için telif veya kullanım izni sağlamaz. Yürürlükteki hukukun izin verdiği ölçüde, uygulama herhangi bir garanti sunulmaksızın sağlanır. Bu bilgilendirme, kanunen kaldırılamayan sorumlulukları ve üçüncü taraf lisanslarının sağladığı hakları ortadan kaldırmaz.'
   ];
+  paragraphs.push('Depoları kullanıcı seçer. Eklentiler uygulamanın JavaScript ve ağ yetkileriyle çalışır; yalnız güvendiğiniz yayıncıların depolarını ekleyin. Depo eklemek içerik veya erişim hakkı sağlamaz.');
   paragraphs.push('Hata bildir düğmesine bastığınızda uygulama, bileşen ve eklenti sürümleri, teknik hata bilgileri ve gerekiyorsa sorgu bilgileri temizlenmiş içerik sayfası adresi Cloudflare üzerinden özel GitHub destek deposuna gönderilir. Gönderim isteğe bağlıdır; otomatik rapor gönderilmez. Şifreler, video bağlantıları, tokenlar ve izleme geçmişi rapora eklenmez.');
   var youtube = 'cozumleyiciler/youtube/YOUTUBE_THIRD_PARTY_NOTICES.md',
     native = 'ortak/ag/native/notices/';
@@ -282,7 +283,7 @@
     }
   }
   function usage(review, returnTo) {
-    open('Kullanım bilgilendirmesi', review ? returnTo : exit);
+    open('Kullanım bilgilendirmesi', review ? returnTo : api.preferences && !api.preferences.existingInstall ? setup : exit);
     paragraphs.forEach(function (text) {
       card.appendChild(node('p', 'legal-paragraph', text));
     });
@@ -463,6 +464,7 @@
       if (root.FilmI18n && root.CatalogPreferences) {
         api.preferences = new root.CatalogPreferences(storage);
         root.FilmI18n.init(api.preferences);
+        if (root.FilmRepositorySetup) root.FilmRepositorySetup.init(storage, api.preferences.existingInstall);
       }
       api.consent = new Consent(storage);
       if (api.consent.accepted) {

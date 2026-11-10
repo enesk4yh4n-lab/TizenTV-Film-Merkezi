@@ -49,8 +49,6 @@ files:
   - bootstrap/verify.js
   - bundled/manifest.json
   - bundled/manifest.sig
-  - bundled/repository/repository.json
-  - bundled/repository/repository.sig
   - config.xml
   - cozumleyiciler/literal-media.js
   - cozumleyiciler/site-source-families.js
@@ -147,6 +145,8 @@ files:
   - vendor/HLS_LICENSE.txt
   - vendor/crypto-js.js
   - vendor/hls-1.7.3.min.js
+  - ortak/arayuz/repository-setup.js
+  - bootstrap/repository-search.js
 excludes:
   - Debug/**
   - Release/**

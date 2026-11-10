@@ -9,12 +9,18 @@
   function hostAllowed(host) {
     return allOrigins.some(function (origin) { return root.FilmUpdateVerify.policyMatch(host, origin.slice(8)); });
   }
+  function discoveryAllowed(u) {
+    if (u.origin !== 'https://api.github.com') return false;
+    if (u.pathname === '/search/repositories') return u.search.indexOf('filmmerkezi-repository.json') >= 0;
+    return /^\/repos\/[A-Za-z0-9_.-]{1,100}\/[A-Za-z0-9_.-]{1,100}\/readme$/.test(u.pathname) && u.pathname.indexOf('/../') < 0;
+  }
   function allowed(value) {
     try {
       var u = new root.URL(value), channel = new root.URL(root.FilmUpdateConfig.channel);
       if (u.protocol !== 'https:' || u.username || u.password || u.port && u.port !== '443' || u.hash || /[\r\n\t \\]/.test(value)) return false;
+      if (discoveryAllowed(u)) return true;
       if (u.origin === channel.origin && u.pathname.indexOf(channel.pathname + '/') === 0 && !/%|\.\./.test(u.pathname)) return true;
-      if (!/%|\.\./.test(u.pathname) && Object.keys(repositories).some(function (id) { var r = repositories[id], base = new root.URL(r.root); return u.origin === base.origin && u.pathname.indexOf(base.pathname) === 0 && (r.publicKey || u.pathname === base.pathname + 'repository.json' || u.pathname === base.pathname + 'repository.sig'); })) return true;
+      if (!/%|\.\./.test(u.pathname) && Object.keys(repositories).some(function (id) { var r = repositories[id], base = new root.URL(r.root); return u.origin === base.origin && u.pathname.indexOf(base.pathname) === 0 && (r.publicKey || u.pathname === base.pathname + 'filmmerkezi-repository.json' || u.pathname === base.pathname + 'filmmerkezi-repository.sig'); })) return true;
       return hostAllowed(u.hostname);
     } catch (ignore) { return false; }
   }
@@ -97,7 +103,7 @@
     if (!/^[a-z][a-z0-9-]{0,63}$/.test(id) || typeof publicKey !== 'string' || publicKey.length > 800) return Promise.reject(fault('repository', 'Depo kimliği veya anahtarı geçersiz.'));
     var url; try { url = root.FilmPluginSchema.address(index); } catch (e) { return Promise.reject(e); }
     if (repositories[id] && repositories[id].publicKey && repositories[id].publicKey !== publicKey) return Promise.reject(fault('repository', 'Depo anahtarı bu açılışta değiştirilemez.'));
-    return control({ kind: 'repository', repositoryId: id, url: url, publicKey: publicKey }).then(function () { var old = repositories[id]; repositories[id] = { root: url.replace(/repository\.json$/, ''), publicKey: publicKey, policies: old ? old.policies : {} }; });
+    return control({ kind: 'repository', repositoryId: id, url: url, publicKey: publicKey }).then(function () { var old = repositories[id]; repositories[id] = { root: url.replace(/filmmerkezi-repository\.json$/, ''), publicKey: publicKey, policies: old ? old.policies : {} }; });
   }
   function configureRepository(id, pluginId, text, signature) {
     var r = repositories[id], parsed; if (!r || !r.publicKey || !/^[a-z][a-z0-9-]{0,63}$/.test(pluginId)) return Promise.reject(fault('repository', 'Önce depo yayıncısına güvenilmeli.'));

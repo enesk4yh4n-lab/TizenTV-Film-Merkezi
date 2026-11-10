@@ -16,7 +16,7 @@
     function open(kind, key, extra) { var child = { kind: kind, settingsParent: p, settingsReturnKey: key, returnKey: 'catalog-tools' }; Object.keys(extra || {}).forEach(function (k) { child[k] = extra[k]; }); a.panel = child; a.renderPanel(); }
     function restart() { if (m.busy() || a.app.controller.content) return; if (a.hub) a.hub.flush(); root.location.reload(); }
     function state(row) { return row.pending ? t('Hazır: ', 'Ready: ') + row.pending : row.updateState === 'available' ? t('Yeni: ', 'New: ') + row.available : row.updateState === 'current' ? t('Güncel', 'Up to date') : row.builtin ? t('Yerleşik', 'Built-in') : t('Kontrol edilmedi', 'Not checked'); }
-    function repository(row) { var repo = m.plugins && m.plugins.state.repositories[row.repoId]; return row.builtin ? t('Uygulama paketi', 'Application bundle') : repo ? repo.name + ' · ' + repo.url : t('Depo bulunamadı', 'Repository unavailable'); }
+    function repository(row) { var repo = m.plugins && m.plugins.state.repositories[row.repoId]; return row.builtin ? t('Uygulama paketi', 'Application bundle') : repo ? (repo.displayName || repo.name) + ' · ' + repo.url : t('Depo bulunamadı', 'Repository unavailable'); }
     function tabs(group, values, selected, change) {
       var bar = document.createElement('div'); bar.setAttribute('role', 'tablist'); bar.setAttribute('aria-label', group === 'scope' ? t('Güncelleme türü', 'Update type') : t('Eklenti listeleri', 'Plugin lists')); bar.style.cssText = 'display:flex;flex-wrap:wrap;margin:10px 0'; box.appendChild(bar);
       values.forEach(function (v) {
@@ -97,7 +97,7 @@
         if (row.available && row.pending !== row.available && (!row.version || root.FilmPluginSchema.compare(row.available, row.version) > 0)) versions.push(t('Yeni: ', 'Available: ') + row.available);
         if (row.pending) versions.push(t('Hazır: ', 'Ready: ') + row.pending);
         if (tab !== 'newSites') versions.push(row.repositoryEnabled ? row.enabled ? t('Açık', 'Enabled') : t('Kapalı', 'Disabled') : t('Depo kapalı', 'Repository disabled'));
-        info.textContent = versions.join(' · ') + ' · ' + t('Depo: ', 'Repository: ') + (repo ? repo.name : t('Bulunamadı', 'Unavailable')) + (row.error ? ' · ⚠ ' + t('Ayrıntıya bakın', 'See details') : '');
+        info.textContent = versions.join(' · ') + ' · ' + t('Depo: ', 'Repository: ') + (repo ? (repo.displayName || repo.name) : t('Bulunamadı', 'Unavailable')) + (row.error ? ' · ⚠ ' + t('Ayrıntıya bakın', 'See details') : '');
         info.style.cssText = 'display:block;font-size:21px;color:#bdc9d9;margin-top:6px;white-space:normal;overflow-wrap:break-word'; x.appendChild(info);
       });
       if (rows.length > 24) {
@@ -148,7 +148,7 @@
       if (!item || !repo) { line(t('Eklenti veya depo bulunamadı.', 'Plugin or repository unavailable.')); }
       else {
         var installed = m.rows().filter(function (r) { return r.key === item.key; })[0];
-        line(item.name, true); line(t('Yeni sürüm: ', 'Available version: ') + item.available); line(t('Depo: ', 'Repository: ') + repo.name); line(repo.url);
+        line(item.name, true); line(t('Yeni sürüm: ', 'Available version: ') + item.available); line(t('Depo: ', 'Repository: ') + (repo.displayName || repo.name)); line(repo.url);
         if (item.error) line(item.error);
         if (installed) line(t('Kurulu: ', 'Installed: ') + (installed.version || '—') + (installed.pending ? t(' · Hazır: ', ' · Ready: ') + installed.pending : ''));
         if (!installed || !installed.pending) button(t('Eklentiyi indir', 'Download plugin'), 'management-available-install', function () { work(function () { return m.plugins.download(item.repoId,item.pluginId).then(function () { m.restartNeeded=true; }); }, 'management-available-back'); }, !m.busy() && repo.enabled);

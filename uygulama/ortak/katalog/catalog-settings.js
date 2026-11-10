@@ -81,6 +81,7 @@
       panel('tools-history', t('İzleme geçmişini temizle', 'Clear viewing history'), 'clear-history');
       row('settings-reset-all', t('Tümünü sıfırla', 'Reset everything'), t('İlk kurulum hâline dön', 'Return to first installation'), function () { self.choose(t('Tüm kayıtlar, ayarlar, depolar ve indirilen bileşenler silinecek. WGT içindeki başlangıç sürümüyle yeniden açılacak.', 'All records, settings, repositories and downloaded components will be deleted. The bundled WGT version will restart.'), [[false, t('Vazgeç', 'Cancel')], [true, t('Tümünü sıfırla ve yeniden aç', 'Reset everything and restart')]], false, function (yes) { if (yes) self.resetAll(); }, 'settings-reset-all'); });
     } else if (category === 'about') {
+      row('settings-sdk-gui', t('Eklenti SDK ve planlanan arayüz', 'Plugin SDK and planned interface'), t('Mevcut SDK kullanılabilir. Eklenti ve depo hazırlamayı kolaylaştıran ayrı bir grafik arayüz planlanmaktadır; GUI henüz yayımlanmamıştır.', 'The current SDK is available. A separate graphical tool to simplify plugin and repository creation is planned; the GUI has not been released.'));
       row('settings-contact', t('İletişim', 'Contact'), 'destekfilmmerkezi@gmail.com');
       panel('tools-about', t('Hakkında, lisanslar ve teşekkürler', 'About, licenses and credits'), 'about');
       panel('settings-playback-support', t('Oynatma ve motor desteği', 'Playback and engine support'), 'support');

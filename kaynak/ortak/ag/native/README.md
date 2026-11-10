@@ -9,8 +9,8 @@ The JS bridge limits concurrent HTTP requests to two and propagates cancellation
 Inside WSL from the project root, with the official Samsung Pepper 47 SDK installed:
 
 ~~~text
-python3 kaynak/uretim/build-native-tls.py
-python3 kaynak/uretim/build-native-http.py --out uygulama/ortak/ag/native
+python3 tools/build-native-tls.py
+python3 tools/build-native-http.py --out uygulama/ortak/ag/native
 ~~~
 
 ARM, x86-32 and x86-64 outputs are produced together. build-hashes.json records all source/header/CA, pinned TLS archive and executable digests. SDK/compiler installations are outside this archive. Compilation does not demonstrate TV playback. --qa is only for isolated outputs; production builds do not enable it.

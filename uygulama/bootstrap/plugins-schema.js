@@ -14,13 +14,13 @@
     if (u.hostname === 'github.com') {
       var parts = u.pathname.split('/').filter(Boolean);
       if (parts.length >= 5 && (parts[2] === 'blob' || parts[2] === 'tree')) value = 'https://raw.githubusercontent.com/' + parts.slice(0, 2).concat(parts.slice(3)).join('/');
-      else if (parts.length === 2) value = 'https://raw.githubusercontent.com/' + parts.join('/') + '/main/repository.json';
+      else if (parts.length === 2) value = 'https://raw.githubusercontent.com/' + parts.join('/') + '/main/filmmerkezi-repository.json';
       u = new root.URL(value);
     }
     V.networkPolicy('FILM-MERKEZI-ORIGINS-1\nhttps://' + u.hostname + '\n');
     if (u.protocol !== 'https:' || u.username || u.password || u.port || u.search || u.hash || /(?:^|\/)\.\.?\//.test(value)) throw new Error('Depo adresi HTTPS olmalı; parola, port veya sorgu içermemeli.');
-    if (u.pathname.slice(-1) === '/') u.pathname += 'repository.json';
-    if (!/\/repository\.json$/.test(u.pathname) || !/^[a-zA-Z0-9_./-]+$/.test(u.pathname)) throw new Error('Adres repository.json dosyasını göstermeli.');
+    if (u.pathname.slice(-1) === '/') u.pathname += 'filmmerkezi-repository.json';
+    if (!/\/filmmerkezi-repository\.json$/.test(u.pathname) || !/^[a-zA-Z0-9_./-]+$/.test(u.pathname)) throw new Error('Adres filmmerkezi-repository.json dosyasını göstermeli.');
     return u.href;
   }
   function repository(raw) {

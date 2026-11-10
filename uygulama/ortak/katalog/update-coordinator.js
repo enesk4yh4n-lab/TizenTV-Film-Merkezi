@@ -16,7 +16,7 @@
         var repo = self.plugins.state.repositories[repoId], catalog = self.sites.catalogs[repoId];
         if (!repo || !repo.enabled || !catalog) return;
         catalog.plugins.forEach(function (p) {
-          var installed = self.plugins.state.plugins[repoId + '/' + p.id], row = { repoId: repoId, repo: repo.name, id: p.id, name: p.name, version: p.version };
+          var installed = self.plugins.state.plugins[repoId + '/' + p.id], row = { repoId: repoId, repo: repo.displayName || repo.name, id: p.id, name: p.name, version: p.version };
           if ((!installed || !installed.active) && !(installed && installed.pending && installed.pending.version === p.version)) result.newSites.push(row);
           else if (installed && installed.active && (installed.needsDownload || root.FilmPluginSchema.compare(p.version, installed.active.version) > 0) && !(installed.pending && installed.pending.version === p.version)) result.updates.push(row);
         });
@@ -187,7 +187,7 @@
     function attempt() {
       if (stopped || self.app.controller.content) return;
       var catalog = self.app.catalog;
-      if (document.hidden || catalog.screen.loading || catalog.panel || catalog.editing || self.core.busy || self.plugins && self.plugins.busy) { self.timer = setTimeout(attempt, 1000); return; }
+      if (root.FilmRepositorySetup && root.FilmRepositorySetup.pending() || document.hidden || catalog.screen.loading || catalog.panel || catalog.editing || self.core.busy || self.plugins && self.plugins.busy) { self.timer = setTimeout(attempt, 1000); return; }
       self.check().then(function () { function show() { if(stopped||self.app.controller.content)return;if(document.hidden||self.app.catalog.panel||self.app.catalog.editing){self.timer=setTimeout(show,1000);return;}self.notify(); }show(); }, function () {});
     }
     this.timer = setTimeout(attempt, 2000);

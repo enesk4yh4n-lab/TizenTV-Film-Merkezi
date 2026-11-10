@@ -111,6 +111,7 @@
         });
       root.SiteSelection.init(root.ChainApp);
       root.FilmUpdate.bind(root.ChainApp);
+      if (root.FilmRepositorySetup) root.FilmRepositorySetup.start(root.ChainApp);
       if (root.SiteAddresses) setTimeout(function () {
         root.SiteAddresses.refresh(false).then(function (state) {
           if (state.pending) view.toast(tr('Site adresleri güncellendi; sonraki açılışta uygulanacak.'));
