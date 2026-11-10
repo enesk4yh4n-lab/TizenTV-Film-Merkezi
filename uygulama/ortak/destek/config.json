@@ -1,6 +1,0 @@
-{
-  "schemaVersion": 1,
-  "enabled": true,
-  "endpoint": "https://film-merkezi-reports.kaynakkod.workers.dev/v1/reports",
-  "contact": "destekfilmmerkezi@gmail.com"
-}
