@@ -1,9 +1,0 @@
-FILM-MERKEZI-ORIGINS-1
-https://filmmakinesi.to
-https://*.cdnimages{n}.cyou
-https://*.playmix.uno
-https://*.rapidrame.com
-https://closeload.filmmakinesi.to
-https://hls13.playmix.uno
-https://rapid.filmmakinesi.to
-https://s429.rapidrame.com
