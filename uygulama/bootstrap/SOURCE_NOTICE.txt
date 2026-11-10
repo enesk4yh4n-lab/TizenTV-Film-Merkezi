@@ -1,4 +1,4 @@
-Film Merkezi 1.6.0
+Film Merkezi 1.8.1
 Signed component updates: github-eklenti/update.json. Optional site repository: github-eklenti/sites/repository.json. No site packages are included.
 TLS certificate and hostname validation remain enabled. No private keys are included.
 Native Mozilla CA data remains MPL-2.0. Corresponding native/CA/decoder production sources and license texts: https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/tree/main/kaynak

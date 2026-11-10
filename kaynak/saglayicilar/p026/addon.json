@@ -1,0 +1,33 @@
+{
+  "id": "p026",
+  "name": "P026",
+  "description": "P026 sayfa uyumluluk eklentisi. Çekirdek 1.11.1 gerekir.",
+  "version": "1.0.0",
+  "minAppVersion": "1.8.1",
+  "site": {
+    "id": "p026",
+    "prefix": "p026:",
+    "name": "P026",
+    "base": "https://www.nadirfilm.com"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "files": [
+    "site.js",
+    "LICENSE.txt"
+  ],
+  "origins": [
+    "https://www.nadirfilm.com",
+    "https://image.tmdb.org",
+    "https://player.nadirfilm.com",
+    "https://stellarconductornexus.com",
+    "https://ok.ru",
+    "https://*.okcdn.ru",
+    "https://*.vkuser.net",
+    "https://dzen.ru",
+    "https://vidmoly.biz",
+    "https://*.vmnow.online",
+    "https://yapgrid.com"
+  ]
+}

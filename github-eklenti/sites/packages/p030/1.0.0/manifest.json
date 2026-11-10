@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "p030",
+  "name": "P030",
+  "version": "1.0.0",
+  "minAppVersion": "1.8.1",
+  "site": {
+    "id": "p030",
+    "prefix": "p030:",
+    "name": "P030",
+    "base": "https://liderfilmizle.vip"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 30947,
+      "sha256": "a41f51bea7354ed57d18d09078574399111b645a3eb37b615eb27e93494c8b18"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 98,
+      "sha256": "15fbffe87ca39c6079b55ad55ef4e0ca5e4f3bd309feb68d22232de40049caca"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "ae27bd93032271048fa5007e0a6a6d1f0a2e78596aa78ef1ea0114563575322e"
+    }
+  ]
+}

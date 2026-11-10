@@ -1,0 +1,25 @@
+{
+  "id": "p030",
+  "name": "P030",
+  "description": "P030 sayfa uyumluluk eklentisi. Çekirdek 1.11.1 gerekir.",
+  "version": "1.0.0",
+  "minAppVersion": "1.8.1",
+  "site": {
+    "id": "p030",
+    "prefix": "p030:",
+    "name": "P030",
+    "base": "https://liderfilmizle.vip"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "files": [
+    "site.js",
+    "LICENSE.txt"
+  ],
+  "origins": [
+    "https://liderfilmizle.vip",
+    "https://image.tmdb.org",
+    "https://play.liderfilm.cc"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "p031",
+  "name": "P031",
+  "version": "1.0.0",
+  "minAppVersion": "1.8.1",
+  "site": {
+    "id": "p031",
+    "prefix": "p031:",
+    "name": "P031",
+    "base": "https://sinemaizle.org"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 30936,
+      "sha256": "2bae0691d8045517512b52ba7c3fdc74a01104660e40fefbf3367de00407ee2a"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 73,
+      "sha256": "1772725ff4f157bde624060956e0badc808a1570b607dbef7672128dd01e3ca5"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "952509526154b6a1dd0d1a8c6f840cf26304f27ce20d21fb7f37982544ae4648"
+    }
+  ]
+}

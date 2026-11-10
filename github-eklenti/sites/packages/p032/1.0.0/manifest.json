@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "apiVersion": 1,
+  "id": "p032",
+  "name": "P032",
+  "version": "1.0.0",
+  "minAppVersion": "1.8.1",
+  "site": {
+    "id": "p032",
+    "prefix": "p032:",
+    "name": "P032",
+    "base": "https://sinekfilmizle.net"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 32642,
+      "sha256": "273fdccab7d895d66d8c375b4886c7e7bb275982b4404fc201f80eb2882cafd8"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 97,
+      "sha256": "d44af9a34ddc39f12126d188dc992edb759e225c957c75fd0d22cf1e1f4019cf"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "e0058ca0403b9ce4373d2c6b0db558cde85eb89ee8a955adbc75a3f10a3f426a"
+    }
+  ]
+}

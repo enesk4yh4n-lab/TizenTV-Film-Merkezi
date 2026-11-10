@@ -1,0 +1,24 @@
+{
+  "id": "p031",
+  "name": "P031",
+  "description": "P031 sayfa uyumluluk eklentisi. Çekirdek 1.11.1 gerekir.",
+  "version": "1.0.0",
+  "minAppVersion": "1.8.1",
+  "site": {
+    "id": "p031",
+    "prefix": "p031:",
+    "name": "P031",
+    "base": "https://sinemaizle.org"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "files": [
+    "site.js",
+    "LICENSE.txt"
+  ],
+  "origins": [
+    "https://sinemaizle.org",
+    "https://img.sinemaizle.org"
+  ]
+}

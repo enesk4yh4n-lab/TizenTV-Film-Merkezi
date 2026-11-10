@@ -1,0 +1,26 @@
+{
+  "id": "p024",
+  "name": "P024",
+  "description": "P024 sayfa uyumluluk eklentisi. Çekirdek 1.11.1 gerekir.",
+  "version": "1.0.0",
+  "minAppVersion": "1.8.1",
+  "site": {
+    "id": "p024",
+    "prefix": "p024:",
+    "name": "P024",
+    "base": "https://www.avsarfilm.com.tr"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "files": [
+    "site.js",
+    "LICENSE.txt"
+  ],
+  "origins": [
+    "https://www.avsarfilm.com.tr",
+    "https://www.youtube.com",
+    "https://youtubei.googleapis.com",
+    "https://*.googlevideo.com"
+  ]
+}

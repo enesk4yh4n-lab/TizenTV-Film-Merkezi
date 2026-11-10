@@ -1,0 +1,12 @@
+FILM-MERKEZI-ORIGINS-1
+https://www.nadirfilm.com
+https://image.tmdb.org
+https://player.nadirfilm.com
+https://stellarconductornexus.com
+https://ok.ru
+https://*.okcdn.ru
+https://*.vkuser.net
+https://dzen.ru
+https://vidmoly.biz
+https://*.vmnow.online
+https://yapgrid.com

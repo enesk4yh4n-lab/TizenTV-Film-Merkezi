@@ -1,0 +1,5 @@
+FILM-MERKEZI-ORIGINS-1
+https://www.avsarfilm.com.tr
+https://www.youtube.com
+https://youtubei.googleapis.com
+https://*.googlevideo.com
