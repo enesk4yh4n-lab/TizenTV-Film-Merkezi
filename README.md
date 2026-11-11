@@ -26,11 +26,7 @@ Samsung Tizen TV’ler için ücretsiz ve açık kaynaklı bir **medya merkezi**
 
 Depo dosyasının adı **filmmerkezi-repository.json** olmalıdır. SDK, GitHub aramasında bulunabilmesi için README açıklamasını ve dosya yolunu otomatik hazırlar. Eski dosya adı desteklenmez. Arama sonucunda görünmek bir güvenilirlik veya içerik onayı değildir.
 
-### Puhutv
-
-Bu ana deponun eklenti listesinde yalnız **Puhutv site paketi P002** ve gerekli **R002 çözümleyicisi** bulunur. Puhutv, ücretsiz ve yasal/lisanslı bir yayın platformudur; [kendi açıklamasına göre](https://puhutv.com/yardim-merkezi) yalnız dijital yayın hakları bulunan içerikleri yayımlar. [Yayıncı ve lisans bilgileri](https://puhutv.com/kunye).
-
-Uygulamadaki GitHub depo aramasında **TizenTV-Film-Merkezi** aratarak ana depoyu ekleyebilirsiniz. Puhutv eklentisi WGT içinde gelmez; kullanıcı seçerek kurar. Bu bağımsız eklentinin Puhutv ile resmî bağlantısı veya entegrasyon onayı yoktur.
+Uygulamadaki GitHub depo aramasında **Film-Merkezi** aratarak bulunan depoları ekleyebilirsiniz.
 
 ![Film Merkezi ayarları](docs/gorseller/ayarlar.png)
 
