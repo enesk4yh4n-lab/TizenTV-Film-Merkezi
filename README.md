@@ -30,9 +30,7 @@ Depo dosyasının adı **filmmerkezi-repository.json** olmalıdır. SDK, GitHub 
 
 Bu ana deponun eklenti listesinde yalnız **Puhutv site paketi P002** ve gerekli **R002 çözümleyicisi** bulunur. Puhutv, ücretsiz ve yasal/lisanslı bir yayın platformudur; [kendi açıklamasına göre](https://puhutv.com/yardim-merkezi) yalnız dijital yayın hakları bulunan içerikleri yayımlar. [Yayıncı ve lisans bilgileri](https://puhutv.com/kunye).
 
-Uygulamadaki GitHub depo aramasında **TizenTV-Film-Merkezi** aratarak ana depoyu ekleyebilirsiniz. İndeks: [`filmmerkezi-repository.json`](filmmerkezi-repository.json). Puhutv eklentisi WGT içinde gelmez; kullanıcı seçerek kurar. Bu bağımsız eklentinin Puhutv ile resmî bağlantısı veya entegrasyon onayı yoktur.
-
-<!-- film-merkezi-repository: filmmerkezi-repository.json -->
+Uygulamadaki GitHub depo aramasında **TizenTV-Film-Merkezi** aratarak ana depoyu ekleyebilirsiniz. Puhutv eklentisi WGT içinde gelmez; kullanıcı seçerek kurar. Bu bağımsız eklentinin Puhutv ile resmî bağlantısı veya entegrasyon onayı yoktur.
 
 ![Film Merkezi ayarları](docs/gorseller/ayarlar.png)
 
