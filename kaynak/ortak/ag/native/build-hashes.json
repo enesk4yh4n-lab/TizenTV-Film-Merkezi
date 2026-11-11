@@ -1,0 +1,32 @@
+{
+  "qa": false,
+  "sourceSha256": "604aa7c25aff22b1ac044a2f2e497776189eea9994c74d9e201f30afa4ea2a2a",
+  "inputs": {
+    "secure-http.cpp": "604aa7c25aff22b1ac044a2f2e497776189eea9994c74d9e201f30afa4ea2a2a",
+    "ca-bundle.h": "0bf632e879abbe487c714aaef5439d906908b7c600151fe3b0ff93a23f6eabff",
+    "film-tls-config.h": "4522af5585ce00940b9082323fc3a118d92c0628f4c0f9287dc1203253ceb46a",
+    "http-response.h": "0a94a9035d151975fb2c7628639c05f63220441587fd1716db89f053989588cc",
+    "network-policy.h": "6511c8919763adeb265fdec60d0af1cda17f5188dd0d380b4c94318998560cb1",
+    "origin-patterns.inc.h": "b2ed1a57a557bb5c8289516317924ac49c36cd461138ca45f7aa0bbcf6c7b5c0",
+    "repository-discovery.h": "3325dfb8343ef600e628fdb3ea9ca0efcfe13b31e2b91c6b7dad970b4553d788",
+    "repository-policy.h": "0a5d4b4cabe62206c9a69148e25e9505fb38da78f7cfb2efbb6142fddc8a53eb",
+    "update-public-key.h": "4bc371c8d88e326dacd31c3cdebec069f2d0d24b57189963fedd2679d2a8f4c5",
+    "ca-bundle.pem": "796f1389bfea13c0ed78f663b765baaff54a508e5483786bd6ece73c5e3e3cbe"
+  },
+  "tlsVersion": "3.6.7",
+  "tlsArchiveSha256": "a7e8bcbec0e6f761b4af24f25677626b35f762f68eef79c08677a363212d11f6",
+  "files": {
+    "https-arm.nexe": {
+      "sha256": "30994ce6ed0a0aa671b0a0a8f96c11d8a249aaab4729ac81a939d1484fec4fd4",
+      "size": 2331176
+    },
+    "https-x86-32.nexe": {
+      "sha256": "7a095893e3bcb16f2662daee18f3b04a3af2e0fd8a9b7fbbc026c39b7d60a6ed",
+      "size": 2758005
+    },
+    "https-x86-64.nexe": {
+      "sha256": "7dd05bf7471a7acdd11d73b0c1487f92f0352070ca6d365c4459bf8984f96342",
+      "size": 3091205
+    }
+  }
+}

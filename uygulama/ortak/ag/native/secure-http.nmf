@@ -1,0 +1,13 @@
+{
+  "program": {
+    "arm": {
+      "url": "https-arm.nexe"
+    },
+    "x86-32": {
+      "url": "https-x86-32.nexe"
+    },
+    "x86-64": {
+      "url": "https-x86-64.nexe"
+    }
+  }
+}

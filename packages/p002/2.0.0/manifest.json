@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 2,
+  "apiVersion": 2,
+  "type": "site",
+  "dependencies": [
+    {
+      "publisher": "247fdf077b7d36c0d2ab3a909024308abda39adf9f5b34f1b66b5fe55cdf6ac4",
+      "id": "r002",
+      "minVersion": "1.0.4",
+      "maxVersion": "2.0.0"
+    }
+  ],
+  "minCoreVersion": "2.0.0",
+  "id": "p002",
+  "name": "P002",
+  "version": "2.0.0",
+  "minAppVersion": "2.0.0",
+  "site": {
+    "id": "p002",
+    "name": "P002",
+    "prefix": "p002:",
+    "base": "https://puhutv.com"
+  },
+  "modules": [
+    "site.js"
+  ],
+  "networkPolicy": {
+    "file": "network-policy.txt",
+    "signature": "network-policy.signature.txt"
+  },
+  "files": [
+    {
+      "path": "site.js",
+      "size": 11479,
+      "sha256": "95b0b10dbef971b8a187605bb585f8da0d68310c039a13cdd04b5096aef89f00"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 1145,
+      "sha256": "40f60e3521ed9bd2a2a49a97431cf87dc607db9b186728d24d9dcea11000eda8"
+    },
+    {
+      "path": "network-policy.txt",
+      "size": 101,
+      "sha256": "dfdf53b7939967e78f0aeb433656ab55c6234b3cea19988585d212bf20e036d1"
+    },
+    {
+      "path": "network-policy.signature.txt",
+      "size": 345,
+      "sha256": "aa9eb21ca9a3857af335aac2d776d0f23193127c0b15de0c25d13131aecd7c09"
+    }
+  ]
+}

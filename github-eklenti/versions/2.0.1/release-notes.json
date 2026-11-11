@@ -1,0 +1,4 @@
+{
+  "tr": "Aynı kaynak/motorda motor değiştirme onayı beş başarısızlıktan sonra sorulur. İlk dört başarısızlık aynı motorda tekrar denenir. Mevcut 60 saniyelik toplam bütçe daha erken dolarsa işlem hata ekranında durur. Kullanıcı onayı olmadan motor değişmez.",
+  "en": "Ask before changing engines after five failures of the same source and engine. The first four failures retry that engine. The existing 60-second recovery budget can end the operation earlier. Never change engines without consent."
+}

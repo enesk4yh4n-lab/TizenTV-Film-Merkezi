@@ -1,0 +1,24 @@
+{
+  "id": "r002",
+  "name": "R002",
+  "description": "Public watch-asset resolver for P002",
+  "type": "resolver",
+  "version": "1.0.5",
+  "minAppVersion": "2.0.0",
+  "minCoreVersion": "2.0.0",
+  "dependencies": [],
+  "modules": [
+    "resolver.js"
+  ],
+  "files": [
+    "resolver.js",
+    "LICENSE.txt"
+  ],
+  "origins": [
+    "https://puhutv.com",
+    "https://dygvideo.dygdigital.com",
+    "https://puhu-p3.mncdn.com",
+    "https://rtuk-p.mncdn.com",
+    "https://img-puhutv.mncdn.com"
+  ]
+}
