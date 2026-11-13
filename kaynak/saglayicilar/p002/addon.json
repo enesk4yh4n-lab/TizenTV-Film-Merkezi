@@ -3,9 +3,9 @@
   "name": "P002",
   "description": "P002 public catalog adapter",
   "type": "site",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "minAppVersion": "2.0.0",
-  "minCoreVersion": "2.0.0",
+  "minCoreVersion": "2.0.2",
   "site": {
     "id": "p002",
     "name": "P002",

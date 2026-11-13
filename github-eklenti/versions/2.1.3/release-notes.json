@@ -1,0 +1,4 @@
+{
+  "tr": "İki erişim hatasından sonra site isteklerini geçici bekletme. Yeni tercihlerde P001 arama önerileri açıktır.",
+  "en": "Temporarily pause site requests after two access failures. New preferences enable P001 search suggestions."
+}

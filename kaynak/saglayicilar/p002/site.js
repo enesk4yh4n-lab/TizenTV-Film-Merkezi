@@ -125,7 +125,17 @@
     });
   };
   Provider.prototype.seriesLanguage = function () { return Promise.resolve({ language: '' }); };
-  Provider.prototype.identity = Provider.prototype.detail;
+  Provider.prototype.identity = function (input) {
+    var self = this, token = self.generation, address = url(input.pageUrl);
+    if (!address) return Promise.reject(new Error('P002: içerik bağlantısı geçersiz.'));
+    return self.get(address, token).then(function (p) {
+      var raw = (p.details || p.watchDetails || {}).data, d = card(raw);
+      if (!d || d.contentId !== input.contentId) throw new Error('P002: içerik kimliği doğrulanamadı.');
+      d.identityEvidence = { version: 2, pageUrl: d.pageUrl, title: d.title, type: d.type, typeVerified: true, detailChecked: true };
+      if (d.year) { d.identityEvidence.year = d.year; d.identityEvidence.yearVerified = true; }
+      return d;
+    });
+  };
   Provider.prototype.options = function () {
     return this.get(BASE + '/dizi', this.generation).then(function (p) {
       var genres = {}, years = {}; cards(rows(p)).forEach(function (c) { c.genreIds.forEach(function (g,i) { genres[g] = c.genres[i] || g; }); if (c.year) years[c.year] = true; });
