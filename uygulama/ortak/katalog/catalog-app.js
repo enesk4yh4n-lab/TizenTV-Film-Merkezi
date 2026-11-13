@@ -78,6 +78,7 @@
         self.editing = false;
         el('search-activate').style.display = '';
         el('catalog-search').tabIndex = -1;
+        if (self.experience && self.experience.suggestions) self.experience.suggestions.keyboardClosed(false);
       }
     });
     el('search-submit').addEventListener('click', function () {
@@ -396,13 +397,25 @@
     if (token !== this.generation || this.screen !== screen || /ptal/.test(error.message)) return;
     screen.loading = false;
     screen.error = error.message;
+    screen.pauseSiteId = error.sitePaused || error.cooldownUntil ? error.siteId : null;
+    if (screen.pauseSiteId && !error.sitePaused)
+      screen.error += ' · ' + root.CatalogSiteAvailability.message(screen.pauseSiteId);
     screen.errorReport = root.FilmErrorReporter && root.FilmErrorReporter.catalog(this, screen, error);
     screen.errorKind = error.providerUnavailable ? 'provider-error' : '';
+    if (screen.kind === 'search' && screen.selectedSuggestion && this.searchResultCards) {
+      screen.items = this.searchResultCards(screen.items || [], screen);
+      if (screen.items.length) {
+        screen.error = null; screen.searchWarning = true;
+        screen.searchNotice = (root.FilmI18n && root.FilmI18n.language() === 'en' ?
+          'Additional search failed; the selected record is retained. ' : 'Ek arama tamamlanamadı; seçtiğiniz kayıt korunuyor. ') + error.message;
+      }
+    }
     this.render(true);
   };
   App.prototype.edit = function () {
     if (this.app.controller.content || this.panel) return;
     this.editing = true;
+    if (this.experience && this.experience.suggestions) this.experience.suggestions.cancel();
     this.editBefore = el('catalog-search').value;
     el('search-activate').style.display = 'none';
     el('catalog-search').readOnly = false;
@@ -418,7 +431,22 @@
     el('catalog-search').tabIndex = -1;
     el('search-activate').style.display = '';
     el('search-activate').focus();
+    if (this.experience && this.experience.suggestions) this.experience.suggestions.keyboardClosed(cancel);
     return true;
+  };
+  App.prototype.searchResultCards = function (cards, screen) {
+    var selected = screen.selectedSuggestion,
+      site = selected && root.SiteRegistry.get(selected.providerId),
+      rows = cards || [], seen = {}, self = this;
+    if (site && root.SiteRegistry.sites.indexOf(site) >= 0 &&
+        (this.site.virtual || this.site.id === site.id)) rows = [selected].concat(rows);
+    return rows.map(function (card) {
+      return self.site.virtual && self.hub ? self.hub.card(card.contentId) || card : card;
+    }).filter(function (card) {
+      if (seen[card.contentId]) return false;
+      seen[card.contentId] = true;
+      return true;
+    });
   };
   App.prototype.search = function (force, more) {
     var query =
@@ -427,10 +455,12 @@
         : P.clean(el('catalog-search').value);
     this.hideKeyboard(false);
     if (!query) {
+      this.pendingSuggestionCard = null; this.pendingMetadataRef = null;
       this.app.view.toast('Aramak için film veya dizi adını yazın.');
       return;
     }
     if (query.length > 100) {
+      this.pendingSuggestionCard = null; this.pendingMetadataRef = null;
       this.app.view.toast('En fazla 100 karakter yazabilirsiniz.');
       return;
     }
@@ -438,9 +468,11 @@
       this.screen &&
       this.screen.kind === 'search' &&
       this.screen.query === query &&
+      (!this.pendingMetadataRef ||
+        (this.pendingMetadataRef && this.screen.selectedMetadataRef && this.pendingMetadataRef.id === this.screen.selectedMetadataRef.id && this.pendingMetadataRef.type === this.screen.selectedMetadataRef.type)) &&
+      (!this.pendingSuggestionCard || this.screen.selectedSuggestion && this.pendingSuggestionCard.contentId === this.screen.selectedSuggestion.contentId) &&
       this.screen.loading
-    )
-      return;
+    ) { this.pendingMetadataRef = null; this.pendingSuggestionCard = null; return; }
     if (more && (!this.screen.next || this.screen.kind !== 'search')) return;
     if (!more) this.experience.preferences.remember(query);
     this.save();
@@ -462,9 +494,17 @@
     this.screen = s;
     s.loading = true;
     s.error = null;
+    s.searchWarning = false;
     var self = this,
       token = this.begin();
+    s.selectedMetadataRef = more ? s.selectedMetadataRef : this.pendingMetadataRef || null;
+    s.selectedSuggestion = more ? s.selectedSuggestion : this.pendingSuggestionCard || null;
+    this.pendingMetadataRef = null;
+    this.pendingSuggestionCard = null;
+    if (s.selectedSuggestion && this.hub) this.hub.observe(s.selectedSuggestion, s.selectedSuggestion.providerId);
+    s.items = this.searchResultCards(s.items || [], s);
     this.render(true);
+    this.provider.selectedMetadataRef = s.selectedMetadataRef;
     this.provider.search(query, force, previous).then(
       function (result) {
         if (token !== self.generation || self.screen !== s) return;
@@ -477,13 +517,13 @@
             items.push(current);
           }
         });
-        s.items = items;
+        s.items = self.searchResultCards(items, s);
         s.next = result.next;
         s.loading = false;
         s.staleAt = result.staleAt;
         s.searchNotice = result.searchNotice;
         s.unifiedProgress = result.unifiedProgress || s.unifiedProgress;
-        self.rememberCards(result.cards);
+        self.rememberCards(s.items);
         if (more) {
           s.focusKey = 'load-more';
           if (!s.next) {
@@ -806,6 +846,9 @@
   };
   App.prototype.retry = function () {
     var s = this.screen;
+    var pausedSite = s.pauseSiteId || (!this.site.virtual && this.site.id);
+    if (pausedSite && root.CatalogSiteAvailability && root.CatalogSiteAvailability.status(pausedSite).paused &&
+        !root.CatalogSiteAvailability.retry(pausedSite)) return;
     if (s.kind === 'home') this.loadHome(true);
     else if (s.kind === 'list') this.loadList(false, true);
     else if (s.kind === 'search') this.search(true);
@@ -822,7 +865,8 @@
       img = node('img');
     placeholder.setAttribute('aria-hidden', 'true');
     img.alt = '';
-    if (card.poster) img.setAttribute('data-art', card.poster);
+    var poster = (cls === 'detail-art' || cls === 'hero-art') && card.posterLarge || card.poster;
+    if (poster) img.setAttribute('data-art', poster);
     frame.appendChild(placeholder);
     frame.appendChild(img);
     return frame;
@@ -1044,14 +1088,38 @@
       offset = s.railOffsets[index] || 0,
       target =
         exact !== undefined ? exact : Math.max(0, Math.min(items.length - 1, offset + delta));
-    s.railOffsets[index] = Math.max(
-      0,
-      Math.min(Math.max(0, items.length - 6), target - (delta < 0 ? 0 : 4))
-    );
+    var first = exact === undefined ? offset + delta :
+      target < offset ? target : target >= offset + 6 ? target - 5 : offset;
+    first = Math.max(0, Math.min(Math.max(0, items.length - 6), first));
+    s.railOffsets[index] = first;
     s.focusKey = 'rail-' + index + '-' + target;
     this.saveScroll();
-    this.renderFocusIntent = s.focusKey;
-    this.render(true);
+    var record = this.railTracks.filter(function (value) { return value.index === index; })[0];
+    if (!record || !document.contains(record.node)) {
+      this.renderFocusIntent = s.focusKey;
+      this.render(true);
+    } else if (record.first !== first) {
+      var track = record.node, head = track.firstChild, tail = track.lastChild,
+        existing = {}, self = this, end = Math.min(items.length, first + 12);
+      Array.prototype.slice.call(track.children).forEach(function (child) {
+        var position = child.getAttribute('data-card-index');
+        if (position === null) return;
+        position = Number(position);
+        if (position < first || position >= end || !child.catalogCard ||
+            child.catalogCard.contentId !== items[position].contentId) track.removeChild(child);
+        else existing[position] = child;
+      });
+      var cursor = head.nextSibling;
+      for (var position = first; position < end; position++) {
+        var cardNode = existing[position] || self.card(items[position], position, index);
+        if (cardNode !== cursor) track.insertBefore(cardNode, cursor);
+        cursor = cardNode.nextSibling;
+      }
+      head.style.width = first * 280 + 'px';
+      tail.style.width = Math.max(0, items.length - first - 12) * 280 + 'px';
+      record.first = first;
+    }
+    if (record && document.contains(record.node)) record.node.scrollLeft = first * 280;
     this.focus(s.focusKey);
   };
   App.prototype.saveScroll = function () {
@@ -1448,7 +1516,8 @@
     if (s.kind === 'following') s.items = this.series.following();
     var activeKey = document.activeElement && document.activeElement.getAttribute('data-focus'),
       scroll = restore ? s.scroll || 0 : 0,
-      parent = el('catalog-content');
+      parent = el('catalog-content'),
+      oldImages = parent.querySelectorAll('img');
     parent.textContent = '';
     this.railTracks = [];
     Array.prototype.forEach.call(document.querySelectorAll('[data-nav]'), function (n) {
@@ -1538,6 +1607,8 @@
       }
       if (s.kind === 'search' && s.searchNotice)
         parent.appendChild(node('p', 'catalog-note', s.searchNotice));
+      if (s.kind === 'search' && s.searchWarning && s.errorReport && root.FilmErrorReporter)
+        parent.appendChild(root.FilmErrorReporter.button(s.errorReport, 'catalog-report-error'));
       if (s.kind === 'list') this.renderCollections(parent, s);
       this.renderGrid(parent, s);
     }
@@ -1562,7 +1633,9 @@
         node(
           'h2',
           '',
-          s.errorKind === 'provider-error'
+          s.pauseSiteId
+            ? (root.FilmI18n && root.FilmI18n.language() === 'en' ? 'Site temporarily paused' : 'Site geçici olarak bekletiliyor')
+            : s.errorKind === 'provider-error'
             ? 'Site bileşeni kullanılamıyor'
             : blocked
               ? 'Siteye erişim engellendi'
@@ -1573,7 +1646,9 @@
         node(
           'p',
           '',
-          s.errorKind === 'provider-error'
+          s.pauseSiteId
+            ? root.CatalogSiteAvailability.message(s.pauseSiteId)
+            : s.errorKind === 'provider-error'
             ? 'Başka bir siteyi seçebilir veya yeniden deneyebilirsiniz.'
             : blocked
               ? 'Site isteği reddetti. Biraz sonra Yenile ile tekrar deneyin.'
@@ -1581,7 +1656,7 @@
         )
       );
       if (root.FilmErrorReporter) { if (!s.errorReport) s.errorReport = root.FilmErrorReporter.catalog(this, s, { message: s.error }); if (s.errorReport) box.appendChild(root.FilmErrorReporter.button(s.errorReport, 'catalog-report-error')); }
-      box.appendChild(button('Yenile', 'catalog-retry', this.retry.bind(this), 'gold-button'));
+      box.appendChild(button(s.pauseSiteId ? (root.FilmI18n && root.FilmI18n.language() === 'en' ? 'Retry now' : 'Şimdi tekrar dene') : 'Yenile', 'catalog-retry', this.retry.bind(this), 'gold-button'));
       box.appendChild(button('Geri', 'catalog-error-back', this.back.bind(this), 'quiet-button'));
       parent.appendChild(box);
     }
@@ -1597,6 +1672,7 @@
       );
       parent.insertBefore(stale, parent.firstChild);
     }
+    this.images.releaseDetached(oldImages);
     el('catalog-scroll').scrollTop = scroll;
     this.railTracks.forEach(function (track) {
       track.node.scrollLeft = (s.railOffsets[track.index] || 0) * 280;
@@ -2064,6 +2140,13 @@
       );
     } else if (p.kind === 'about') {
       box.appendChild(node('p', 'about-name', 'Film Merkezi · ' + root.AppInfo.version));
+      if (root.FilmMetadataCredits) {
+        var tmdbLogo = document.createElement('img');
+        tmdbLogo.src = root.FilmMetadataCredits.logo; tmdbLogo.alt = 'TMDB';
+        tmdbLogo.width = 150; tmdbLogo.height = 22;
+        box.appendChild(tmdbLogo);
+        box.appendChild(node('p', 'catalog-note', root.FilmMetadataCredits.notice));
+      }
       box.appendChild(
         button(
           'Kullanım bilgilendirmesi',
@@ -2238,6 +2321,7 @@
   };
   App.prototype.key = function (event) {
     if (event.defaultPrevented || this.app.controller.content) return;
+    if (this.hub && this.hub.identityRebuilding) { event.preventDefault(); return; }
     if (root.FilmPluginPanel && root.FilmPluginPanel.key(this, event)) return;
     var code = event.keyCode;
     if (this.editing || document.activeElement === el('catalog-search')) {
@@ -2246,11 +2330,12 @@
         this.hideKeyboard(true);
       } else if (code === 13 || code === 65376) {
         event.preventDefault();
-        this.search();
+        this.hideKeyboard(false);
       }
       /* Direction keys and 229 stay with Samsung IME / physical text editing. */
       return;
     }
+    if (this.experience.suggestions && this.experience.suggestions.key(event, this.editing)) return;
     if (code === 65385 || code === 65376) {
       event.preventDefault();
       return;

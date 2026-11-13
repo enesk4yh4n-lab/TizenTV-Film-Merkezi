@@ -211,6 +211,9 @@
         hub = this.hub,
         site = this.site;
       if (!hub || site.virtual || p.unifiedObserved) return;
+      if (hub.metadata && root.CatalogMetadataSingle) {
+        this.provider = new root.CatalogMetadataSingle(p, site, hub.metadata, hub); return;
+      }
       p.unifiedObserved = true;
       var detail = p.detail;
       p.detail = function (card, force) {
@@ -330,7 +333,7 @@
         s.data = value;
       } else {
         if (!value.cards) return;
-        s.items = value.cards;
+        s.items = s.kind === 'search' ? this.searchResultCards(value.cards, s) : value.cards;
         s.searchNotice = value.searchNotice;
         s.next = value.unifiedProgress.running ? null : value.next;
       }
@@ -339,7 +342,7 @@
       s.loading = !!(
         value.unifiedProgress &&
         value.unifiedProgress.running &&
-        !(s.kind === 'home' ? value.movies.length + value.series.length : value.cards.length)
+        !(s.kind === 'home' ? value.movies.length + value.series.length : s.items.length)
       );
       s.scroll = scroll;
       function draw() {
@@ -452,7 +455,7 @@
       }
       status.firstChild.textContent = tr(
         progress.enriching
-          ? 'Sonuçlar birleştiriliyor…'
+          ? 'Eksik bilgiler doğrulanıyor…'
           : progress.running
             ? 'Sitelerden sonuçlar geliyor · ' + progress.done + '/' + progress.total
             : progress.cancelled
@@ -758,6 +761,7 @@
       box.textContent = '';
       box.appendChild(n('h2', '', 'Site yanıtları'));
       p.progress.sites.forEach(function (s) {
+        var pauseMessage = s.status === 'paused' && root.CatalogSiteAvailability ? root.CatalogSiteAvailability.message(s.id) : null;
         var label = {
           pending: 'Sırada',
           cancelled: 'Arama durduruldu',
@@ -766,6 +770,7 @@
           limited: 'Sınırlı arama · ' + s.count + ' sonuç',
           stale: 'Önbellekteki sonuçlar',
           blocked: 'Erişim engeli',
+          paused: root.FilmI18n && root.FilmI18n.language() === 'en' ? 'Temporarily paused' : 'Geçici olarak bekletiliyor',
           error: 'Yanıt alınamadı',
           done: 'Bu listede yeni sayfa yok'
         }[s.status];
@@ -773,12 +778,20 @@
           n(
             'p',
             'unified-site-response',
-            s.name + ' · ' + label + (s.message ? ' · ' + s.message : '')
+            s.name + ' · ' + label + (pauseMessage || s.message ? ' · ' + (pauseMessage || s.message) : '')
           )
         );
       });
       p.progress.sites.forEach(function (site, index) {
-        if (!root.FilmErrorReporter || ['blocked','error','timeout'].indexOf(site.status) < 0) return;
+        if (site.status === 'paused' && root.CatalogSiteAvailability) {
+          var pausedRow = box.querySelectorAll('.unified-site-response')[index];
+          pausedRow.appendChild(b(root.FilmI18n && root.FilmI18n.language() === 'en' ? 'Retry now' : 'Şimdi tekrar dene',
+            'site-retry-' + index, function () {
+              if (!root.CatalogSiteAvailability.retry(site.id)) return;
+              self.closePanel(false); self.retry();
+            }));
+        }
+        if (!root.FilmErrorReporter || ['blocked','error','timeout','paused'].indexOf(site.status) < 0) return;
         var report = root.FilmErrorReporter.capture({scope:'site',siteId:site.id || site.siteId,stage:site.failureStage || 'catalog-request',occurredAt:site.failureAt,error:{message:site.message || site.status,code:site.failureCode || site.code || site.status}});
         if (report) { var row = box.querySelectorAll('.unified-site-response')[index]; row.appendChild(root.FilmErrorReporter.button(report, 'site-report-' + index)); }
       });

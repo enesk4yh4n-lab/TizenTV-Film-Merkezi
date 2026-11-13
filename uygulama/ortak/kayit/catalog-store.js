@@ -28,6 +28,7 @@
       'titleAliases',
       'releaseDate',
       'poster',
+      'posterLarge',
       'year',
       'imdb',
       'imdbId',
@@ -206,7 +207,8 @@
         type: 'series',
         pageUrl: content.seriesPageUrl,
         title: content.seriesTitle,
-        poster: content.poster
+        poster: content.poster,
+        posterLarge: content.posterLarge || ''
       });
     }
     this.remember(content);

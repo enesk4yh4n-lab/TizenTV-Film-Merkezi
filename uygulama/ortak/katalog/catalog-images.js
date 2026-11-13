@@ -1,6 +1,7 @@
 (function (root) {
   'use strict';
   function Images() {
+    this.enabled = true;
     this.limit = 8 * 1024 * 1024;
     this.countLimit = 48;
     this.bytes = 0;
@@ -25,6 +26,12 @@
     });
     this.jobs = {};
   };
+  Images.prototype.setEnabled = function (value) {
+    value = value !== false;
+    if (this.enabled === value) return;
+    this.enabled = value;
+    this.clear();
+  };
   Images.prototype.clear = function () {
     this.stop();
     var self = this;
@@ -34,6 +41,21 @@
     this.cache = {};
     this.bytes = 0;
     this.originPolicies = {};
+  };
+  Images.prototype.releaseDetached = function (images) {
+    Array.prototype.forEach.call(images || [], function (img) {
+      if (document.contains(img)) return;
+      img.onload = img.onerror = null;
+      img.removeAttribute('src');
+    });
+    var jobs = this.jobs;
+    Object.keys(jobs).forEach(function (key) {
+      var job = jobs[key];
+      job.listeners = job.listeners.filter(function (listener) {
+        return !listener.image || document.contains(listener.image);
+      });
+      if (!job.listeners.length && job.request) job.request.cancel();
+    });
   };
   Images.prototype.remove = function (key) {
     var item = this.cache[key];
@@ -80,6 +102,7 @@
     return item;
   };
   Images.prototype.bind = function (img, url, referer) {
+    if (!this.enabled) return;
     var self = this,
       item = this.cache[url];
     if (!url) return;
@@ -158,9 +181,18 @@
     return entry.policy;
   };
   Images.prototype.pump = function () {
+    if (!this.enabled) return;
     var self = this;
     if (this.active >= 3 || !this.queue.length) return;
     var job = this.queue.shift();
+    job.listeners = job.listeners.filter(function (listener) {
+      return !listener.image || document.contains(listener.image);
+    });
+    if (!job.listeners.length) {
+      if (this.jobs[job.url] === job) delete this.jobs[job.url];
+      this.schedule();
+      return;
+    }
     if (job.token !== this.generation) {
       this.schedule();
       return;
@@ -198,6 +230,7 @@
     this.schedule();
   };
   Images.prototype.visible = function (container) {
+    if (!this.enabled) return;
     var self = this,
       viewport = container.getBoundingClientRect();
     Array.prototype.forEach.call(container.querySelectorAll('img[data-art]'), function (img) {

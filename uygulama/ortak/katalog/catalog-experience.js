@@ -25,8 +25,32 @@
       app.app.view.toast(message);
     });
     this.preferences.storage = app.storage;
+    app.images.setEnabled(this.preferences.posters());
     this.preferences.notify = function (message) { app.app.view.toast(message); };
     if (root.FilmI18n) root.FilmI18n.init(this.preferences);
+    if (root.CatalogMetadata && app.hub) {
+      this.metadata = app.hub.metadata = new root.CatalogMetadata(app, this.preferences);
+      var host = document.createElement('div');
+      host.className = 'metadata-suggestions';
+      document.querySelector('.catalog-search-group').appendChild(host);
+      this.suggestions = new root.MetadataSuggestions({
+        input: document.getElementById('catalog-search'), host: host, service: this.metadata.suggestionService,
+        active: function () { return !app.editing && !app.suspended && !app.panel && !app.app.controller.content; },
+        type: function () { return app.screen && app.screen.kind === 'search' ? app.screen.tab || 'all' : 'all'; },
+        focusInput: function () { app.focus('search-activate'); },
+        cancel: function () { app.hub.metadata.cancel(); },
+        context: function () { return app.hub.metadata.suggestionContext(); },
+        select: function (reference) {
+          var fromSite = reference.source && reference.source.indexOf('site:') === 0,
+            card = fromSite && app.hub.metadata.suggestionCard(reference);
+          if (fromSite && !card) { app.app.view.toast(tr('Öneri kaynağı artık kullanılamıyor.')); return; }
+          app.hideKeyboard(false);
+          document.getElementById('catalog-search').value = fromSite ? reference.searchQuery || reference.title : reference.title;
+          app.pendingSuggestionCard = card || null;
+          app.pendingMetadataRef = fromSite ? null : reference; app.search();
+        }
+      });
+    }
     this.settings = root.CatalogSettingsUI ? new root.CatalogSettingsUI(app, this.preferences) : null;
     this.recommendations = new root.RecommendationService({
       hub: app.app.hub,
@@ -40,6 +64,7 @@
       clear.onclick = function () {
         app.hideKeyboard(false);
         document.getElementById('catalog-search').value = '';
+        if (self.suggestions) self.suggestions.cancel();
         app.focus('search-activate');
       };
     if (recent)
@@ -52,6 +77,8 @@
   }
   Experience.prototype.cancel = function () {
     this.recommendations.cancel();
+    if (this.suggestions) this.suggestions.cancel();
+    else if (this.metadata) this.metadata.cancel();
     this.extraButtons = [];
     this.siteButtons = [];
   };

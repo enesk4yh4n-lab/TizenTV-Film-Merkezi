@@ -72,9 +72,11 @@
       imdbId: I.imdb(card.imdbId || card.imdbUrl)
     };
     if (!v.title) return null;
+    if (card.posterLarge) v.posterLarge = U.url(card.posterLarge, card.pageUrl);
+    if (I.reference(card)) v.metadataRef = I.reference(card);
     v.rawTitle = U.clean(card.rawTitle || card.title).slice(0, 300);
     v.rawType = card.rawType || v.type;
-    v.rawYear = I.year(card.rawYear || card.year);
+    v.rawYear = I.year(own(card, 'rawYear') ? card.rawYear : card.year);
     if (I.evidence(card).version === 2) v.identityEvidence = C.copy(I.evidence(card));
     if (Array.isArray(card.identityCategories))
       v.identityCategories = card.identityCategories.slice(0, 16).map(U.clean);
@@ -118,6 +120,7 @@
     return v;
   }
   function Hub(storage, playback, notify, merging) {
+    if (root.CatalogPreferences) I.mode(new root.CatalogPreferences(storage, notify).matchingMode());
     this.storage = storage;
     this.playback = playback;
     this.notify = notify || function () {};
@@ -199,8 +202,13 @@
     });
     this.rebuild();
     this.series = new root.SeriesState(scoped(storage, 'unified.'), this.notify);
-    if (this.data.identityVersion !== 2 && this.merging) this.migrateIdentity();
-    else if (!Object.keys(this.data.items).length) this.data.identityVersion = 2;
+    if (
+      this.merging &&
+      (this.data.identityVersion !== I.version || this.data.identityMode !== I.mode() || Object.keys(this.data.redirects).some(function (id) {
+        return own(self.data.items, id);
+      }))
+    ) this.migrateIdentity();
+    else if (!Object.keys(this.data.items).length) { this.data.identityVersion = I.version; this.data.identityMode = I.mode(); }
     if (storage && storage.registerCache)
       storage.registerCache(KEY, {
         candidates: function () {
@@ -283,12 +291,18 @@
       self.indexGroup(self.data.items[id]);
     });
   };
+  Hub.prototype.setIdentityMode = function (mode, asynchronous) {
+    if (I.mode() === mode && this.data.identityMode === mode) return asynchronous ? Promise.resolve() : undefined;
+    I.mode(mode);
+    if (!this.merging) { this.data.identityMode = I.mode(); this.changed(); return asynchronous ? Promise.resolve() : undefined; }
+    return this.migrateIdentity(asynchronous);
+  };
   Hub.prototype.setMerging = function (enabled) {
     enabled = enabled !== false;
     if (this.merging === enabled) return;
     this.merging = enabled;
     this.rebuild();
-    if (enabled && this.data.identityVersion !== 2) this.migrateIdentity();
+    if (enabled) this.migrateIdentity();
     this.revision++;
   };
   Hub.prototype.episodeGroup = function (parent, season, number, skip) {
@@ -339,7 +353,7 @@
   Hub.prototype.flush = function (force) {
     clearTimeout(this.timer);
     this.timer = null;
-    if (!this.dirty || (this.pendingWork && !force)) return;
+    if (this.identityRebuilding || !this.dirty || (this.pendingWork && !force)) return;
     this.trim();
     try {
       var text = JSON.stringify(this.data);
@@ -433,14 +447,15 @@
       base = 'unified:' + v.type + ':' + encodeURIComponent(key),
       id = (this.migrationIds && this.migrationIds[v.contentId]) || base,
       i = 1;
-    while (own(this.data.items, id)) id = base + ':' + ++i;
+    while (own(this.data.items, id) || own(this.data.redirects, id)) id = base + ':' + ++i;
     return id;
   };
-  Hub.prototype.migrateIdentity = function () {
+  Hub.prototype.migrateIdentity = function (asynchronous) {
     var self = this,
       old = this.data.items,
       rows = [],
-      redirects = this.data.redirects;
+      redirects = this.data.redirects,
+      priorData = asynchronous ? C.copy(this.data) : null;
     this.migrationIds = map();
     Object.keys(old).forEach(function (id) {
       var g = old[id],
@@ -463,11 +478,7 @@
     rows.sort(function (a, b) {
       return (a.type === 'episode' ? 1 : 0) - (b.type === 'episode' ? 1 : 0);
     });
-    this.batch(function () {
-      rows.forEach(function (v) {
-        self.observe(v, v.providerId, true);
-      });
-    });
+    function finalize() {
     Object.keys(old).forEach(function (id) {
       var preferred = old[id].preferred,
         selected = preferred && self.group(preferred);
@@ -488,18 +499,42 @@
       if (!self.data.items[id] && !self.aliases[id] && self.resolveId(redirects[id]))
         self.data.redirects[id] = self.resolveId(redirects[id]);
     });
-    this.data.favorites.forEach(function (f) {
+    self.data.favorites.forEach(function (f) {
       var id = self.resolveId(f.sourceId);
       if (id) f.id = id;
     });
-    Object.keys(this.data.seasons).forEach(function (id) {
+    Object.keys(self.data.seasons).forEach(function (id) {
       var target = self.resolveId(id);
       if (target && !self.data.seasons[target]) self.data.seasons[target] = self.data.seasons[id];
     });
-    this.migrationIds = null;
-    this.data.identityVersion = 2;
-    this.reconcileSeries();
-    this.changed();
+    self.migrationIds = null;
+    self.data.identityVersion = I.version;
+    self.data.identityMode = I.mode();
+    self.reconcileSeries();
+    self.changed();
+    }
+    if (!asynchronous) {
+      this.batch(function () { rows.forEach(function (v) { self.observe(v, v.providerId, true); }); });
+      finalize(); return;
+    }
+    this.identityRebuilding = true; this.pendingWork++;
+    return new Promise(function (resolve, reject) {
+      var index = 0;
+      function step() {
+        try {
+          var started = Date.now(), count = 0;
+          self.batch(function () {
+            while (index < rows.length && count++ < 12 && Date.now() - started < 12) self.observe(rows[index++], null, true);
+          });
+          if (index < rows.length) { setTimeout(step, 0); return; }
+          finalize(); self.identityRebuilding = false; self.pendingWork--; self.scheduleWrite(); resolve();
+        } catch (error) {
+          self.data = priorData; I.mode(priorData.identityMode || 'smart'); self.migrationIds = null;
+          self.identityRebuilding = false; self.pendingWork--; self.rebuild(); reject(error);
+        }
+      }
+      setTimeout(step, 0);
+    });
   };
   Hub.prototype.reconcileSeries = function () {
     if (!this.series) return;
@@ -585,7 +620,7 @@
       )
         keep.variants.push(v);
     });
-    ['title', 'originalTitle', 'poster', 'year', 'language', 'imdb'].forEach(function (k) {
+    ['title', 'originalTitle', 'poster', 'posterLarge', 'year', 'language', 'imdb'].forEach(function (k) {
       if (!keep[k] && drop[k]) keep[k] = drop[k];
     });
     if (!keep.imdbId) keep.imdbId = drop.imdbId;
@@ -659,7 +694,8 @@
             type: 'series',
             pageUrl: v.seriesPageUrl,
             title: v.seriesTitle,
-            poster: v.poster
+            poster: v.poster,
+            posterLarge: v.posterLarge || ''
           },
           v.providerId,
           true
@@ -730,6 +766,7 @@
     ['title', 'originalTitle', 'poster', 'year', 'language', 'imdb'].forEach(function (k) {
       if (!g[k] && v[k]) g[k] = v[k];
     });
+    if (v.posterLarge) { g.poster = v.poster; g.posterLarge = v.posterLarge; }
     if (v.imdbId) g.imdbId = v.imdbId;
     if (parent) {
       g.parent = parent.id;
@@ -826,22 +863,7 @@
       return g;
     });
   };
-  Hub.prototype.corroborate = function (card) {
-    if (!this.merging) return card;
-    var self = this,
-      references = [],
-      seen = map();
-    I.keys(card).forEach(function (k) {
-      (self.keys[k] || []).forEach(function (id) {
-        if (seen[id]) return;
-        seen[id] = true;
-        var g = self.group(id);
-        if (g) references = references.concat(g.variants);
-      });
-    });
-    return I.confirmAgainst(card, references);
-  };
-  /* Revisit only this interaction's variants after all metadata has arrived. No title-only year guesses. */
+  Hub.prototype.corroborate = function (card) { return I.prepare(card); };
   Hub.prototype.reconcileValues = function (ids) {
     var self = this,
       seen = map(),
@@ -979,7 +1001,8 @@
         providerId: 'all',
         type: g.type,
         title: g.title || v.title,
-        poster: g.poster || v.poster || '',
+        poster: v.posterLarge ? v.poster : g.poster || v.poster || '',
+        posterLarge: v.posterLarge || g.posterLarge || '',
         pageUrl: v.pageUrl,
         year: g.year || null,
         imdb: g.imdb || null,

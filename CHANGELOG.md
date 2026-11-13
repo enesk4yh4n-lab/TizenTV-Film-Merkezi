@@ -1,5 +1,20 @@
 # Sürüm notları
 
+## Çekirdek 2.1.4 — 13 Kasım 2026
+
+WGT sürümü **2.0.0** olarak kalır. Bu sürüm, 2.1.3'ten sonraki yerel düzeltmeleri tek genel güncellemede toplar.
+
+- Ana sayfada kartlar arasında gezinirken tüm satırın yeniden çizilmesi ve afişlerin göz kırpması giderildi.
+- Katalog ayrıştırmasının geçici HTML ağaçları ve ekrandan çıkan afiş işleri bırakılarak afişler açıkken bellek yükü azaltıldı. **Genel ve görünüm → Afişleri göster** ayarı eklendi.
+- Küçük liste afişi ve daha büyük detay/vitrin afişi ayrı destekleniyor. P002 2.0.2 ile listede 360×540, büyük görünümde 720×1080 sınırlarına sığan görseller indirilir; oran korunur.
+- Arama önerileri yeni veya tercihi olmayan kayıtlarda **Kapalı** başlar; mevcut seçimler değişmez. Açıldığında klavye kapanışından **50 ms** sonra istek başlar; yanıt süresi bağlantıya ve kaynağa bağlıdır. Tamam otomatik katalog araması yapmaz.
+- Sonuçlar geldikçe birleştirilir. Son aşama yeni/eksik bilgili kayıtları doğrular; aynı sayfa ve aynı kanıt tekrar işlenmez. Durum yazısı **Eksik bilgiler doğrulanıyor…** olarak sadeleştirildi.
+- Mevcut 30 saniye, iki eşzamanlı katalog isteği ve doğrulama sınırları korunur. Yeni varsayılan depo veya site eklenmez.
+
+Bu sürümde değişen site paketi **P002 2.0.2**'dir; diğer P ve R paketleri önceki yayımlanmış sürümlerinde kalır. Önce çekirdeği, ardından P002'yi güncelleyin. WGT kurulumu gerekmez.
+
+Genel sürüm numarası yayımlanan güncellemelerde ilerler; yerel denemeler iç revizyonla izlenir. Bu nedenle 2.1.3'ten sonraki genel sürüm 2.1.4'tür. SDK araç sürümü değişmedi; SDK belgesine isteğe bağlı küçük/büyük afiş alanı eklendi.
+
 ## Çekirdek 2.1.3 — 13 Kasım 2026
 
 Bu güncelleme, önceki çekirdek yayını 2.0.1'den sonra hazırlanan yenilik ve düzeltmeleri birlikte içerir. Uygulama/WGT sürümü **2.0.0** olarak kalır; çekirdek Güncelleme Merkezi üzerinden yüklenir.

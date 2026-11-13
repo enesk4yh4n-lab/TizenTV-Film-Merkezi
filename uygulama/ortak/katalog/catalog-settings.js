@@ -28,6 +28,30 @@
   UI.prototype.hide = function () { document.getElementById('catalog-modal').classList.remove('fm-settings'); };
   UI.prototype.afterClose = function () {
     this.hide();
+    if (this.identityModeChanged && this.a.hub) {
+      this.identityModeChanged = false;
+      var a = this.a, self = this;
+      a.begin();
+      var modeWork = a.hub.setIdentityMode(this.p.matchingMode(), true);
+      function regroup(items) {
+        var seen = {}, out = [];
+        (items || []).forEach(function (c) { (c.variants || [c]).forEach(function (v) {
+          var id = a.hub.merging ? a.hub.resolveId(v.contentId) : v.contentId;
+          if (seen[id]) return;
+          var card = a.hub.card(v.contentId) || v;
+          if (!seen[card.contentId]) { seen[card.contentId] = true; out.push(card); }
+        }); });
+        return out;
+      }
+      Promise.resolve(modeWork).then(function () {
+        (a.history || []).concat(a.screen || []).forEach(function (screen) {
+          if (screen.items) screen.items = regroup(screen.items);
+          (screen.rails || []).forEach(function (r) { r.items = regroup(r.items); });
+        });
+        self.refresh = true; self.afterClose();
+      }, function () { a.app.view.toast(t('Birleştirme yöntemi uygulanamadı; önceki kayıtlar korundu.', 'Matching method could not be applied; previous records were preserved.')); });
+      return;
+    }
     if (this.rebuild) { this.rebuild = false; this.refresh = false; this.a.history = []; this.a.navigate('home'); }
     else if (this.refresh) { this.refresh = false; if (this.a.screen) this.a.render(true); }
   };
@@ -39,6 +63,11 @@
     function panel(key, title, kind, extra) { row(key, title, '', function () { self.openPanel(kind, key, extra); }); }
     function style(key, title, options, name) { var v = ps.subtitleStyle[name], found = options.filter(function (x) { return x[0] === v; })[0]; choice(key, title, found ? found[1] : String(v), options, v, function (x) { var s = root.PlayerCore.copy(ps.subtitleStyle); s[name] = x; self.setting('subtitleStyle', s, key); }); }
     if (category === 'general') {
+      row('settings-posters', t('Afişleri göster', 'Show posters'), on(this.p.posters()), function () {
+        a.images.setEnabled(self.p.posters(!self.p.posters()));
+        self.refresh = true;
+        self.drawOptions('settings-posters');
+      }, t('Kapalıyken afişler indirilmez; başlıklar ve içerik bilgileri görünür.', 'When off, posters are not downloaded; titles and content information remain visible.'));
       var screens = [['home', t('Ana Sayfa', 'Home')], ['movies', t('Filmler', 'Movies')], ['series', t('Diziler', 'Series')], ['discover', t('Keşfet', 'Discover')], ['watchlist', t('Listem', 'My list')], ['history', t('Geçmiş', 'History')]];
       choice('settings-start', t('Açılış ekranı', 'Start screen'), screens.filter(function (v) { return v[0] === ui.startScreen; })[0][1], screens, ui.startScreen, function (x) { ui.startScreen = x; self.saveAppearance(ui, 'settings-start'); });
       row('settings-font', t('Menü yazısı', 'Menu text'), ui.largeText ? t('Büyük', 'Large') : t('Normal', 'Normal'), function () { ui.largeText = !ui.largeText; self.saveAppearance(ui, 'settings-font'); });
@@ -46,6 +75,26 @@
       row('settings-rows', t('Ana sayfa satırları', 'Home screen rows'), '', function () { a.panel.settingsRows = true; self.drawOptions('settings-row-continue'); });
       choice('settings-language', t('Arayüz dili', 'Interface language'), root.FilmI18n.language() === 'tr' ? 'Türkçe' : 'English', [['tr', 'Türkçe'], ['en', 'English']], root.FilmI18n.language(), function (x) { root.FilmI18n.set(x); self.render('settings-language'); });
     } else if (category === 'catalog') {
+      row('settings-suggestions', t('Arama önerileri', 'Search suggestions'), on(this.p.suggestions()), function () {
+        self.p.suggestions(!self.p.suggestions());
+        if (a.experience.metadata) a.experience.metadata.configure();
+        if (a.experience.suggestions) a.experience.suggestions.cancel();
+        self.drawOptions('settings-suggestions');
+      }, t('Arama metni seçilen öneri kaynağına gönderilir. Öneriler bir saniye sonra görünür.', 'Search text is sent to the selected suggestion source. Suggestions appear after one second.'));
+      var sources = (a.experience.metadata ? a.experience.metadata.suggestionSources() : [{ value: 'tmdb', label: 'TMDB' }]).map(function (item) {
+        return [item.value, item.site ? t('Diğer · ', 'Other · ') + item.label + t(' sitesi önerileri', ' site suggestions') : item.label];
+      }), source = this.p.suggestionSource(), currentSource = sources.filter(function (v) { return v[0] === source; })[0];
+      choice('settings-suggestion-source', t('Öneri kaynağı', 'Suggestion source'), currentSource ? currentSource[1] : t('Seçilen eklenti kullanılamıyor', 'Selected addon unavailable'), sources, source, function (value) {
+        self.p.suggestionSource(value);
+        if (a.experience.metadata) a.experience.metadata.configure();
+        if (a.experience.suggestions) a.experience.suggestions.cancel();
+      });
+      var modes = [['strict', t('Net', 'Strict')], ['smart', t('Akıllı', 'Smart')], ['flexible', t('Esnek', 'Flexible')]], mode = this.p.matchingMode();
+      choice('settings-matching-mode', t('Birleştirme yöntemi', 'Matching method'), modes.filter(function (v) { return v[0] === mode; })[0][1], modes, mode, function (value) {
+        self.p.matchingMode(value); self.identityModeChanged = true;
+      });
+      row('settings-matching-help', t('Esnek birleştirme', 'Flexible matching'), t('Eksik bilgiler ve benzer adlarla daha çok kayıt birleşebilir; yanlış birleşme riski daha yüksektir.', 'Missing information and similar titles may merge more records, with a higher risk of incorrect matches.'));
+
       row('settings-merge', t('Aynı film ve dizileri birleştir', 'Merge matching movies and series'), on(this.p.merging()), function () { a.begin(); self.p.merging(!self.p.merging()); if (a.hub) a.hub.setMerging(self.p.merging()); self.rebuild = true; self.drawOptions('settings-merge'); }, t('Katalog, ayarlardan çıkınca yenilenir.', 'The catalog refreshes when settings close.'));
       if (a.app.siteManagement) panel('settings-site-management', t('Aktif siteler', 'Active sites'), 'active-sites');
       row('settings-sites', t('Site seçimi', 'Select site'), a.site.name, function () { a.closePanel(false); document.getElementById('site-change').click(); });

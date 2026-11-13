@@ -94,12 +94,31 @@
     return result;
   }
   function withEnvelope(body, fn) {
-    var prior = parseContext;
+    var prior = parseContext, value, scope, doc, current, parent;
     parseContext = { body: body, envelope: null };
+    scope = parseContext;
     try {
-      return fn();
+      value = fn();
+      return value;
     } finally {
       parseContext = prior;
+      doc = scope.envelope && scope.envelope.doc;
+      // Provider parsers return plain catalog records. Break the temporary
+      // native DOM tree now: old WebKit may delay collecting tiny JS wrappers
+      // while their detached documents occupy substantial native memory.
+      // A caller explicitly returning the document (or async work) retains it.
+      if (doc && !(value && (value.nodeType || value.doc === doc || typeof value.then === 'function'))) {
+        current = doc.documentElement;
+        while (current) {
+          if (current.firstChild) current = current.firstChild;
+          else {
+            parent = current.parentNode;
+            if (current === doc.documentElement) break;
+            parent.removeChild(current);
+            current = parent;
+          }
+        }
+      }
     }
   }
   function currentEnvelope(body) {

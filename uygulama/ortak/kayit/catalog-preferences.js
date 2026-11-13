@@ -39,6 +39,10 @@
       recommendation: { genre: '', minImdb: 0 },
       language: 'tr',
       mergeCatalog: true,
+      searchSuggestions: false,
+      showPosters: true,
+      suggestionSource: 'site:hdf',
+      matchingMode: 'smart',
       appearance: appearance(),
       disabledSites: []
     };
@@ -58,6 +62,10 @@
         if (Array.isArray(d.disabledSites)) this.data.disabledSites = d.disabledSites.filter(function (id, i, all) { return typeof id === 'string' && /^[a-z][a-z0-9-]{0,63}$/.test(id) && all.indexOf(id) === i; }).slice(0, 64);
         this.data.language = d.language === 'en' ? 'en' : 'tr';
         if (typeof d.mergeCatalog === 'boolean') this.data.mergeCatalog = d.mergeCatalog;
+        if (typeof d.searchSuggestions === 'boolean') this.data.searchSuggestions = d.searchSuggestions;
+        if (typeof d.showPosters === 'boolean') this.data.showPosters = d.showPosters;
+        if (d.suggestionSource === 'tmdb' || /^site:[a-z][a-z0-9-]{0,63}$/.test(d.suggestionSource || '')) this.data.suggestionSource = d.suggestionSource;
+        if (['strict', 'smart', 'flexible'].indexOf(d.matchingMode) >= 0) this.data.matchingMode = d.matchingMode;
         var used = Object.create(null),
           self = this;
         d.recent.forEach(function (row) {
@@ -127,6 +135,27 @@
       this.flush();
     }
     return this.data.mergeCatalog;
+  };
+  Preferences.prototype.suggestions = function (value) {
+    if (typeof value === 'boolean') { this.data.searchSuggestions = value; this.flush(); }
+    return this.data.searchSuggestions;
+  };
+  Preferences.prototype.posters = function (value) {
+    if (typeof value === 'boolean') {
+      if (this.blocked) { this.notify('Afiş tercihi kaydedilemedi.'); return this.data.showPosters; }
+      var previous = this.data.showPosters;
+      this.data.showPosters = value; this.flush();
+      if (this.failed) this.data.showPosters = previous;
+    }
+    return this.data.showPosters;
+  };
+  Preferences.prototype.matchingMode = function (value) {
+    if (['strict', 'smart', 'flexible'].indexOf(value) >= 0) { this.data.matchingMode = value; this.flush(); }
+    return this.data.matchingMode;
+  };
+  Preferences.prototype.suggestionSource = function (value) {
+    if (value === 'tmdb' || /^site:[a-z][a-z0-9-]{0,63}$/.test(value || '')) { this.data.suggestionSource = value; this.flush(); }
+    return this.data.suggestionSource || 'site:hdf';
   };
   Preferences.prototype.remember = function (query) {
     if (typeof query !== 'string') return;

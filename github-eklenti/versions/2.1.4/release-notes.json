@@ -1,0 +1,4 @@
+{
+  "tr": "Afişler açıkken katalog belleği ve ana sayfa çizimi düzeltildi. Afişleri göster ayarı, küçük/büyük afiş seçimi ve hafif son doğrulama eklendi. Yeni tercihlerde arama önerileri Kapalıdır; açıldığında klavye kapanışından 50 ms sonra istek başlar. Mevcut tercihler korunur.",
+  "en": "Fix catalog memory and home rendering with posters enabled. Add poster visibility and small/large artwork support; reduce final verification work. Search suggestions default to Off for new preferences and start 50 ms after closing the keyboard when enabled. Existing choices are preserved."
+}

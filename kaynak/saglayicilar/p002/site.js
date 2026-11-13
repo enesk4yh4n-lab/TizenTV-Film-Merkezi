@@ -22,6 +22,17 @@
     if (Array.isArray(d)) return d;
     return d && Array.isArray(d.container_items) ? d.container_items.reduce(function (a, r) { return a.concat(r.items || []); }, []) : [];
   }
+  function artwork(value, width, height) {
+    if (typeof value !== 'string' || !value) return '';
+    try {
+      var u = new root.URL(value);
+      if (u.protocol !== 'https:' || u.hostname !== 'img-puhutv.mncdn.com' || u.username || u.password || u.port && u.port !== '443') return value;
+      var path = u.pathname.replace(/^\/mnresize\/\d+\/\d+(?=\/media\/)/, '');
+      if (path.indexOf('/media/') !== 0) return value;
+      u.pathname = '/mnresize/' + width + '/' + height + path;
+      return u.href;
+    } catch (ignore) { return value; }
+  }
   function card(item) {
     var m = item && item.meta || {}, type = item && item.type, page = url(item && (item.web_url || m.web_url || m.slug || item.slug));
     if (!item || !/^(?:title|life)_(?:movie|serie)$/.test(type || '') || !item.id || !page || !/-detay(?:[?#]|$)/.test(page) || item.cta_external_url) return null;
@@ -29,8 +40,9 @@
     var title = text(item.name), year = Number(m.released_at || m.productionDate || m.year), score = Number(m.imdb_score);
     if (!title) return null;
     type = /serie$/.test(type) ? 'series' : 'movie';
+    var original = item.image_vertical_mobile || item.image_vertical_web_mobile || item.image || '';
     return { contentId: site.prefix + type + ':' + item.id, providerId: site.id, type: type, title: title, pageUrl: page,
-      poster: item.image_vertical_mobile || item.image_vertical_web_mobile || item.image || '',
+      poster: artwork(original, 360, 540), posterLarge: artwork(original, 720, 1080),
       year: year >= 1880 && year <= 2200 ? year : null, imdb: score > 0 && score <= 10 ? score : null,
       description: text(m.short_description || m.description), genres: (m.genres || []).map(function (g) { return text(g.name || g.display_name); }).filter(Boolean),
       genreIds: (m.genres || []).map(function (g) { return String(g.slug || g.name || g.display_name || ''); }), language: '' };
@@ -44,7 +56,8 @@
     var n = Number(item && item.meta && item.meta.position), page = url(item && item.slug);
     if (!item || item.type !== 'asset_episode' || !item.id || !page || n < 1 || n % 1 || season < 1) return null;
     return { contentId: site.prefix + 'episode:' + item.id, providerId: site.id, type: 'episode', pageUrl: page,
-      title: parent.title + ' · ' + text(item.name), episodeTitle: text(item.name), poster: item.image || parent.poster,
+      title: parent.title + ' · ' + text(item.name), episodeTitle: text(item.name),
+      poster: artwork(item.image || parent.poster, 360, 540), posterLarge: artwork(item.image || parent.posterLarge || parent.poster, 720, 1080),
       year: parent.year, description: text(item.meta.short_description),
       episode: { seriesId: parent.contentId, seriesTitle: parent.title, season: season, number: n } };
   }

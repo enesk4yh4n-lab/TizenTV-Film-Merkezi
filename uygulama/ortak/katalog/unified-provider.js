@@ -18,7 +18,7 @@
     while (this.running.length < 2 && this.pending.length) {
       var job = this.pending.shift();
       if (job.done) continue;
-      if (Date.now() >= this.deadline) {
+      if (Date.now() >= job.deadline) {
         job.finish(new Error('Ortak arama süresi doldu.'));
         continue;
       }
@@ -27,11 +27,12 @@
       job.run();
     }
   };
-  Queue.prototype.request = function (owner, fn) {
+  Queue.prototype.request = function (owner, fn, deadline) {
     var self = this;
     return new Promise(function (resolve, reject) {
       var job = {
         owner: owner,
+        deadline: deadline || self.deadline,
         done: false,
         started: false,
         finish: function (error, value) {
@@ -64,7 +65,7 @@
       self.pump();
     });
   };
-  Queue.prototype.cancel = function (owner) {
+  Queue.prototype.cancel = function (owner, deferPump) {
     this.cancelling = (this.cancelling || 0) + 1;
     try {
       this.pending.concat(this.running).filter(function (j) {
@@ -72,42 +73,87 @@
       }).forEach(function (j) { j.finish(cancelled()); });
     } finally {
       this.cancelling--;
-      this.pump();
+      if (!deferPump) this.pump();
     }
   };
-  function capture(provider, queue, identity) {
-    var original = provider.network;
-    if (!original || !original.get) return;
-    var owner = {},
-      wrapped = {};
-    ['get', 'post'].forEach(function (method) {
-      wrapped[method] = function () {
-        var args = arguments;
-        return queue.request(owner, function () {
-          return original[method].apply(original, args).then(function (response) {
-            if (
-              method === 'get' &&
-              identity.active &&
-              String(args[0]).replace(/#.*$/, '') === identity.active
-            )
-              identity.value = root.ContentIdentity.fromPage(
-                response.body,
-                identity.active,
-                provider.config && provider.config.identitySelectors
-              );
-            return response;
-          });
+  function capture(provider, queue, identity, ownDeadline, site) {
+    var originals = [], wrappers = [];
+    ['network', 'client'].forEach(function (field) {
+      var original = provider[field];
+      if (!original || typeof original.get !== 'function') return;
+      var found = originals.indexOf(original);
+      if (found >= 0) { provider[field] = wrappers[found]; return; }
+      var owner = {}, wrapped = {}, generation = 0, tickets = [];
+      originals.push(original); wrappers.push(wrapped);
+      ['get', 'post'].forEach(function (method) {
+        if (typeof original[method] !== 'function') return;
+        wrapped[method] = function () {
+          var args = Array.prototype.slice.call(arguments), token = generation;
+          return queue.request(owner, function () {
+            if (token !== generation) throw cancelled();
+            var policy = {}, input = args[3] || {}, deadline;
+            Object.keys(input).forEach(function (key) { policy[key] = input[key]; });
+            deadline = Math.min(ownDeadline ? Infinity : queue.deadline, provider.deadline || Infinity, input.deadline || Infinity);
+            if (Date.now() >= deadline) throw new Error('Ortak arama süresi doldu.');
+            policy.deadline = deadline;
+            policy.timeoutMs = Math.max(1, Math.min(input.timeoutMs || input.timeout || 30000, deadline - Date.now()));
+            if (identity.active && identity.counted && queue.validations !== undefined) {
+              if (queue.validations >= 12) throw new Error('Kimlik doğrulama bütçesi doldu.');
+              queue.validations++;
+            }
+            args[3] = policy;
+            var availability = root.CatalogSiteAvailability,
+              ticket = site && availability ? availability.acquire(site.id) : null;
+            if (ticket) { ticket.timeoutMs = policy.timeoutMs; ticket.startedAt = Date.now(); ticket.deadline = deadline; tickets.push(ticket); }
+            function release() { var i = tickets.indexOf(ticket); if (i >= 0) tickets.splice(i, 1); }
+            return Promise.resolve().then(function () {
+              if (token !== generation) throw cancelled();
+              return original[method].apply(original, args);
+            }).then(function (response) {
+              release();
+              if (token !== generation) throw cancelled();
+              if (ticket) availability.success(ticket);
+              if (
+                method === 'get' &&
+                identity.active &&
+                String(args[0]).replace(/#.*$/, '') === identity.active
+              )
+                identity.value = root.ContentIdentity.fromPage(
+                  response.body,
+                  identity.active,
+                  provider.config && provider.config.identitySelectors
+                );
+              return response;
+            }, function (error) {
+              release();
+              if (token !== generation) error = cancelled();
+              if (ticket) availability.failure(ticket, error);
+              throw error;
+            });
+          }, ownDeadline ? provider.deadline : undefined);
+        };
+      });
+      wrapped.catalogTimedOut = function () {
+        var error = new Error('Site yanıtı zamanında alınamadı.');
+        error.stage = 'timeout'; error.code = 'site-access-timeout';
+        tickets.splice(0).forEach(function (ticket) {
+          if (Date.now() - ticket.startedAt >= 3000)
+            root.CatalogSiteAvailability.failure(ticket, error);
+          else root.CatalogSiteAvailability.failure(ticket, cancelled());
         });
+        return error;
       };
+      wrapped.cancel = function () {
+        generation++;
+        tickets.splice(0).forEach(function (ticket) { root.CatalogSiteAvailability.failure(ticket, cancelled()); });
+        try {
+          if (typeof original.cancel === 'function') original.cancel();
+        } finally {
+          queue.cancel(owner);
+        }
+      };
+      provider[field] = wrapped;
     });
-    wrapped.cancel = function () {
-      try {
-        original.cancel();
-      } finally {
-        queue.cancel(owner);
-      }
-    };
-    provider.network = wrapped;
   }
   function Provider(cache, network, hub) {
     this.cache = cache;
@@ -124,13 +170,14 @@
     if (!this.clients[site.id]) {
       var value = new site.Provider(this.cache),
         identity = { active: '', value: null };
-      capture(value, this.queue, identity);
+      capture(value, this.queue, identity, false, site);
       this.clients[site.id] = { provider: value, identity: identity };
     }
     return this.clients[site.id];
   };
   Provider.prototype.cancel = function () {
     this.generation++;
+    this.identityPending = {};
     this.queue.paused = true;
     this.timers.splice(0).forEach(clearTimeout);
     var clients = this.clients;
@@ -150,8 +197,11 @@
     this.deadline = Math.max(Date.now() + 1, this.deadline || Date.now() + 30000);
     this.queue.deadline = this.deadline;
     this.identitySeen = {};
+    this.identityPending = {};
     this.identityUsed = {};
     this.identityCount = 0;
+    this.queue.validations = 0;
+    this.lastAlternateSearchCount = 0;
     this.searchCandidates = {};
     this.metadataPromise = null;
     return this.generation;
@@ -159,7 +209,7 @@
   Provider.prototype.isIdle = function () {
     return !this.running.length && !this.queue.running.length && !this.queue.pending.length;
   };
-  Provider.prototype.invoke = function (site, method, args, timeoutMs) {
+  Provider.prototype.invoke = function (site, method, args, timeoutMs, identityOnly) {
     var self = this;
     return new Promise(function (resolve, reject) {
       var p;
@@ -179,6 +229,7 @@
       if (detailOperation && args[0]) {
         identityClient.identity.active = (root.SiteAddresses ? root.SiteAddresses.resolve(args[0].pageUrl) : args[0].pageUrl).replace(/#.*$/, '');
         identityClient.identity.value = null;
+        identityClient.identity.counted = identityOnly === true;
       }
       var done = false,
         timer,
@@ -192,20 +243,32 @@
           if (i >= 0) self.timers.splice(i, 1);
           if (e) reject(e);
           else try {
-            resolve(
-              detailOperation
-                ? root.ContentIdentity.attachDetail(v, identityClient.identity.value)
-                : v
-            );
+            var result = detailOperation ? root.ContentIdentity.attachDetail(v, identityClient.identity.value) : v;
+            if (identityOnly && result) {
+              delete result.episodes;
+              delete result.seasons;
+              delete result.selectedEpisodeId;
+              delete result.selectedEpisodePageUrl;
+            }
+            resolve(result);
           } catch (error) { reject(error); }
         };
       self.running.push(end);
       timer = setTimeout(
         function () {
+          var timeoutError, seen = [];
+          ['network', 'client'].forEach(function (name) {
+            var network = p[name];
+            if (network && seen.indexOf(network) < 0 && network.catalogTimedOut) {
+              seen.push(network);
+              var error = network.catalogTimedOut();
+              if (!timeoutError || error.cooldownUntil) timeoutError = error;
+            }
+          });
           try {
             if (typeof p.cancel === 'function') p.cancel();
           } catch (ignore) {}
-          end(new Error('Site yanıtı zamanında alınamadı.'));
+          end(timeoutError || new Error('Site yanıtı zamanında alınamadı.'));
         },
         Math.max(1, Math.min(26000, operationDeadline - Date.now()))
       );
@@ -219,24 +282,31 @@
       }
     });
   };
-  Provider.prototype.enrich = function (cards, token, update, finalPass) {
-    if (this.hub.merging === false) return Promise.resolve();
+  Provider.prototype.enrich = function (cards, token, update, finalPass, stopAt) {
+    if (token !== this.generation || this.hub.merging === false) return Promise.resolve();
     var self = this,
-      I = root.ContentIdentity;
+      I = root.ContentIdentity,
+      pending = this.identityPending || (this.identityPending = {});
+    (cards || []).forEach(function (card) {
+      if (card && card.pageUrl) pending[card.providerId + '|' + card.pageUrl.replace(/#.*$/, '')] = card;
+    });
     if (finalPass === undefined) finalPass = true;
     // Keep most of the bounded detail budget for conflicts revealed by later sites.
     if (!finalPass && self.identityCount >= 4) return Promise.resolve();
     if (this.metadataPromise)
       return finalPass
         ? this.metadataPromise.then(function () {
-            return self.enrich(cards, token, update, true);
+            return self.enrich(null, token, update, true, stopAt);
           })
         : this.metadataPromise;
     var used = this.identitySeen || (this.identitySeen = {}),
       busy = {},
       jobs = [];
+    cards = Object.keys(pending).map(function (key) { return pending[key]; });
     cards.forEach(function (card) {
-      if (!card || card.type === 'episode' || used[card.pageUrl]) return;
+      if (!card) return;
+      var key = card.providerId + '|' + card.pageUrl.replace(/#.*$/, '');
+      if (card.type === 'episode' || used[key]) { delete pending[key]; return; }
       if (
         self.searchText &&
         card.type !== 'collection' &&
@@ -248,6 +318,8 @@
         facts = I.analyze(card),
         candidates = {},
         collision = 0;
+      if (facts.evidence.checkedAt > Date.now() - 86400000 &&
+          (facts.imdbId || (facts.yearVerified && facts.typeVerified))) { delete pending[key]; return; }
       I.keys(card).forEach(function (k) {
         (self.hub.keys[k] || []).forEach(function (id) {
           candidates[id] = true;
@@ -299,7 +371,8 @@
       if (
         token !== self.generation ||
         Date.now() + 250 >= self.deadline ||
-        self.identityCount >= 12
+        (stopAt && Date.now() + 250 >= stopAt) ||
+        self.identityCount >= (stopAt ? 8 : 12) || self.queue.validations >= 12
       )
         return Promise.resolve();
       var index = -1;
@@ -312,9 +385,11 @@
       });
       if (index < 0) return Promise.resolve();
       var card = jobs.splice(index, 1)[0].card,
-        site = root.SiteRegistry.get(card.providerId);
-      if (!site || used[card.pageUrl]) return lane();
-      used[card.pageUrl] = true;
+        site = root.SiteRegistry.get(card.providerId),
+        key = card.providerId + '|' + card.pageUrl.replace(/#.*$/, '');
+      if (!site || used[key]) return lane();
+      used[key] = true;
+      delete pending[key];
       self.identityCount++;
       busy[site.id] = true;
       var method;
@@ -325,16 +400,17 @@
         return lane();
       }
       return self
-        .invoke(site, method, [card, !card.identityEvidence])
+        .invoke(site, method, [card, !card.identityEvidence], stopAt ? Math.max(1, stopAt - Date.now()) : undefined, true)
         .then(
           function (value) {
             if (token !== self.generation) return;
             Object.keys(value).forEach(function (key) {
               card[key] = value[key];
             });
-            if (!self.searchText || I.relevant(cards, self.searchText).indexOf(card) >= 0)
+            used[card.providerId + '|' + card.pageUrl.replace(/#.*$/, '')] = true;
+            if (!self.searchText || self.searchCandidates && self.searchCandidates[card.contentId] || I.relevant(cards, self.searchText).indexOf(card) >= 0)
               self.hub.observeDetail(value, site.id);
-            return update(true);
+            return update(true, card);
           },
           function () {}
         )
@@ -417,7 +493,7 @@
         snapshotRevision = self.hub.revision;
         snapshotIdCount = ids.length;
       }
-      var cards = snapshotCards,
+      var cards = remote ? remote.filter(snapshotCards, remoteSession.selected) : snapshotCards,
         cursor = {},
         hasNext = false;
       Object.keys(results).forEach(function (id) {
@@ -480,8 +556,24 @@
     var received = [],
       observedSources = {},
       admission = Promise.resolve(),
-      enrichment = false;
+      enrichment = false,
+      metadataWaiting = {},
+      changedIdentities = {};
     this.searchText = query.text || '';
+    var remote = kind === 'search' && self.hub.metadata, remoteSession = remote && remote.session(self.queue, self.deadline, query.text, self.selectedMetadataRef);
+    self.selectedMetadataRef = null;
+    function rememberIdentity(card) {
+      var group = self.hub.group(card.contentId), old;
+      if (!group) return;
+      old = group.variants.filter(function (v) { return v.contentId === card.contentId; })[0];
+      if (!old || old.pageUrl !== card.pageUrl) return;
+      var e = root.ContentIdentity.evidence(old);
+      if (!e.detailChecked || !e.checkedAt || e.checkedAt < Date.now() - 86400000) return;
+      if (!root.ContentIdentity.evidence(card).detailChecked) {
+        card.identityEvidence = C.copy(e);
+        if (!card.originalTitle && old.originalTitle) card.originalTitle = old.originalTitle;
+      }
+    }
     function admitRelevant() {
       var cards = (
         kind === 'search' ? root.ContentIdentity.relevant(received, query.text) : received
@@ -492,6 +584,11 @@
         return true;
       });
       if (!cards.length) return admission;
+      cards.forEach(function (card) {
+        var key = card.providerId + '|' + card.pageUrl.replace(/#.*$/, '');
+        metadataWaiting[key] = card;
+        if (self.hub.merging !== false) self.identityPending[key] = card;
+      });
       admission = admission
         .then(null, function () {})
         .then(function () {
@@ -550,11 +647,12 @@
           return;
         }
         finishing = true;
-        var work = self.hub.merging === false ? Promise.resolve() : self.hub.reconcileAsync
-          ? self.hub.reconcileAsync(ids, function () {
+        var dirty = Object.keys(changedIdentities),
+          work = self.hub.merging === false || !dirty.length ? Promise.resolve() : self.hub.reconcileAsync
+          ? self.hub.reconcileAsync(dirty, function () {
               return token === self.generation;
             })
-          : Promise.resolve(self.hub.reconcile(ids));
+          : Promise.resolve(self.hub.reconcile(dirty));
         work.then(
           function () {
             if (token !== self.generation) {
@@ -563,6 +661,9 @@
               return;
             }
             var result = snapshot();
+            if (remoteSession && remoteSession.selected && !result.cards.length) result.searchNotice = root.FilmI18n && root.FilmI18n.language() === 'en' ? 'Not found on active sites.' : 'Etkin sitelerde bulunamad\u0131.';
+            else if (remoteSession && remoteSession.selected && result.cards.some(function (card) { return card.searchMatch === 'possible'; }))
+              result.searchNotice = root.FilmI18n && root.FilmI18n.language() === 'en' ? 'Possible matches are also shown; their identity is not confirmed.' : 'Olası eşleşmeler de gösteriliyor; kimlikleri henüz doğrulanmadı.';
             result.unifiedProgress.running = false;
             result.unifiedProgress.enriching = false;
             self.hub.flush();
@@ -609,11 +710,73 @@
           self.timers.push(updateTimer);
         }
       }
-      function metadataUpdate(immediate) {
+      function metadataUpdate(immediate, card) {
         if (token !== self.generation || settled) return Promise.resolve();
+        if (card && card.contentId) changedIdentities[card.contentId] = true;
         return admitRelevant().then(function () {
           update(immediate);
         });
+      }
+      function identityUpdate(immediate, card) {
+        if (card && card.pageUrl) metadataWaiting[card.providerId + '|' + card.pageUrl.replace(/#.*$/, '')] = card;
+        return metadataUpdate(immediate, card);
+      }
+      function takeMetadata() {
+        var cards = Object.keys(metadataWaiting).map(function (key) { return metadataWaiting[key]; });
+        metadataWaiting = {};
+        return cards;
+      }
+      function searchAlternatives() {
+        if (kind !== 'search' || next || self.hub.merging === false && !(remote && remote.enabled())) return Promise.resolve();
+        var I = root.ContentIdentity, seeds = received.slice(), seen = {}, jobs = [], count = 0;
+        // Reuse bounded identity-index hits, never scan the whole saved catalog.
+        (self.hub.keys['name|' + I.name(query.text)] || []).slice(0, 8).forEach(function (id) {
+          var group = self.hub.group(id);
+          if (group) seeds = seeds.concat(group.variants);
+        });
+        if (remote && remote.enabled()) I.referenceSearchNames(remoteSession.references, query.text, remoteSession.selected).forEach(function (alias) {
+          sites.forEach(function (site) {
+            var state = states.filter(function (s) { return s.id === site.id; })[0];
+            if (jobs.length >= 8 || seen[site.id] || !state || state.status === 'blocked' || state.status === 'error' ||
+                site.contentTypes && site.contentTypes.indexOf(alias.type) < 0) return;
+            if (received.some(function (card) {
+              var ref = I.reference(card);
+              return card.providerId === site.id && ref && ref.id === alias.reference.id && ref.type === alias.reference.type;
+            })) return;
+            seen[site.id] = true;
+            jobs.push({ site: site, alias: alias.text });
+          });
+        });
+        I.searchNames(seeds, query.text).forEach(function (alias) {
+          var group = self.hub.group(alias.contentId);
+          sites.forEach(function (site) {
+            if (jobs.length >= 8 || seen[site.id] || !group ||
+                (site.contentTypes && site.contentTypes.indexOf(group.type) < 0) ||
+                group.variants.some(function (v) {
+                  return v.providerId === site.id && received.some(function (c) { return c.contentId === v.contentId; });
+                })) return;
+            var state = states.filter(function (s) { return s.id === site.id; })[0];
+            if (state.status === 'blocked' || state.status === 'error') return;
+            seen[site.id] = true;
+            jobs.push({ site: site, alias: alias.text });
+          });
+        });
+        function lane() {
+          if (token !== self.generation || Date.now() + 500 >= self.deadline || !jobs.length) return Promise.resolve();
+          var job = jobs.shift(); count++;
+          return self.invoke(job.site, 'search', [job.alias, force, null], Math.min(5000, self.deadline - Date.now())).then(function (value) {
+            if (token !== self.generation || !value || !Array.isArray(value.cards)) return;
+            value.cards.slice(0, 80).forEach(function (card) {
+              if (!card || typeof card.contentId !== 'string' || typeof card.title !== 'string' ||
+                  received.some(function (v) { return v.contentId === card.contentId; })) return;
+              card.providerId = job.site.id;
+              rememberIdentity(card);
+              received.push(card);
+            });
+            return metadataUpdate(true);
+          }, function () {}).then(lane);
+        }
+        return Promise.all([lane(), lane()]).then(function () { self.lastAlternateSearchCount = count; });
       }
       function start() {
         if (token !== self.generation) {
@@ -621,11 +784,20 @@
           return;
         }
         if (!active && !remaining.length) {
-          if (!enrichment && self.hub.merging !== false) {
+          if (!enrichment && (self.hub.merging !== false || remote)) {
             enrichment = true;
             active++;
             update();
-            self.enrich(received, token, metadataUpdate, true).then(
+            self.enrich(null, token, identityUpdate, true,
+              kind === 'search' && !next ? self.deadline - 7000 : undefined).then(function () {
+                return remote ? remote.enrich(takeMetadata(), remoteSession, metadataUpdate) : null;
+              }).then(function () {
+                return searchAlternatives();
+              }).then(function () {
+                return self.enrich(null, token, identityUpdate, true);
+              }).then(function () {
+                return remote ? remote.enrich(takeMetadata(), remoteSession, metadataUpdate) : null;
+              }).then(
               function () {
                 active--;
                 finish();
@@ -674,6 +846,7 @@
                 });
                 cards.forEach(function (c) {
                   if (!c.providerId) c.providerId = site.id;
+                  rememberIdentity(c);
                 });
                 received = received.concat(cards);
                 return admitRelevant().then(function () {
@@ -682,10 +855,15 @@
                   state.count = cards.length;
                   state.message =
                     value.searchNotice || (value.staleAt ? 'Önbellekteki sonuçlar' : '');
+                  if (root.CatalogSiteAvailability && root.CatalogSiteAvailability.status(site.id).paused) {
+                    state.status = 'paused';
+                    state.pauseUntil = root.CatalogSiteAvailability.status(site.id).until;
+                    state.message = root.CatalogSiteAvailability.message(site.id) + (value.staleAt ? ' · ' + state.message : '');
+                  }
                   results[site.id] = value.next || null;
                   update();
                   if (kind === 'search' && self.hub.merging !== false)
-                    self.enrich(received, token, metadataUpdate, false).then(
+                    self.enrich(null, token, identityUpdate, false).then(
                       function () {},
                       function () {}
                     );
@@ -693,10 +871,14 @@
               })
               .then(null, function (error) {
                 if (token !== self.generation) return;
-                state.status = /403|429|engell|erisim|erişim|Dogrulama/i.test(error.message)
+                state.status = error.sitePaused || error.cooldownUntil ? 'paused' : /403|429|engell|erisim|erişim|Dogrulama/i.test(error.message)
                   ? 'blocked'
                   : 'error';
                 state.message = C.safeMessage(error.message);
+                if (error.cooldownUntil) {
+                  state.pauseUntil = error.cooldownUntil;
+                  if (!error.sitePaused) state.message += ' · ' + root.CatalogSiteAvailability.message(site.id);
+                }
                 state.failureAt = Date.now(); state.failureStage = error.stage || kind; state.failureCode = error.code || error.type || state.status;
                 results[site.id] = cursors[site.id] || null;
               })
@@ -831,7 +1013,11 @@
       var site = root.SiteRegistry.get(candidate.providerId),
         work;
       if (!site || site.virtual) work = Promise.reject(new Error('İçeriğin sitesi bulunamadı.'));
-      else work = self.invoke(site, 'detail', [candidate, force], allowFallback && candidates.length ? 10000 : 26000);
+      else {
+        var sourceCard = C.copy(candidate); sourceCard.type = sourceCard.rawType || sourceCard.type;
+        work = self.invoke(site, 'detail', [sourceCard, force], allowFallback && candidates.length ? 10000 : 26000);
+      }
+      if (self.hub.metadata) work = work.then(function (value) { return self.hub.metadata.detail(value, self.queue, self.deadline); });
       return work.then(function (value) {
         if (token !== self.generation) throw cancelled();
         if (Date.now() >= self.deadline) throw exhausted(true);
@@ -889,7 +1075,7 @@
           return Number(v.sourceSeason) > 0;
         });
         result.seasonSourcePlayable =
-          result.type === 'series' && value.type === 'movie' && Number(candidate.sourceSeason) > 0;
+          result.type === 'series' && (value.rawType || value.type) === 'movie' && Number(candidate.sourceSeason) > 0;
         result.sourceSeason = Number(candidate.sourceSeason) || null;
         result.episodes = result.episodes || [];
         result.episodes.forEach(function (e) {
@@ -949,6 +1135,7 @@
       return ['type'];
     }
   };
+  root.CatalogWire = { Queue: Queue, capture: capture };
   root.UnifiedProvider = Provider;
   root.UnifiedSite = site;
 })(window);

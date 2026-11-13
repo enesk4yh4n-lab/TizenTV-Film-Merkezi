@@ -466,6 +466,7 @@ FilmI18n.register({
     ['İzleme geçmişiniz henüz boş.', 'Your watch history is empty.'],
     ['Site yanıtları', 'Site responses'],
     ['Sonuçlar birleştiriliyor…', 'Merging results…'],
+    ['Eksik bilgiler doğrulanıyor…', 'Verifying missing information…'],
     ['Sitelerde aranıyor…', 'Searching sites…'],
     ['Diğer sitelerde de bul', 'Find on other sites'],
     ['Eşleşen siteler güncellendi.', 'Matching sites updated.'],
