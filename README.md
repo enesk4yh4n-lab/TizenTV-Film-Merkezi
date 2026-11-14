@@ -2,15 +2,15 @@
 
 Samsung Tizen TV’ler için ücretsiz ve açık kaynaklı bir **medya merkezi**. Desteklenen web kaynaklarının katalog ve videolarını TV kumandasına uygun bir arayüzde sunar.
 
-**Yeni yapı:** Uygulamanın mimarisi tamamen yenilendi. Eski sürümler güncel dağıtımdan kaldırıldı; eski biçimdeki eklentiler yeni yapıda çalışmaz. Site ve çözümleyiciler artık kullanıcının seçtiği depolardan ayrı paketler olarak kurulur.
+**2.x yapısı:** Site ve çözümleyiciler kullanıcının seçtiği depolardan ayrı paketler olarak kurulur. WGT hazır site veya önceden seçili depo içermez.
 
-## Son güncelleme · Çekirdek 2.1.6
+## Son güncelleme · WGT 2.0.1 / Çekirdek 2.1.8
 
-- Daha sade Güncelleme Merkezi ve ayrıntılı indirme göstergeleri.
-- Adım adım ilk kurulum ve kolay eklenti yükleme.
-- Depolarda eklenti sayısı, çoktan aza sıralama ve kumanda odağı düzeltmeleri.
+- ÇizgiFilm/Anime ve Drama/Short kategorileri, menü ve kumanda düzenlemeleri.
+- İlk kurulumdan önce çekirdek denetimi, kaynakların kullanabildiği 24 MiB taşıma tavanı.
+- Eski kurulumları koruyan ayrı güncelleme kanalı ve paket işlemlerinde kararlılık düzeltmesi.
 
-**Güncelleme Merkezi → Kontrol et → Güncelle** yoluyla alabilirsiniz. WGT değişmedi. Ayrıntılar: [Sürüm notları](CHANGELOG.md).
+Bu sürüm için [WGT 2.0.1'i kurun](https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/releases/tag/v2.0.1). WGT 2.0.0 mevcut uyumlu kanalında kalır; yeni çekirdek ve yeni eklenti özellikleri için WGT güncellemesi gerekir. Ayrıntılar: [Sürüm notları](CHANGELOG.md).
 
 ## Özellikler
 
@@ -21,7 +21,7 @@ Samsung Tizen TV’ler için ücretsiz ve açık kaynaklı bir **medya merkezi**
 
 ## Ekran görüntüleri
 
-Güncel çekirdek 2.1.5 ile **gerçek Tizen 3 emülatöründen** alınmıştır. Görseller, kullanıcının eklediği depolarla oluşan örnek görünümü gösterir; WGT hazır site veya depo içermez.
+Çekirdek 2.1.5 ile **gerçek Tizen 3 emülatöründen** alınmıştır; yeni sürümde Keşfet yerine ÇizgiFilm/Anime ve Drama/Short bulunur. Görseller, kullanıcının eklediği depolarla oluşan örnek görünümü gösterir; WGT hazır site veya depo içermez.
 
 | Ana Sayfa | Filmler · En Çok İzlenenler |
 |---|---|
@@ -36,13 +36,16 @@ Güncel çekirdek 2.1.5 ile **gerçek Tizen 3 emülatöründen** alınmıştır.
 - [Ekran görüntülü TV’ye kurulum kılavuzu](docs/KURULUM.md)
 - [Ekran görüntülü depo ve eklenti kurulum kılavuzu](docs/DEPO_EKLEME.md)
 
-İlk kurulumda dil ve birleştirme tercihi, kullanım bilgilendirmesi ve depo seçimi bulunur. Hazır site veya önceden seçili depo gelmez; depo eklemeden devam edebilirsiniz. [Eklenti SDK 2.0.0](SDK/README.md) kullanılabilir; ayrı grafik arayüz henüz yayımlanmamıştır.
+İlk kurulumda dil, kullanım bilgilendirmesi, depo, birleştirme ve arama tercihleri adım adım sunulur. Hazır site veya önceden seçili depo gelmez; depo eklemeden devam edebilirsiniz. [Eklenti SDK 2.0.1](https://github.com/enesk4yh4n-lab/Film-Merkezi-Eklentiler/blob/main/SDK/README.md) kullanılabilir; ayrı grafik arayüz henüz yayımlanmamıştır.
 
 ## Depo bulma
 
 **Güncelleme Merkezi → Depolar → GitHub’da depo ara** açıldığında uyumlu depolar listelenir. Depo adı veya GitHub kullanıcı adıyla ayrıca arayabilirsiniz. Seçtiğiniz depo doğrulandıktan sonra **Ekle** deyin. Doğrudan HTTPS adresi ekleme de kullanılabilir.
 
-Depo dosyasının adı **filmmerkezi-repository.json** olmalıdır. SDK, GitHub aramasında bulunabilmesi için README açıklamasını ve dosya yolunu otomatik hazırlar. Eski dosya adı desteklenmez. Arama sonucunda görünmek bir güvenilirlik veya içerik onayı değildir.
+**WGT 2.0.1:** Depo dosyasının adı **filmmerkezi201-repository.json** olur. WGT 2.0.0, mevcut **filmmerkezi-repository.json** listesini ve uyumlu çekirdek kanalını kullanmaya devam eder. SDK, GitHub aramasında bulunabilmesi için README açıklamasını ve dosya yolunu hazırlar. Arama sonucunda görünmek bir güvenilirlik veya içerik onayı değildir.
+
+<!-- film-merkezi-repository: filmmerkezi-repository.json -->
+<!-- film-merkezi201-repository: filmmerkezi201-repository.json -->
 
 Uygulamadaki GitHub depo aramasında **Film-Merkezi** aratarak bulunan depoları ekleyebilirsiniz.
 

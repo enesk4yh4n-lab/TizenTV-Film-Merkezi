@@ -1,12 +1,12 @@
 # Third-party notices
 
-Historical attribution retained from earlier distributions: decoder arithmetic and site-format behavior were adapted from the HDFilmCehennemi Stremio Addon by enXov and its maintained Batuhan4 fork:
+Player decoder arithmetic, legacy decoding variants, and site-format behavior were adapted from the HDFilmCehennemi Stremio Addon by enXov and its maintained Batuhan4 fork:
 
 - https://github.com/enXov/hdfilmcehennemi-stremio
 - https://github.com/Batuhan4/hdfilmcehennemi-stremio
 
 The original MIT license follows. Other parts of this package are covered by LICENSE.
-These host-specific decoder modules are not included in this WGT or its generic core. The original attribution and license text are retained below.
+The adapted build sources are supplied outside the WGT at `kaynak/p001/decoder/` and in the companion source ZIP. The TV loads the generated decoder files.
 
 ```text
 MIT License
@@ -82,7 +82,8 @@ The Samsung AVPlay adapter uses the existing TV SDK; no paid player SDK or new r
 
 Catalog Options → About and Player → More → About provide the same bundled
 acknowledgements, short component-specific license identifiers and an optional
-reader for the full, unmodified local license/notice files. Historical credits are retained; YouTube-specific code is not included in this distribution. Components are not assigned one blanket license.
+reader for the full, unmodified local license/notice files. The credits include
+transitive YouTube dependencies; they are not all assigned one blanket license.
 Mbed TLS and p256-m use their Apache-2.0 option, not their alternative GPL option.
 The SDK's additional third-party notices remain intact.
 
@@ -104,14 +105,14 @@ This public WGT intentionally has no developer signatures. Apps2Samsung signs it
 ## Native TLS module and ca-bundle — MPL-2.0 source availability
 
 - Native TLS modülü: `ortak/ag/native`. ca-bundle, Mozilla CA verisidir ve MPL-2.0 lisanslıdır; paketle birlikte değiştirilmemiş haliyle derlenmiştir.
-- Corresponding source: `Film-Merkezi-Kaynak-2.0.0.zip`, supplied alongside this WGT. It includes the complete native C++/headers, unchanged Mozilla CA data and native build tools. Sources are supplied in the accompanying archive and the public source repository.
+- Corresponding source: `Film-Merkezi-Kaynak-2.0.0.zip`, supplied alongside this WGT. It includes the complete native C++/headers, unchanged Mozilla CA data, decoder sources and build tools. Sources are supplied in the accompanying archive and the public source repository.
 
 
 ## Film Merkezi 2.0.0 corresponding sources
 
 For the 2.0.0 distribution, matching application, SDK and native build sources are supplied in `Film-Merkezi-Kaynak-2.0.0.zip`. Native binaries were rebuilt for the repository filename and bounded GitHub discovery endpoints; the Mozilla CA input is unchanged. Signing keys are not included.
 
-The application and update loader are in `uygulama/`; native build inputs and production tools are in `kaynak/` in the companion source archive. Native notices and all upstream license texts remain in this WGT. Site providers are separate signed online packages; their readable source accompanies each site package. No private keys are included.
+The application and update loader are in `uygulama/`; native build inputs and decoder production sources are in `kaynak/` in the companion source archive. Native notices and all upstream license texts remain in this WGT. Site providers are separate signed online packages; their readable source accompanies each site package. No private keys are included.
 
 
 This WGT includes no site providers. The signed provider repository is optional and initially empty. Site-specific helpers and permissions belong to the corresponding plugin rather than the WGT.

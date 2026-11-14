@@ -1,7 +1,7 @@
 /* Public GitHub repository discovery. Never trusts or installs a search result. */
 (function (root) {
   'use strict';
-  var NAME = 'filmmerkezi-repository.json', API = 'https://api.github.com';
+  var NAME = 'filmmerkezi201-repository.json', API = 'https://api.github.com';
   function message(tr, en) { return root.FilmI18n && root.FilmI18n.language() === 'en' ? en : tr; }
   function Search() { this.task = null; this.generation = 0; }
   Search.prototype.cancel = function () { this.generation++; if (this.task) this.task.cancel(); this.task = null; };
@@ -50,9 +50,9 @@
     return this.read(API + '/repos/' + repo.fullName + '/readme?ref=' + encodeURIComponent(repo.branch), token).then(function (data) {
       var text = '', path = NAME, marker;
       if (data && data.encoding === 'base64' && typeof data.content === 'string' && data.content.length < 180000) text = root.atob(data.content.replace(/\s/g, ''));
-      marker = /<!--\s*film-merkezi-repository:\s*([A-Za-z0-9_./-]+)\s*-->/.exec(text);
+      marker = /<!--\s*film-merkezi201-repository:\s*([A-Za-z0-9_./-]+)\s*-->/.exec(text);
       if (marker) path = marker[1];
-      if (path.indexOf('..') >= 0 || path.charAt(0) === '/' || !/(^|\/)filmmerkezi-repository\.json$/.test(path)) throw new Error(message('README depo adresi geçersiz.', 'Invalid repository address in README.'));
+      if (path.indexOf('..') >= 0 || path.charAt(0) === '/' || !/(^|\/)filmmerkezi201-repository\.json$/.test(path)) throw new Error(message('README depo adresi geçersiz.', 'Invalid repository address in README.'));
       return root.FilmPluginSchema.address('https://raw.githubusercontent.com/' + repo.fullName + '/' + repo.branch + '/' + path);
     });
   };

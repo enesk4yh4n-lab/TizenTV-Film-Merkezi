@@ -11,7 +11,7 @@
   }
   function discoveryAllowed(u) {
     if (u.origin !== 'https://api.github.com') return false;
-    if (u.pathname === '/search/repositories') return u.search.indexOf('filmmerkezi-repository.json') >= 0;
+    if (u.pathname === '/search/repositories') return u.search.indexOf('filmmerkezi201-repository.json') >= 0;
     return /^\/repos\/[A-Za-z0-9_.-]{1,100}\/[A-Za-z0-9_.-]{1,100}\/readme$/.test(u.pathname) && u.pathname.indexOf('/../') < 0;
   }
   function allowed(value) {
@@ -20,7 +20,7 @@
       if (u.protocol !== 'https:' || u.username || u.password || u.port && u.port !== '443' || u.hash || /[\r\n\t \\]/.test(value)) return false;
       if (discoveryAllowed(u)) return true;
       if (u.origin === channel.origin && u.pathname.indexOf(channel.pathname + '/') === 0 && !/%|\.\./.test(u.pathname)) return true;
-      if (!/%|\.\./.test(u.pathname) && Object.keys(repositories).some(function (id) { var r = repositories[id], base = new root.URL(r.root); return u.origin === base.origin && u.pathname.indexOf(base.pathname) === 0 && (r.publicKey || u.pathname === base.pathname + 'filmmerkezi-repository.json' || u.pathname === base.pathname + 'filmmerkezi-repository.sig'); })) return true;
+      if (!/%|\.\./.test(u.pathname) && Object.keys(repositories).some(function (id) { var r = repositories[id], base = new root.URL(r.root); return u.origin === base.origin && u.pathname.indexOf(base.pathname) === 0 && (r.publicKey || u.pathname === base.pathname + 'filmmerkezi201-repository.json' || u.pathname === base.pathname + 'filmmerkezi201-repository.sig'); })) return true;
       return hostAllowed(u.hostname);
     } catch (ignore) { return false; }
   }
@@ -35,6 +35,10 @@
     return true;
   }
   function failAll(e) { Object.keys(jobs).forEach(function (id) { jobs[id].finish(e); }); }
+  function accessPage(text) {
+    var prefix = String(text || '').replace(/^\uFEFF/, '').slice(0, 8192);
+    return /^\s*(?:<!doctype\s+html\b|<html\b|<head\b|<title\b)/i.test(prefix) && /<title[^>]*>\s*(?:Just a moment|Attention Required|Access Denied)|cf-browser-verification|cf-mitigated/i.test(prefix);
+  }
   function ensure() {
     if (!supported()) return Promise.reject(fault('unavailable', 'Native TLS bu platformda bulunmuyor.'));
     if (loading) return loading;
@@ -57,7 +61,7 @@
         var data = job.binary ? m.data : m.body, size = data && (job.binary ? data.byteLength : root.FilmUpdateVerify.bytes(data).length);
         if (typeof size !== 'number' || size > job.limit) { var limit = fault('size', 'Native TLS boyut sınırı'); limit.byteLimitExceeded = true; limit.byteLimit = job.limit; job.finish(limit); return; }
         if (job.binary && m.status === 206) { var match = /^bytes\s+(\d+)-(\d+)\/(?:\d+|\*)$/i.exec(m.contentRange || ''); if (!match || Number(match[1]) !== job.rangeStart || Number(match[2]) + 1 !== job.rangeEnd || size !== job.rangeEnd - job.rangeStart) { job.finish(fault('range', 'Doğrulanamayan HTTP byte range', 206)); return; } }
-        if (!job.binary && /<title[^>]*>\s*(Just a moment|Attention Required|Access Denied)|cf-browser-verification|cf-mitigated/i.test(data)) { job.finish(fault('access', 'Doğrulama/erişim engeli')); return; }
+        if (!job.binary && accessPage(data)) { job.finish(fault('access', 'Doğrulama/erişim engeli')); return; }
         if (job.progress) job.progress(size, size);
         job.finish(null, { body: job.binary ? null : data, data: data, method: 'NativeTLS', url: job.url, status: m.status, code: m.status, mimeType: m.mimeType || '', contentRange: m.contentRange || '', partial: m.status === 206 });
       });
@@ -91,7 +95,7 @@
       job.redirect = function (m) { var target; try { target = new root.URL(m.location, job.url).href; } catch (ignore) {} if (++job.redirects > 3 || !target || !allowed(target) || !scopeAllowed(job, target)) { finish(fault('redirect', 'TLS yönlendirmesi izinli değil.')); return; } if (m.status === 303 || (m.status === 301 || m.status === 302) && job.method === 'POST') { job.method = 'GET'; job.body = ''; delete job.headers['Content-Type']; } job.url = target; release(); queue.push(job); pump(); };
       cancel = function () { var e = fault('cancel', 'İptal edildi'); e.cancelled = true; finish(e); };
       if (!job.configure && !job.control && (!allowed(url) || !scopeAllowed(job, url) || job.referer && (!allowed(job.referer) || !scopeAllowed(job, job.referer)))) { finish(fault('validation', 'TLS adresi imzalı izin listesinde yok.')); return; }
-      if (job.limit < 1 || job.limit > (job.binary ? 12 : 2) * 1024 * 1024 || job.limit % 1 || queue.length >= 32) { finish(fault('validation', 'TLS istek sınırı geçersiz.')); return; }
+      if (job.limit < 1 || job.limit > (job.binary ? 24 : 2) * 1024 * 1024 || job.limit % 1 || queue.length >= 32) { finish(fault('validation', 'TLS istek sınırı geçersiz.')); return; }
       Object.keys(options.headers || {}).forEach(function (name) { var normalized = { range: 'Range', origin: 'Origin', 'content-type': 'Content-Type', 'x-requested-with': 'X-Requested-With' }[name.toLowerCase()]; if (normalized) { if (normalized === 'Origin' && !scopeAllowed(job, options.headers[name])) throw fault('validation', 'Package Origin denied'); job.headers[normalized] = options.headers[name]; } });
       if (options.rangeEnd > options.rangeStart) job.headers.Range = 'bytes=' + options.rangeStart + '-' + (options.rangeEnd - 1);
       jobs[id] = job; timer = setTimeout(function () { finish(fault('timeout', 'Native TLS zaman aşımı.')); }, Math.max(1, deadline - Date.now())); queue.push(job); ensure().then(pump, finish);
@@ -107,9 +111,9 @@
   function control(message) { return supported() ? request('', '', { control: message, timeout: 12000 }).promise : Promise.resolve(); }
   function registerRepository(id, index, publicKey) {
     if (!/^[a-z][a-z0-9-]{0,63}$/.test(id) || typeof publicKey !== 'string' || publicKey.length > 800) return Promise.reject(fault('repository', 'Depo kimliği veya anahtarı geçersiz.'));
-    var url; try { url = root.FilmPluginSchema.address(index); } catch (e) { return Promise.reject(e); }
+    var url; try { var savedLegacy=!!publicKey&&/\/filmmerkezi-repository\.json$/.test(index);url=root.FilmPluginSchema.address(savedLegacy?index.replace(/filmmerkezi-repository\.json$/,'filmmerkezi201-repository.json'):index);if(savedLegacy)url=url.replace(/filmmerkezi201-repository\.json$/,'filmmerkezi-repository.json'); } catch (e) { return Promise.reject(e); }
     if (repositories[id] && repositories[id].publicKey && repositories[id].publicKey !== publicKey) return Promise.reject(fault('repository', 'Depo anahtarı bu açılışta değiştirilemez.'));
-    return control({ kind: 'repository', repositoryId: id, url: url, publicKey: publicKey }).then(function () { var old = repositories[id]; repositories[id] = { root: url.replace(/filmmerkezi-repository\.json$/, ''), publicKey: publicKey, policies: old ? old.policies : {} }; });
+    return control({ kind: 'repository', repositoryId: id, url: url, publicKey: publicKey }).then(function () { var old = repositories[id]; repositories[id] = { root: url.replace(/filmmerkezi(?:201)?-repository\.json$/, ''), publicKey: publicKey, policies: old ? old.policies : {} }; });
   }
   function configureRepository(id, pluginId, text, signature) {
     var r = repositories[id], parsed; if (!r || !r.publicKey || !/^[a-z][a-z0-9-]{0,63}$/.test(pluginId)) return Promise.reject(fault('repository', 'Önce depo yayıncısına güvenilmeli.'));

@@ -72,6 +72,9 @@
       imdbId: I.imdb(card.imdbId || card.imdbUrl)
     };
     if (!v.title) return null;
+    var catalogSection=root.CatalogSections&&root.CatalogSections.classify(card);
+    if(catalogSection)v.catalogSection=catalogSection;
+    else if(card.catalogSection==='general')v.catalogSection='general';
     if (card.posterLarge) v.posterLarge = U.url(card.posterLarge, card.pageUrl);
     if (I.reference(card)) v.metadataRef = I.reference(card);
     v.rawTitle = U.clean(card.rawTitle || card.title).slice(0, 300);
@@ -1013,6 +1016,7 @@
         providerNames: [],
         providerCount: 0
       };
+    if(root.CatalogSections)c.catalogSection=root.CatalogSections.classify(g);
     if (v.languageReference) c.languageReference = C.copy(v.languageReference);
     else g.variants.some(function (variant) {
       if (variant.language === c.language && variant.languageReference) {

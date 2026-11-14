@@ -1,6 +1,8 @@
 /* English UI pack. Turkish source messages are the fallback; site content stays verbatim. */
 FilmI18n.register({
   messages: [
+    ['ÇizgiFilm/Anime', 'Cartoons/Anime'],
+    ['Bu bölümü destekleyen etkin eklenti bulunamadı.', 'No enabled plugin supports this section.'],
     ['Eklentiler ve depolar', 'Plugins and repositories'],
     ['Depolar', 'Repositories'],
     ['Henüz depo eklenmedi', 'No repository has been added yet'],

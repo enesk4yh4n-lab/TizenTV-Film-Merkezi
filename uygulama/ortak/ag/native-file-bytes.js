@@ -6,7 +6,7 @@
   function read(file, options) {
     options = options || {};
     var requested = options.byteLimit,
-      limit = Math.min(12 * 1024 * 1024,
+      limit = Math.min(24 * 1024 * 1024,
         typeof requested === 'number' && isFinite(requested) && requested > 0
           ? Math.floor(requested) : 8 * 1024 * 1024);
     var done = false,

@@ -39,8 +39,8 @@
       }).catch(function (e) { self.blocked = true; self.state.active = null; self.note = e.message; self.channels = new root.FilmCoreChannel({ channel: self.channels.anchor.channel, publicKey: self.channels.anchor.publicKey, appVersion: self.config.appVersion }); });
     }).then(function () { return self.blocked ? null : self.clean(); });
   };
-  Manager.prototype.get = function (path, metadata, channel) {
-    var self = this, url = (channel || this.config.channel) + '/' + path + (metadata ? '?check=' + Date.now() : ''), ms = metadata ? 10000 : 30000, task;
+  Manager.prototype.get = function (path, metadata, channel, releaseHash) {
+    var self = this, url = (channel || this.config.channel) + '/' + path + (metadata ? '?check=' + Date.now() : releaseHash ? '?release=' + releaseHash : ''), ms = metadata ? 10000 : 30000, task;
     if (root.FilmUpdateHttp && root.FilmUpdateHttp.supported()) {
       task = this.nativeTask = root.FilmUpdateHttp.request(url, '', { timeout: ms, deadline: Date.now() + ms });
       task = task.promise.then(function (r) { self.nativeTask = null; return r; }, function (e) { self.nativeTask = null; throw e; });
@@ -55,19 +55,24 @@
     var task = this.registerChannel().then(function () { return self.get('update.json', true); }).then(function (v) { text = v; return self.get('update.sig', true); }).then(function (signature) { return self.trust.verify(text, signature); }).then(function () {
       if (token !== self.generation) throw new Error('Güncelleme iptal edildi.');
       pointer = V.pointer(text, self.config.appVersion);
-      if (pointer.updateVersion.split(".").map(Number).reduce(function (r, n, i) { return r || n - Number(self.config.componentMinVersion.split(".")[i]); }, 0) < 0) throw new Error("Bu kanal eski çekirdek sürümü sunuyor.");
+      if (pointer.updateVersion.split(".").map(Number).reduce(function (r, n, i) { return r || n - Number(self.config.componentMinVersion.split(".")[i]); }, 0) < 0) {
+        var installed = self.selected || self.baseline, older = new Error('Bu kanal eski çekirdek sürümü sunuyor.');
+        /* A verified feed older than our usable bundled core offers no update. */
+        if (installed && V.compatible(self.config.componentMinVersion, installed.version)) older.code = 'CORE_ALREADY_CURRENT';
+        throw older;
+      }
       if (pointer.revision < self.state.revision) throw new Error('Eski güncelleme bildirimi reddedildi.');
       if (pointer.revision === self.state.revision && self.state.pointerHash) return V.sha(text).then(function (hash) { if (hash !== self.state.pointerHash) throw new Error('Güncelleme revizyonu çelişiyor.'); });
     }).then(function () { return V.sha(text); }).then(function (hash) {
       if (token !== self.generation) throw new Error('Güncelleme iptal edildi.');
       return self.commit({ revision: pointer.revision, pointerHash: hash, checkedAt: Date.now() });
     }).then(function () { self.migrationOffer = null; self.migrationDetails = null; if (!pointer.migration) return; return self.channels.next(pointer.migration).then(function (details) { return V.fingerprint(details.publicKey).then(function (hash) { self.migrationOffer = pointer.migration; self.migrationDetails = { channel: details.channel, fingerprint: hash }; }); }); }).then(function () { var current = self.selected && self.selected.version, newer = !current || root.FilmPluginSchema.compare(pointer.updateVersion, current) > 0; self.found = newer ? pointer : null; self.note = newer ? 'Yeni bileşen sürümü bulundu.' : 'Bileşenler güncel.'; return self.status(); });
-    this.checking = task.then(function (result) { self.checking = null; self.busy = ''; return result; }, function (e) { self.checking = null; self.busy = ''; self.note = e.message; self.errorReport = root.FilmErrorReporter && root.FilmErrorReporter.capture({scope:'update',stage:'core-check',error:e}); throw e; }); return this.checking;
+    this.checking = task.then(function (result) { self.checking = null; self.busy = ''; return result; }, function (e) { self.checking = null; self.busy = ''; if (e.code === 'CORE_ALREADY_CURRENT') { self.found = null; self.note = 'Bileşenler güncel.'; return self.status(); } self.note = e.message; self.errorReport = root.FilmErrorReporter && root.FilmErrorReporter.capture({scope:'update',stage:'core-check',error:e}); throw e; }); return this.checking;
   };
   Manager.prototype.registerChannel = function (descriptor, id) {
     var c = descriptor || this.channels.current;
     if (!c.sequence && !descriptor) return Promise.resolve();
-    return root.FilmNativeTLS.registerRepository(id || 'core-channel-' + c.sequence, c.channel + '/filmmerkezi-repository.json', c.publicKey);
+    return root.FilmNativeTLS.registerRepository(id || 'core-channel-' + c.sequence, c.channel + '/filmmerkezi201-repository.json', c.publicKey);
   };
   Manager.prototype.migrate = function () {
     var self = this, offer = this.migrationOffer, candidate, raw, pointer, token = this.generation;
@@ -91,8 +96,8 @@
     var self = this, pointer, record, m, token, began = Date.now(), fetched = 0, reused = 0;
     var task = this.check().then(function () {
       pointer = self.found; if (!pointer) throw new Error('Yeni çekirdek güncellemesi yok.'); token = self.generation; self.busy = 'download';
-      return self.get(pointer.manifest, false);
-    }).then(function (text) { record = { text: text }; return V.sha(text); }).then(function (hash) { if (hash !== pointer.manifestSha256) throw new Error('Manifest özeti eşleşmiyor.'); return self.get('versions/' + pointer.updateVersion + '/manifest.sig', false); }).then(function (signature) { record.signature = signature; return self.record(record); }).then(function (value) {
+      return self.get(pointer.manifest, false, null, pointer.manifestSha256);
+    }).then(function (text) { record = { text: text }; return V.sha(text); }).then(function (hash) { if (hash !== pointer.manifestSha256) throw new Error('Manifest özeti eşleşmiyor.'); return self.get('versions/' + pointer.updateVersion + '/manifest.sig', false, null, pointer.manifestSha256); }).then(function (signature) { record.signature = signature; return self.record(record); }).then(function (value) {
       m = value; if (m.version !== pointer.updateVersion) throw new Error('Bileşen sürümleri eşleşmiyor.');
       return serial(m.files, function (file) {
         function active() { if (token !== self.generation || Date.now() - began > 120000 || (self.app && self.app.controller.content)) throw new Error('Güncelleme iptal edildi veya süresi doldu.'); }
@@ -101,7 +106,7 @@
         if (bundled) { reused++; return; }
         return self.storage.read('obj-' + file.sha256 + '.txt').then(function (text) { return text === null ? false : V.sha(text).then(function (hash) { return hash === file.sha256 && V.bytes(text).length === file.size; }); }).then(function (valid) {
           active(); if (valid) { reused++; return; }
-          return self.get('versions/' + m.version + '/runtime/' + file.path, false).then(function (text) { active(); return V.sha(text).then(function (hash) { active(); if (hash !== file.sha256 || V.bytes(text).length !== file.size) throw new Error('Dosya özeti eşleşmiyor: ' + file.path); return self.storage.write('obj-' + file.sha256 + '.txt', text); }); }).then(function () { fetched++; });
+          return self.get('versions/' + m.version + '/runtime/' + file.path, false, null, pointer.manifestSha256).then(function (text) { active(); return V.sha(text).then(function (hash) { active(); if (hash !== file.sha256 || V.bytes(text).length !== file.size) throw new Error('Dosya özeti eşleşmiyor: ' + file.path); return self.storage.write('obj-' + file.sha256 + '.txt', text); }); }).then(function () { fetched++; });
         });
       });
     }).then(function () { if (token !== self.generation) throw new Error('Güncelleme iptal edildi.'); return self.commit({ pending: record }); }).then(function () { self.note = 'Güncelleme doğrulandı; uygulamaya hazır.'; self.lastDownload = { fetched: fetched, reused: reused, version: m.version }; return self.status(); });

@@ -54,7 +54,7 @@
       }
       back('repositories');
     } else if (view === 'address') {
-      line(t('filmmerkezi-repository.json adresi', 'filmmerkezi-repository.json address'));
+      line(t('filmmerkezi201-repository.json adresi', 'filmmerkezi201-repository.json address'));
       var input = document.createElement('input'); input.type = 'url'; input.id = 'plugins-url'; input.maxLength = 2048; input.value = panel.url || ''; input.readOnly = true; input.tabIndex = -1; input.style.cssText = 'box-sizing:border-box;width:100%;font-size:25px;padding:14px;background:#101d30;color:white;border:2px solid #576781'; input.oninput = function () { panel.url = input.value; }; box.appendChild(input);
       button(t('Adresi düzenle · OK ile klavye', 'Edit address · OK opens keyboard'), 'plugins-url-edit', function () { panel.inputEditing = true; input.readOnly = false; input.focus(); });
       button(t('Devam et', 'Continue'), 'plugins-probe', function () { panel.url = input.value; panel.technical = false; work(function () { return manager.probe(panel.url); }, 'trust', 'plugins-trust'); });

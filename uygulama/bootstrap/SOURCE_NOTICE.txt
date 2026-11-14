@@ -1,4 +1,4 @@
-Film Merkezi 2.0.0
-Signed component updates: github-eklenti/update.json. User-selected site index: filmmerkezi-repository.json. No site packages are included.
+Film Merkezi 2.0.1
+Signed component updates: github-eklenti/201/update.json. User-selected site index: filmmerkezi201-repository.json. No site packages are included.
 TLS certificate and hostname validation remain enabled. No private keys are included.
 Native Mozilla CA data remains MPL-2.0. Corresponding native/CA production sources and license texts: https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/tree/main/kaynak

@@ -2,7 +2,7 @@
 (function (root) {
   'use strict';
   var KEY = 'filmmerkezi.site-addresses.v1',
-    REMOTE = 'https://raw.githubusercontent.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/main/site-adresleri.json',
+    REMOTE = '',
     MAX = 65536;
   function object(v) { return v && typeof v === 'object' && !Array.isArray(v); }
   function copy(v) { return JSON.parse(JSON.stringify(v)); }
@@ -143,6 +143,7 @@
     return out;
   };
   Book.prototype.refresh = function (force) {
+    if (!this.endpoint) return Promise.resolve(this.status());
     if (this.inflight) return this.inflight;
     var self = this, now = this.now();
     if (!force && this.checkedAt && now - this.checkedAt < 6 * 60 * 60 * 1000)

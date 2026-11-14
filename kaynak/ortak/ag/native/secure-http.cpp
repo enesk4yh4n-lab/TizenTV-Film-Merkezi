@@ -107,7 +107,7 @@ class Instance : public pp::Instance {
     if(scoped&&!referer.empty()){std::string sh,st;if(!Url(referer,&sh,&st)||!repositories_.Scoped(scopedRepo.AsString(),scopedPlugin.AsString(),sh)){Reply(id,"validation",-1,NULL);return;}}
     if(!referer.empty()&&(!Url(referer,&rh,&rt)||(!film_policy::Allowed(rh,origins_)&&!repositories_.Allowed(rh)&&!repositories_.Request(rh,rt)))){Reply(id,"validation",-1,NULL);return;}
     pp::Var binaryVar=message.Get("binary"),limitVar=message.Get("byteLimit"),methodVar=message.Get("method"),bodyVar=message.Get("body");bool binary=binaryVar.is_bool()&&binaryVar.AsBool();size_t limit=limitVar.is_int()&&limitVar.AsInt()>0?static_cast<size_t>(limitVar.AsInt()):(binary?8*1024*1024:2*1024*1024);
-    if(limit>(binary?12*1024*1024:2*1024*1024)){Reply(id,"validation",-1,NULL);return;}std::string method=methodVar.is_string()?methodVar.AsString():"GET",body=bodyVar.is_string()?bodyVar.AsString():"";
+    if(limit>(binary?24*1024*1024:2*1024*1024)){Reply(id,"validation",-1,NULL);return;}std::string method=methodVar.is_string()?methodVar.AsString():"GET",body=bodyVar.is_string()?bodyVar.AsString():"";
     if((method!="GET"&&method!="POST")||body.size()>262144||(method=="GET"&&!body.empty())){Reply(id,"validation",-1,NULL);return;}
     if(discovery && (method!="GET" || binary || limit>262144)){Reply(id,"validation",-1,NULL);return;}
     std::string extra;const char* headerNames[]={"Range","Origin","Content-Type","X-Requested-With"};pp::Var hv=message.Get("headers");if(hv.is_dictionary()){pp::VarDictionary headers(hv);for(size_t i=0;i<4;i++){pp::Var v=headers.Get(headerNames[i]);if(!v.is_undefined()){if(!v.is_string()){Reply(id,"validation",-1,NULL);return;}std::string value=v.AsString();if(value.size()>2048||value.find_first_of("\r\n")!=std::string::npos){Reply(id,"validation",-1,NULL);return;}if(i==1){std::string h;if(!film_policy::Origin(value,&h)||(!film_policy::Allowed(h,origins_)&&!repositories_.Allowed(h))){Reply(id,"validation",-1,NULL);return;}}if(i==1&&scoped){std::string h;if(!film_policy::Origin(value,&h)||!repositories_.Scoped(scopedRepo.AsString(),scopedPlugin.AsString(),h)){Reply(id,"validation",-1,NULL);return;}}extra+=std::string(headerNames[i])+": "+value+"\r\n";}}}
@@ -247,7 +247,7 @@ void Job::Pump(int32_t) {
 }
 void Job::Timeout(int32_t) { Fail("timeout", PP_ERROR_TIMEDOUT); }
 void Job::Fail(const std::string& stage, int32_t code) { owner_->Reply(id_, stage, code, NULL); }
-void Job::Finish() { film_http::Response response = film_http::Parse(raw_,limit_); owner_->Reply(id_, response.tooLarge ? "size" : response.error.empty() ? "http" : "parse", response.error.empty() ? 0 : -1, &response); }
+void Job::Finish() { film_http::Response response = film_http::Parse(raw_,limit_,&raw_); std::string().swap(raw_); owner_->Reply(id_, response.tooLarge ? "size" : response.error.empty() ? "http" : "parse", response.error.empty() ? 0 : -1, &response); }
 class Module : public pp::Module { public: pp::Instance* CreateInstance(PP_Instance id) { return new Instance(id); } };
 }  // namespace
 namespace pp { Module* CreateModule() { return new ::Module(); } }

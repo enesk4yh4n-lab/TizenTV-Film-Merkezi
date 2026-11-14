@@ -1,15 +1,15 @@
 {
   "qa": false,
-  "sourceSha256": "604aa7c25aff22b1ac044a2f2e497776189eea9994c74d9e201f30afa4ea2a2a",
+  "sourceSha256": "6394df438e42597c03280a443ae01ee7ed21913681bcc6931d411865b41dd3a1",
   "inputs": {
-    "secure-http.cpp": "604aa7c25aff22b1ac044a2f2e497776189eea9994c74d9e201f30afa4ea2a2a",
+    "secure-http.cpp": "6394df438e42597c03280a443ae01ee7ed21913681bcc6931d411865b41dd3a1",
     "ca-bundle.h": "0bf632e879abbe487c714aaef5439d906908b7c600151fe3b0ff93a23f6eabff",
     "film-tls-config.h": "4522af5585ce00940b9082323fc3a118d92c0628f4c0f9287dc1203253ceb46a",
-    "http-response.h": "0a94a9035d151975fb2c7628639c05f63220441587fd1716db89f053989588cc",
+    "http-response.h": "a2bcaea423c17e58842241b88a28ad3137d310e016ffef6585affdf60fe0fc43",
     "network-policy.h": "6511c8919763adeb265fdec60d0af1cda17f5188dd0d380b4c94318998560cb1",
     "origin-patterns.inc.h": "b2ed1a57a557bb5c8289516317924ac49c36cd461138ca45f7aa0bbcf6c7b5c0",
-    "repository-discovery.h": "3325dfb8343ef600e628fdb3ea9ca0efcfe13b31e2b91c6b7dad970b4553d788",
-    "repository-policy.h": "0a5d4b4cabe62206c9a69148e25e9505fb38da78f7cfb2efbb6142fddc8a53eb",
+    "repository-discovery.h": "fe446f84c478fd2ea416386e1f1d435ece42d02ed5821b49f9f15b0e92370ccb",
+    "repository-policy.h": "96acb0f860595e21d78d0e5f16c6a95fbfb00c4d5fda536efbd09fc50ee1e19b",
     "update-public-key.h": "4bc371c8d88e326dacd31c3cdebec069f2d0d24b57189963fedd2679d2a8f4c5",
     "ca-bundle.pem": "796f1389bfea13c0ed78f663b765baaff54a508e5483786bd6ece73c5e3e3cbe"
   },
@@ -17,16 +17,16 @@
   "tlsArchiveSha256": "a7e8bcbec0e6f761b4af24f25677626b35f762f68eef79c08677a363212d11f6",
   "files": {
     "https-arm.nexe": {
-      "sha256": "30994ce6ed0a0aa671b0a0a8f96c11d8a249aaab4729ac81a939d1484fec4fd4",
-      "size": 2331176
+      "sha256": "fd2cfd869a4ebf6baad138df9e9b84a23a3ead6fe2fa1be65eb1aa8ae09379e8",
+      "size": 2331144
     },
     "https-x86-32.nexe": {
-      "sha256": "7a095893e3bcb16f2662daee18f3b04a3af2e0fd8a9b7fbbc026c39b7d60a6ed",
-      "size": 2758005
+      "sha256": "9bd0658b0b6917c0d82798906e4be9a3f3b7184f3b5a7289c501a993d7f9cc96",
+      "size": 2758039
     },
     "https-x86-64.nexe": {
-      "sha256": "7dd05bf7471a7acdd11d73b0c1487f92f0352070ca6d365c4459bf8984f96342",
-      "size": 3091205
+      "sha256": "4c41c4724f01a79e0e40acb65c42a5642916fd0898c75a1d78d30f63a0a34bb4",
+      "size": 3091247
     }
   }
 }

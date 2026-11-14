@@ -5,7 +5,7 @@
     function read(repo, item) {
       var key = repo.id + '/' + item.id;
       if (visited[key]) return visited[key];
-      var raw, sig, base = repo.url.replace(/filmmerkezi-repository\.json$/, '');
+      var raw, sig, base = S.repositoryRoot(repo.url);
       visited[key] = self.fetch(base + item.manifest, check, 16384).then(function (text) {
         raw = text; return V.sha(text);
       }).then(function (hash) {
@@ -58,7 +58,7 @@
         if (Object.keys(self.state.plugins).concat(rows.map(function (c) { return c.key; })).filter(function (key, i, a) { return a.indexOf(key) === i; }).length > 64) throw new Error('64 package limit');
         return serial(rows, function (c) {
           progress.packageBytes=0;progress.packageTotal=c.manifest.files.reduce(function(n,f){return n+f.size;},0);emit('storage',c);
-          var m = c.manifest, old = self.state.plugins[c.key], base = c.repo.url.replace(/filmmerkezi-repository\.json$/, '');
+          var m = c.manifest, old = self.state.plugins[c.key], base = S.repositoryRoot(c.repo.url);
           if (old && old.active && S.compare(m.version, old.active.version) < 0) throw new Error('Downgrade requires rollback');
           if (old && old.active && old.active.version === m.version && old.active.hash !== (c.item ? c.item.manifestSha256 : old.active.hash)) throw new Error('Immutable package version changed');
           return self.preflightStorage(m, c.raw).then(function () { return serial(m.files, function (f) {

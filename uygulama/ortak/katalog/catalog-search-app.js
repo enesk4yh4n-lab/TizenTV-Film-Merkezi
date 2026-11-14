@@ -61,6 +61,7 @@
       }); });
     }
     function context(s) {
+      if(s.kind==='list'&&s.section)return s.section;
       return s.kind === 'detail' && s.detail && s.detail.type === 'collection'
         ? 'collection'
         : s.kind === 'list'
@@ -143,6 +144,7 @@
           cache.mode === mode && cache.query === query && cache.tab === s.tab && cache.localType === s.localType)
         return cache.value;
       var source = items;
+      if(s.kind==='list'&&root.CatalogSections){var library=this.hub;items=items.filter(function(c){return root.CatalogSections.matches(c,s.section||'general',library);});}
       if (s.kind === 'search' && s.tab && s.tab !== 'all')
         items = items.filter(function (c) {
           return c.type === s.tab && c.identityState !== 'pending';

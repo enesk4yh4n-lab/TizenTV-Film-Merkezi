@@ -41,7 +41,7 @@
   }, true);
   root.addEventListener('error', function (event) { if (!manager && event.message) fail(new Error(event.message)); });
   root.addEventListener('unhandledrejection', function (event) { if (!manager || !manager.healthy) fail(event.reason instanceof Error ? event.reason : new Error('Unhandled startup rejection')); });
-  root.FilmBootRecovery = { bind: function (m) { manager = m; }, check: check, stage: stage, healthy: healthy, fail: fail, mode: function () { var mode = ''; try { mode = root.sessionStorage.getItem('film.boot.recovery') || ''; root.sessionStorage.removeItem('film.boot.recovery'); } catch (ignore) {} return /^(normal|no-plugins|bundled|previous)$/.test(mode) ? mode : ''; } };
+  root.FilmBootRecovery = { bind: function (m) { manager = m; }, check: check, stage: stage, suspend: function () { check(); clearTimeout(timer); clearTimeout(overall); }, resume: function () { check(); clearTimeout(overall); overall = setTimeout(function () { fail(new Error('Overall startup deadline exceeded')); }, 120000); stage('startup resumed', 45000); }, healthy: healthy, fail: fail, mode: function () { var mode = ''; try { mode = root.sessionStorage.getItem('film.boot.recovery') || ''; root.sessionStorage.removeItem('film.boot.recovery'); } catch (ignore) {} return /^(normal|no-plugins|bundled|previous)$/.test(mode) ? mode : ''; } };
   overall = setTimeout(function () { fail(new Error(label('Toplam başlangıç süresi doldu.', 'Overall startup deadline exceeded.'))); }, 120000);
   stage('bootstrap', 45000);
 })(window);

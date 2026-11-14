@@ -14,15 +14,17 @@
     if (u.hostname === 'github.com') {
       var parts = u.pathname.split('/').filter(Boolean);
       if (parts.length >= 5 && (parts[2] === 'blob' || parts[2] === 'tree')) value = 'https://raw.githubusercontent.com/' + parts.slice(0, 2).concat(parts.slice(3)).join('/');
-      else if (parts.length === 2) value = 'https://raw.githubusercontent.com/' + parts.join('/') + '/main/filmmerkezi-repository.json';
+      else if (parts.length === 2) value = 'https://raw.githubusercontent.com/' + parts.join('/') + '/main/filmmerkezi201-repository.json';
       u = new root.URL(value);
     }
     V.networkPolicy('FILM-MERKEZI-ORIGINS-1\nhttps://' + u.hostname + '\n');
     if (u.protocol !== 'https:' || u.username || u.password || u.port || u.search || u.hash || /(?:^|\/)\.\.?\//.test(value)) throw new Error('Depo adresi HTTPS olmalı; parola, port veya sorgu içermemeli.');
-    if (u.pathname.slice(-1) === '/') u.pathname += 'filmmerkezi-repository.json';
-    if (!/\/filmmerkezi-repository\.json$/.test(u.pathname) || !/^[a-zA-Z0-9_./-]+$/.test(u.pathname)) throw new Error('Adres filmmerkezi-repository.json dosyasını göstermeli.');
+    if (u.pathname.slice(-1) === '/') u.pathname += 'filmmerkezi201-repository.json';
+    if (!/\/filmmerkezi201-repository\.json$/.test(u.pathname) || !/^[a-zA-Z0-9_./-]+$/.test(u.pathname)) throw new Error('Adres filmmerkezi201-repository.json dosyasını göstermeli.');
     return u.href;
   }
+  function repositoryRoot(value) { if(typeof value!=='string'||!/\/filmmerkezi(?:201)?-repository\.json$/.test(value))throw new Error('Invalid stored repository address');return value.replace(/filmmerkezi(?:201)?-repository\.json$/,''); }
+  function signatureAddress(value) { repositoryRoot(value);return value.slice(0,-5)+'.sig'; }
   function repository(raw) {
     if (typeof raw !== 'string' || V.bytes(raw).length > 65536) throw new Error('Depo listesi boyutu geçersiz.');
     var r = JSON.parse(raw), seen = {};
@@ -53,5 +55,5 @@
     return m;
   }
   function fingerprint(publicKey) { var s = root.atob(publicKey), a = new Uint8Array(s.length), i; for (i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return root.crypto.subtle.digest({ name: 'SHA-256' }, a).then(function (b) { return Array.prototype.map.call(new Uint8Array(b), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); }); }
-  root.FilmPluginSchema = { id: id, version: version, compare: compare, address: address, repository: repository, manifest: manifest, fingerprint: fingerprint, file: file };
+  root.FilmPluginSchema = { id: id, version: version, compare: compare, address: address, repository: repository, repositoryRoot:repositoryRoot, signatureAddress:signatureAddress, manifest: manifest, fingerprint: fingerprint, file: file };
 })(window);

@@ -28,7 +28,7 @@ Sonuçtan depoyu seçin. Gösterilen ad/adresi kontrol edip güveniyorsanız **E
 
 ![Adresle depo ekleme](gorseller/depo-adres.png)
 
-İndeks adı **`filmmerkezi-repository.json`** olmalıdır. Yayıncıdan aldığınız adresi kullanın. İmza veya HTTPS doğrulaması başarısızsa depo eklenmez.
+WGT **2.0.1** için indeks adı **`filmmerkezi201-repository.json`** olur. WGT **2.0.0** kullananlar mevcut **`filmmerkezi-repository.json`** listesinde kalır. Yayıncıdan aldığınız sürümünüze uygun adresi kullanın. İmza veya HTTPS doğrulaması başarısızsa depo eklenmez.
 
 ## 4. Paketi kurun
 

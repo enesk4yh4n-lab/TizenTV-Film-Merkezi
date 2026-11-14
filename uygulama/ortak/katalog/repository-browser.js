@@ -2,7 +2,7 @@
 /* Public GitHub repository discovery. Never trusts or installs a search result. */
 (function (root) {
   'use strict';
-  var NAME = 'filmmerkezi-repository.json', API = 'https://api.github.com';
+  var NAME = 'filmmerkezi201-repository.json', API = 'https://api.github.com';
   function message(tr, en) { return root.FilmI18n && root.FilmI18n.language() === 'en' ? en : tr; }
   function Search() { this.task = null; this.generation = 0; this.cache = {}; }
   Search.prototype.cancel = function () { this.generation++; if (this.task) this.task.cancel(); this.task = null; };
@@ -52,9 +52,9 @@
     return this.read(API + '/repos/' + repo.fullName + '/readme?ref=' + encodeURIComponent(repo.branch), token).then(function (data) {
       var text = '', path = NAME, marker;
       if (data && data.encoding === 'base64' && typeof data.content === 'string' && data.content.length < 180000) text = root.atob(data.content.replace(/\s/g, ''));
-      marker = /<!--\s*film-merkezi-repository:\s*([A-Za-z0-9_./-]+)\s*-->/.exec(text);
+      marker = /<!--\s*film-merkezi201-repository:\s*([A-Za-z0-9_./-]+)\s*-->/.exec(text);
       if (marker) path = marker[1];
-      if (path.indexOf('..') >= 0 || path.charAt(0) === '/' || !/(^|\/)filmmerkezi-repository\.json$/.test(path)) throw new Error(message('README depo adresi geçersiz.', 'Invalid repository address in README.'));
+      if (path.indexOf('..') >= 0 || path.charAt(0) === '/' || !/(^|\/)filmmerkezi201-repository\.json$/.test(path)) throw new Error(message('README depo adresi geçersiz.', 'Invalid repository address in README.'));
       return root.FilmPluginSchema.address('https://raw.githubusercontent.com/' + repo.fullName + '/' + repo.branch + '/' + path);
     });
   };
@@ -118,7 +118,7 @@
       }
       back('repositories');
     } else if (view === 'address') {
-      line(t('filmmerkezi-repository.json adresi', 'filmmerkezi-repository.json address'));
+      line(t('filmmerkezi201-repository.json adresi', 'filmmerkezi201-repository.json address'));
       var input = document.createElement('input'); input.type = 'url'; input.id = 'plugins-url'; input.maxLength = 2048; input.value = panel.url || ''; input.readOnly = true; input.tabIndex = -1; input.style.cssText = 'box-sizing:border-box;width:100%;font-size:25px;padding:14px;background:#101d30;color:white;border:2px solid #576781'; input.oninput = function () { panel.url = input.value; if(panel.settingsParent&&panel.settingsParent.wizard)root.FilmRepositorySetup.checkpoint(3,{url:input.value}); }; box.appendChild(input);
       button(t('Adresi düzenle · OK ile klavye', 'Edit address · OK opens keyboard'), 'plugins-url-edit', function () { panel.inputEditing = true; input.readOnly = false; input.focus(); });
       button(t('Devam et', 'Continue'), 'plugins-probe', function () { panel.url = input.value; panel.technical = false; work(function () { return manager.probe(panel.url); }, 'trust', 'plugins-trust'); });

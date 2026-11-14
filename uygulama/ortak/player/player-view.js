@@ -82,12 +82,16 @@
         self.command(node.getAttribute('data-command'));
       }
     });
+    var viewport = root.CatalogViewport ? new root.CatalogViewport() : null;
     this.resize = function () {
       var scale = Math.min(root.innerWidth / 1920, root.innerHeight / 1080),
         editing = root.ChainApp && root.ChainApp.catalog && root.ChainApp.catalog.editing;
+      var metrics = viewport && viewport.measure();
+      if (metrics) scale = metrics.scale;
       el('player-ui').style.transform = 'scale(' + scale + ')';
-      el('shell').style.transform = 'scale(' + (editing ? root.innerWidth / 1920 : scale) + ')';
+      el('shell').style.transform = 'scale(' + (!viewport && editing ? root.innerWidth / 1920 : scale) + ')';
       el('subtitle-layer').style.fontSize = controller.settings.subtitleStyle.size * scale + 'px';
+      if (viewport) viewport.fitInput(metrics);
     };
     root.addEventListener('resize', this.resize);
     this.resize();

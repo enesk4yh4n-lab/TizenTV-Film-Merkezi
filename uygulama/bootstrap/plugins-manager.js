@@ -56,7 +56,11 @@
   Manager.prototype.operation = function (label, fn) {
     var self = this; if (this.busy || this.core.busy || this.blocked || this.app && this.app.controller.content) return Promise.reject(new Error(this.blocked ? this.note : 'Önce mevcut işlemden veya oynatıcıdan çıkın.'));
     this.busy = label; this.note = ''; this.staging = {}; var token = ++this.generation, began = Date.now();
-    this.operationTask = Promise.resolve().then(function () { return fn(function () { self.guard(token, began); }); }).then(function (value) { self.staging = {}; self.busy = ''; return self.gc().then(function () { return value; }); }, function (e) { self.staging = {}; self.busy = ''; self.note = e.message; return self.gc().then(function () { throw e; }); });
+    function finish(error, value) {
+      self.staging = {};
+      return self.gc().then(function () { self.busy = ''; if (error) throw error; return value; }, function (cleanupError) { self.busy = ''; throw error || cleanupError; });
+    }
+    this.operationTask = Promise.resolve().then(function () { return fn(function () { self.guard(token, began); }); }).then(function (value) { return finish(null, value); }, function (e) { self.note = e.message; return finish(e); });
     return this.operationTask;
   };
   Manager.prototype.fetch = function (url, check, limit) {
@@ -69,7 +73,7 @@
   Manager.prototype.probe = function (url) {
     var self = this;
     return this.operation('probe', function (check) { var normalized = S.address(url), raw, signature, repo, tempId;
-      return V.sha(normalized).then(function (hash) { tempId = 'probe-' + hash.slice(0, 24); return self.transport.registerRepository(tempId, normalized, ''); }).then(function () { return self.fetch(normalized, check, 65536); }).then(function (t) { raw = t; repo = S.repository(t); return self.fetch(normalized.replace(/filmmerkezi-repository\.json$/, 'filmmerkezi-repository.sig'), check, 1024); }).then(function (sig) { signature = sig; var trust = new V.Trust(repo.publicKey); return trust.key.then(function (k) { if (k.algorithm.modulusLength !== 2048) throw new Error('Yayıncı anahtarı RSA-2048 olmalı.'); return trust.verify(raw, signature); }); }).then(function () { return S.fingerprint(repo.publicKey); }).then(function (fingerprint) { check(); self.candidate = { url: normalized, text: raw, signature: signature, repository: repo, fingerprint: fingerprint, tempId: tempId }; return self.candidate; }).catch(function (e) { if (tempId) self.transport.removeRepository(tempId).catch(function () {}); throw e; });
+      return V.sha(normalized).then(function (hash) { tempId = 'probe-' + hash.slice(0, 24); return self.transport.registerRepository(tempId, normalized, ''); }).then(function () { return self.fetch(normalized, check, 65536); }).then(function (t) { raw = t; repo = S.repository(t); return self.fetch(S.signatureAddress(normalized), check, 1024); }).then(function (sig) { signature = sig; var trust = new V.Trust(repo.publicKey); return trust.key.then(function (k) { if (k.algorithm.modulusLength !== 2048) throw new Error('Yayıncı anahtarı RSA-2048 olmalı.'); return trust.verify(raw, signature); }); }).then(function () { return S.fingerprint(repo.publicKey); }).then(function (fingerprint) { check(); self.candidate = { url: normalized, text: raw, signature: signature, repository: repo, fingerprint: fingerprint, tempId: tempId }; return self.candidate; }).catch(function (e) { if (tempId) self.transport.removeRepository(tempId).catch(function () {}); throw e; });
     });
   };
   Manager.prototype.discardCandidate = function () { var c = this.candidate; this.candidate = null; if (c) this.transport.removeRepository(c.tempId).catch(function () {}); };
@@ -92,16 +96,22 @@
     });
   };
   Manager.prototype.catalog = function (repoId) { var r = this.state.repositories[repoId]; if (!r) return Promise.reject(new Error('Depo bulunamadı.')); return this.readRecord(r, r.catalog).then(function (text) { var index = S.repository(text); if (index.publicKey !== r.publicKey || index.id !== r.publisherId) throw new Error('Depo yayıncısı eşleşmiyor.'); return index; }); };
+  Manager.prototype.migrateRepository201 = function (repoId, check) {
+    var self=this,r=this.state.repositories[repoId];this.repository201Attempts=this.repository201Attempts||{};
+    if(!r||!/\/filmmerkezi-repository\.json$/.test(r.url)||this.repository201Attempts[repoId])return Promise.resolve();
+    this.repository201Attempts[repoId]=true;var url=r.url.replace(/filmmerkezi-repository\.json$/,'filmmerkezi201-repository.json'),temp='move-'+r.fingerprint.slice(0,24),raw,index,sig;
+    return this.transport.registerRepository(temp,url,'').then(function(){return self.fetch(url,check,65536);}).then(function(text){raw=text;index=S.repository(text);if(index.publicKey!==r.publicKey||index.id!==r.publisherId)throw new Error('Repository publisher changed');return self.fetch(S.signatureAddress(url),check,1024);}).then(function(signature){sig=signature;return new V.Trust(r.publicKey).verify(raw,sig);}).then(function(){check();if(index.revision<r.revision)throw new Error('Repository revision is older');return V.sha(raw);}).then(function(hash){if(index.revision===r.revision&&hash!==r.catalog.hash)throw new Error('Repository revision conflict');return self.put(raw);}).then(function(hash){check();return self.transport.registerRepository(r.id,url,r.publicKey).then(function(){return self.commit(function(state){var repo=state.repositories[repoId];repo.url=url;repo.revision=index.revision;repo.name=index.name;repo.catalog={hash:hash,signature:sig};});});}).then(function(){return self.transport.removeRepository(temp);},function(error){return self.transport.removeRepository(temp).catch(function(){}).then(function(){check();return self.transport.registerRepository(r.id,r.url,r.publicKey);}).then(function(){self.note='201 repository unavailable; saved repository retained';});});
+  };
   Manager.prototype.checkRepository = function (repoId) {
     var self = this, r = this.state.repositories[repoId]; if (!r) return Promise.reject(new Error('Depo bulunamadı.'));
-    return this.operation('check', function (check) { var raw, index, sig; return self.transport.registerRepository(r.id, r.url, r.publicKey).then(function () { return self.fetch(r.url + '?check=' + Date.now(), check, 65536); }).then(function (text) { raw = text; index = S.repository(text); if (index.publicKey !== r.publicKey || index.id !== r.publisherId) { self.keyChanged = repoId; throw new Error('Yayıncı anahtarı değişti; yeni anahtara otomatik güvenilmedi.'); } return self.fetch(r.url.replace(/filmmerkezi-repository\.json$/, 'filmmerkezi-repository.sig') + '?check=' + Date.now(), check, 1024); }).then(function (signature) { sig = signature; return new V.Trust(r.publicKey).verify(raw, sig); }).then(function () { if (index.revision < r.revision) throw new Error('Eski depo revizyonu reddedildi.'); return V.sha(raw); }).then(function (hash) { if (index.revision === r.revision && hash !== r.catalog.hash) throw new Error('Depo revizyonu çelişiyor.'); return self.put(raw); }).then(function (hash) { check(); return self.commit(function (s) { var repo = s.repositories[repoId]; repo.revision = index.revision; repo.name = index.name; repo.catalog = { hash: hash, signature: sig }; }); }).then(function () { return index; }); });
+    return this.operation('check', function (check) { var raw, index, sig; return self.migrateRepository201(repoId,check).then(function(){r=self.state.repositories[repoId];return self.transport.registerRepository(r.id,r.url,r.publicKey);}).then(function () { return self.fetch(r.url + '?check=' + Date.now(), check, 65536); }).then(function (text) { raw = text; index = S.repository(text); if (index.publicKey !== r.publicKey || index.id !== r.publisherId) { self.keyChanged = repoId; throw new Error('Yayıncı anahtarı değişti; yeni anahtara otomatik güvenilmedi.'); } return self.fetch(S.signatureAddress(r.url) + '?check=' + Date.now(), check, 1024); }).then(function (signature) { sig = signature; return new V.Trust(r.publicKey).verify(raw, sig); }).then(function () { if (index.revision < r.revision) throw new Error('Eski depo revizyonu reddedildi.'); return V.sha(raw); }).then(function (hash) { if (index.revision === r.revision && hash !== r.catalog.hash) throw new Error('Depo revizyonu çelişiyor.'); return self.put(raw); }).then(function (hash) { check(); return self.commit(function (s) { var repo = s.repositories[repoId]; repo.revision = index.revision; repo.name = index.name; repo.catalog = { hash: hash, signature: sig }; }); }).then(function () { return index; }); });
   };
   Manager.prototype.installationPlan = function (repoId, pluginId, check) {
     var self = this, candidates = [], installed = [], visited = {};
     function read(repo, item) {
       var key = repo.id + '/' + item.id;
       if (visited[key]) return visited[key];
-      var raw, sig, base = repo.url.replace(/filmmerkezi-repository\.json$/, '');
+      var raw, sig, base = S.repositoryRoot(repo.url);
       visited[key] = self.fetch(base + item.manifest, check, 16384).then(function (text) {
         raw = text; return V.sha(text);
       }).then(function (hash) {
@@ -155,7 +165,7 @@
         plan = rows; self.lastPlan = rows.map(function (c) { return { key: c.key, type: c.manifest.type, name: c.manifest.name, version: c.manifest.version }; });
         if (Object.keys(self.state.plugins).concat(rows.map(function (c) { return c.key; })).filter(function (key, i, a) { return a.indexOf(key) === i; }).length > 64) throw new Error('64 package limit');
         return serial(rows, function (c) {
-          var m = c.manifest, old = self.state.plugins[c.key], base = c.repo.url.replace(/filmmerkezi-repository\.json$/, '');
+          var m = c.manifest, old = self.state.plugins[c.key], base = S.repositoryRoot(c.repo.url);
           if (old && old.active && S.compare(m.version, old.active.version) < 0) throw new Error('Downgrade requires rollback');
           if (old && old.active && old.active.version === m.version && old.active.hash !== (c.item ? c.item.manifestSha256 : old.active.hash)) throw new Error('Immutable package version changed');
           return self.preflightStorage(m, c.raw).then(function () { return serial(m.files, function (f) {

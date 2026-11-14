@@ -121,8 +121,9 @@
       /* Includes queueing and both transport attempts; one interaction cannot hang indefinitely. */
       timer = setTimeout(
         function () {
+          var timeoutError = self.network.catalogTimedOut && self.network.catalogTimedOut();
           if (token === self.generation) self.network.cancel();
-          finish(new Error('Katalog isteği 30 saniyede tamamlanamadı.'));
+          finish(timeoutError || new Error('Katalog isteği 30 saniyede tamamlanamadı.'));
         },
         Math.max(1, Math.min(started + 30000, self.deadline || Infinity) - Date.now())
       );

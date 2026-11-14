@@ -243,6 +243,8 @@
     this.focus('search-activate');
   };
   App.prototype.navigate = function (kind) {
+    if(kind==='discover')kind='home';
+    var section=root.CatalogSections&&root.CatalogSections.special(kind)?kind:'';
     var types = this.site.contentTypes || ['movie', 'series'],
       type = kind === 'series' ? 'series' : kind === 'movies' ? 'movie' : types[0];
     if (types.indexOf(type) < 0) {
@@ -256,13 +258,14 @@
     this.begin();
     this.history = [];
     if(root.CatalogToolbar&&root.CatalogToolbar.restore(this,kind))return;
-    if (kind === 'movies' || kind === 'series' || kind === 'discover') {
+    if (kind === 'movies' || kind === 'series' || section) {
       this.screen = {
         kind: 'list',
         type: type,
-        title: kind === 'series' ? 'Diziler' : kind === 'discover' ? 'Keşfet' : 'Filmler',
+        title: section==='animation'?'ÇizgiFilm/Anime':section==='drama-short'?'Drama/Short':kind==='series'?'Diziler':'Filmler',
+        section: section || kind,
         filters: {},
-        query: { type: type, kind: kind === 'discover' ? 'discover' : '' },
+        query: { type: section ? null : type, section: section || '' },
         items: [],
         startRow: 0,
         scroll: 0,
@@ -365,8 +368,10 @@
       s.startRow = 0;
       s.scroll = 0;
     }
+    var supported=!s.query.section||this.site.virtual||root.CatalogSections.supported(this.site,s.query.section);
+    s.sectionUnsupported = !supported || !!(s.query.section && this.site.virtual && !root.SiteRegistry.sites.some(function(site){return !site.virtual && root.CatalogSections.supported(site,s.query.section);}));
     this.render(true);
-    this.provider.list(s.query, previous, force).then(
+    (supported?this.provider.list(s.query, previous, force):Promise.resolve({cards:[],next:null})).then(
       function (result) {
         if (token !== self.generation || self.screen !== s) return;
         var seen = {},
@@ -374,7 +379,8 @@
         s.items.forEach(function (c) {
           seen[c.contentId] = true;
         });
-        result.cards.forEach(function (c) {
+        var known=s.query.section?root.CatalogSections.known(self.hub,s.query.section,self.site.virtual?root.SiteRegistry.sites.filter(function(site){return !site.virtual;}).map(function(site){return site.id;}):[self.site.id],self.site.virtual&&self.hub&&self.hub.merging):[];
+        result.cards.concat(known).forEach(function (c) {
           if (!seen[c.contentId]) {
             seen[c.contentId] = true;
             added.push(c);
@@ -1185,9 +1191,9 @@
     var followed = this.series.following();
     if (followed.length) s.rails.push({ kind: 'following', title: 'Takip ettiğim diziler', items: followed });
     if (!this.site.contentTypes || this.site.contentTypes.indexOf('movie') >= 0)
-      s.rails.push({ kind: 'movies', title: this.site.ui.movieRail, items: data.movies || [] });
+      s.rails.push({ kind: 'movies', title: this.site.ui.movieRail, items: (data.movies || []).filter(function(c){return root.CatalogSections.matches(c,'movies',self.hub);}) });
     if (!this.site.contentTypes || this.site.contentTypes.indexOf('series') >= 0)
-      s.rails.push({ kind: 'series', title: this.site.ui.seriesRail, items: data.series || [] });
+      s.rails.push({ kind: 'series', title: this.site.ui.seriesRail, items: (data.series || []).filter(function(c){return root.CatalogSections.matches(c,'series',self.hub);}) });
     if (data.collections && data.collections.length)
       s.rails.push({ kind: 'collections', title: 'Koleksiyonlar', items: data.collections });
     if (this.experience.settings) s.rails = this.experience.settings.filterRails(s.rails);
@@ -1243,7 +1249,9 @@
         node(
           'div',
           'catalog-empty',
-          s.kind === 'following'
+          s.sectionUnsupported
+            ? tr('Etkin siteler bu kategori için ayrı bir liste sunmuyor.')
+            : s.kind === 'following'
             ? 'Takip ettiğiniz dizi yok. Dizi detayından Yeni bölümleri takip et’i seçin.'
             : s.kind === 'watchlist'
               ? 'Listeniz henüz boş. Film veya dizi detayından Listeme ekle’yi seçin.'
@@ -1534,8 +1542,8 @@
             ? 'home'
             : s.kind === 'watchlist'
               ? 'watchlist'
-              : s.title === 'Keşfet'
-                ? 'discover'
+              : s.section
+                ? s.section
                 : s.kind === 'list'
                   ? s.type === 'series'
                     ? 'series'
@@ -1556,6 +1564,7 @@
       if (
         s.kind === 'list' &&
         s.type === 'movie' &&
+        !s.query.section &&
         s.query.kind !== 'discover' &&
         this.experience.canRecommend()
       )
@@ -1690,6 +1699,7 @@
     this.scheduleLanguages();
   };
   App.prototype.renderCollections = function (parent, s) {
+    if(root.CatalogSections.special(s.section))return;
     var self = this,
       tabs = node('div', 'catalog-tabs'),
       selected = s.collection || 'new';
@@ -1761,6 +1771,7 @@
     this.scheduleLanguages(true);
   };
   App.prototype.openFilters = function () {
+    if(root.CatalogSections.special(this.screen.section)){this.save();this.panel={kind:'catalog-local-filter',returnKey:'filters'};this.renderPanel();return;}
     var self = this,
       s = this.screen;
     this.save();
@@ -1912,10 +1923,11 @@
             var values = p.values,
               s = self.screen;
             s.type = values.type === '2' ? 'series' : 'movie';
-            s.title = s.type === 'series' ? 'Diziler' : 'Filmler';
+            if(!root.CatalogSections.special(s.section))s.title = s.type === 'series' ? 'Diziler' : 'Filmler';
             s.query = {
               kind: 'discover',
-              type: s.type,
+              section: root.CatalogSections.special(s.section)?s.section:'',
+              type: root.CatalogSections.special(s.section)?null:s.type,
               order: values.order || self.site.ui.defaultOrder,
               filters: {
                 genre: values.genres,

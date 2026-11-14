@@ -47,3 +47,8 @@
 .detail-providers{margin:20px 0 12px;padding:15px 0;border-top:1px solid #34455d}.detail-providers h2{font-size:24px!important;margin:0 0 14px!important;color:#b2c5dc}.detail-providers .tab,.detail-providers .quiet-button{font-size:21px;margin:0 8px 10px 0;padding:10px 15px}.unified-site-response{margin:9px 0!important;font-size:22px!important}
 
 .catalog-order-heading { justify-content: flex-end; min-height: 54px; margin-bottom: 12px; }
+
+.metadata-suggestions{position:absolute;left:0;top:70px;width:100%;z-index:25;background:#142134;border:1px solid #687389;border-radius:8px;padding:8px;box-sizing:border-box;font-size:22px}.metadata-suggestion{display:block;width:100%;text-align:left;font-size:23px;background:#1f3047;border:1px solid #405775;padding:12px;margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metadata-suggestion:focus{outline:3px solid #ffca55;background:#31445e}
+
+/* Seven navigation sections share the existing TV safe width. */
+.catalog-nav{display:flex;flex-wrap:nowrap}.catalog-nav .nav-tab{font-size:25px;padding-left:16px;padding-right:16px;margin-right:12px;white-space:nowrap}.catalog-nav .catalog-version{white-space:nowrap;flex-shrink:0}

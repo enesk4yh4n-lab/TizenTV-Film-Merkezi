@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "loaderVersion": 1,
-  "version": "2.0.1",
-  "minAppVersion": "2.0.0",
+  "version": "2.1.8",
+  "minAppVersion": "2.0.1",
   "shell": "runtime-shell.html",
   "sites": "site-listesi.json",
   "scripts": [
@@ -29,6 +29,7 @@
     "ortak/player/avplay-player.js",
     "ortak/player/engine-router.js",
     "ortak/player/player-controller.js",
+    "ortak/arayuz/keyboard-viewport.js",
     "ortak/player/player-view.js",
     "ortak/player/player-input.js",
     "ortak/tani/diagnostics.js",
@@ -61,7 +62,13 @@
     "ortak/player/source-dispatcher.js",
     "ortak/arayuz/site-selection.js",
     "ortak/katalog/content-identity.js",
+    "ortak/katalog/metadata-config.js",
+    "ortak/katalog/metadata-service.js",
+    "ortak/katalog/metadata-search.js",
+    "ortak/katalog/metadata-runtime.js",
+    "ortak/katalog/metadata-credits.js",
     "ortak/kayit/unified-library.js",
+    "ortak/katalog/site-availability.js",
     "ortak/katalog/unified-provider.js",
     "ortak/katalog/catalog-unified-app.js",
     "ortak/katalog/catalog-search-app.js",
@@ -69,6 +76,18 @@
     "ortak/arayuz/repository-setup.js",
     "ortak/arayuz/legal.js",
     "ortak/katalog/update-coordinator.js",
+    "ortak/katalog/repository-browser.js",
+    "ortak/katalog/package-planner.js",
+    "ortak/katalog/package-installer.js",
+    "ortak/katalog/update-workflow.js",
+    "ortak/katalog/update-center.js",
+    "ortak/katalog/catalog-toolbar.js",
+    "ortak/katalog/repository-counts.js",
+    "ortak/arayuz/setup-wizard.js",
+    "ortak/katalog/repository-discovery-panel.js",
+    "ortak/katalog/update-progress.js",
+    "ortak/arayuz/first-run-update.js",
+    "ortak/katalog/catalog-sections.js",
     "main.js"
   ],
   "styles": [
@@ -77,7 +96,8 @@
     "ortak/arayuz/site-selection.css",
     "ortak/katalog/catalog-experience.css",
     "ortak/arayuz/legal.css",
-    "ortak/katalog/catalog-settings.css"
+    "ortak/katalog/catalog-settings.css",
+    "ortak/katalog/catalog-controls.css"
   ],
   "files": [
     {
@@ -87,18 +107,18 @@
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
-      "size": 8580,
-      "sha256": "4a1e2d79a7e0f694b5c8855bfe04f29b8d2c86aca35f28aad5a02fa75b467d36"
+      "size": 8540,
+      "sha256": "b99fff58506049bffd9c7e60be012a2f210aae634d879b876bd8e4d9e6a1e076"
     },
     {
       "path": "app-info.js",
       "size": 4105,
-      "sha256": "686718d0e24ce80c7dde17d5ffec9a8975a4678c19fc115227739861557d7bc2"
+      "sha256": "4a65e55b3e529f9483e5b17b0cc206e0320ac0f7828d302a49abe17dd1fc3b90"
     },
     {
       "path": "main.js",
-      "size": 4886,
-      "sha256": "7a4d99ae31c59f690c2021801e7da1b5ed7b6df942889049ee0e5d74f76128a6"
+      "size": 5079,
+      "sha256": "863361a3d45b09fa371718dc3e69f7b9970b2761d873f6d5b9d3135eda106de6"
     },
     {
       "path": "ortak/ag/media-network.js",
@@ -108,7 +128,7 @@
     {
       "path": "ortak/ag/native-file-bytes.js",
       "size": 5015,
-      "sha256": "89334c09081ca695128d51aeb2990d80265365814d591ddd062f52e0c0831324"
+      "sha256": "8e58d5f1b454e774059392378ab745440913b90b73bcb6d21592df964b37f79f"
     },
     {
       "path": "ortak/ag/native-hls-loader.js",
@@ -132,13 +152,13 @@
     },
     {
       "path": "ortak/arayuz/legal.js",
-      "size": 18767,
-      "sha256": "552a3436b70dc021fb7b0454a389695e7d06bef261fc9928acd9f524f8536bf7"
+      "size": 18903,
+      "sha256": "745421f1368afd11874ed02c99f27cd19b118ff54391a4436f6e1a4a5527a3a2"
     },
     {
       "path": "ortak/arayuz/site-selection.css",
-      "size": 2837,
-      "sha256": "9ed53222f97ca4686461dce8d9e2e1fb5f57a0a5fcc706a38c16980cdd7080c0"
+      "size": 2813,
+      "sha256": "cd4f9a021b3530f622911ebe988f2093049157970693d4661b0e61d569c6adbf"
     },
     {
       "path": "ortak/arayuz/site-selection.js",
@@ -147,8 +167,8 @@
     },
     {
       "path": "ortak/dil/en.js",
-      "size": 58945,
-      "sha256": "1b9dbef78e7a47e3a7520be649d0f14a0168257b2548f8f1b821b5094797a002"
+      "size": 59343,
+      "sha256": "9be6461ad9c694fda4e9125c84efd266b19edcff51d9d06cfca56a00791654ee"
     },
     {
       "path": "ortak/dil/i18n.js",
@@ -157,13 +177,13 @@
     },
     {
       "path": "ortak/katalog/catalog-app.js",
-      "size": 79080,
-      "sha256": "8e47a211fed336967e1e5e522cff440014ef3068558b88cca5726be49fd3620a"
+      "size": 88483,
+      "sha256": "1eec3b951d950e15c4654e58d597e4bf20c75f395110572e6b3bc7982ef2fed2"
     },
     {
       "path": "ortak/katalog/catalog-client.js",
-      "size": 6177,
-      "sha256": "59a1278d09b66e80d4b3f7a9e4cbed58eb6195d7f22b3b24c7eaa51ab4b9fc99"
+      "size": 6286,
+      "sha256": "fcbfc63e35fbcdafcd7822d2fba60ba4dabc8e4f9fd9998a7c684cb4176290fd"
     },
     {
       "path": "ortak/katalog/catalog-collections.js",
@@ -177,13 +197,13 @@
     },
     {
       "path": "ortak/katalog/catalog-experience.js",
-      "size": 17485,
-      "sha256": "3954cbbb0e72e3ff9cee7665a54e5fb1b35de9f052d62aa27ddcc1351aaf9c51"
+      "size": 19246,
+      "sha256": "807a08fd91f60c46119ee5cf221d7310476883aca9b2fa916ec6c80c0859939b"
     },
     {
       "path": "ortak/katalog/catalog-images.js",
-      "size": 6587,
-      "sha256": "49f62b272edd50f4d13ebd7813fe5705baf2f8e3a15297b807cdfa0f25593132"
+      "size": 7724,
+      "sha256": "3bccb3f886bbdc3d47f554fae5eb2b15e2439fb1770a8bed911fd27c070e478d"
     },
     {
       "path": "ortak/katalog/catalog-runtime.js",
@@ -192,8 +212,8 @@
     },
     {
       "path": "ortak/katalog/catalog-search-app.js",
-      "size": 13206,
-      "sha256": "969eb999a1d93e8898dcf8cc90ab25ce7da6dffa807ee0ea5cd77144875f5525"
+      "size": 14460,
+      "sha256": "a07ec80cbee90055275e3b21b45a3091bbe36ee221b84e5e662a62aea20c239d"
     },
     {
       "path": "ortak/katalog/catalog-site-kit.js",
@@ -202,28 +222,28 @@
     },
     {
       "path": "ortak/katalog/site-addresses.js",
-      "size": 10037,
-      "sha256": "2a12032f447ae16c7f960be3e16f017ce33c5e219c115bdf2719fe798f50b2b8"
+      "size": 10006,
+      "sha256": "8fa8ad2efe29b12c975e7bcac11dd11e282b318114c3f142c595035a7c5228bd"
     },
     {
       "path": "ortak/katalog/catalog-unified-app.js",
-      "size": 29878,
-      "sha256": "19dbfda13aad8337ff509f5051d509fb836f6a8fbebd90d44acb15db2e552e4b"
+      "size": 31458,
+      "sha256": "0d743aa51002c3f59569d355fd062c26b12e05e739328acc1dbec0d7292a1093"
     },
     {
       "path": "ortak/katalog/catalog-utils.js",
-      "size": 3827,
-      "sha256": "d1b546d87a2f0d0283f0a34ee938c0ae1f1d5f3c07cc49eefca8f406a81a9ac1"
+      "size": 4719,
+      "sha256": "0bfe68a29cc86cfd4f05bda99c26b2ad66ffcf6788dc7114ed97cc91e012d40e"
     },
     {
       "path": "ortak/katalog/catalog.css",
-      "size": 11599,
-      "sha256": "c818e8cd26de988556cb3a7355d18a80a53f9675b171eb6c8e43661523e271d9"
+      "size": 12303,
+      "sha256": "dfc142b0b95075cf881f9a74366fc9ea63c8986bc9a0168d6bac324c42411a95"
     },
     {
       "path": "ortak/katalog/content-identity.js",
-      "size": 28673,
-      "sha256": "d85877cdda89a60432025ba5d155e72d1ca4cdfbd11e0ce5d7bf64defd4c3199"
+      "size": 37103,
+      "sha256": "897391bd63f5b255260152041140b49f2758a42fcb861bbe68f4425c91265adf"
     },
     {
       "path": "ortak/katalog/recommendations.js",
@@ -232,18 +252,18 @@
     },
     {
       "path": "ortak/katalog/unified-provider.js",
-      "size": 35523,
-      "sha256": "7f05f6d3eb83535f0f1b142af02346ee99ec489a1ae791956d2045f0757eaed4"
+      "size": 53632,
+      "sha256": "10910abe6ce442adee760f206c3d5a04d0fdc2de2ac9caf32e8c20cee9e0ca1d"
     },
     {
       "path": "ortak/kayit/catalog-preferences.js",
-      "size": 6089,
-      "sha256": "90f79d065c406fe890c5cb7e7af9b85511dc1668b5beaca8db25dc367ba0c698"
+      "size": 7734,
+      "sha256": "8307141bd4741df7b3cc19d4f4a85630f53d0ccbe4cf31ea7590306ae5988b85"
     },
     {
       "path": "ortak/kayit/catalog-store.js",
-      "size": 14131,
-      "sha256": "d3cd85f89ca9aae1c122a1ff7e78f076a5f4bef59d98f75037b505a1b8a8dec6"
+      "size": 14200,
+      "sha256": "cb7838933ac514489624e95b8a99597104e709739422954f0c6c2a5e8936e770"
     },
     {
       "path": "ortak/kayit/playback-compatibility.js",
@@ -267,8 +287,8 @@
     },
     {
       "path": "ortak/kayit/unified-library.js",
-      "size": 48948,
-      "sha256": "7f76ffc63a641faedd033b69da69bf74fa195f1304af9f02df14e64060670c26"
+      "size": 50892,
+      "sha256": "0e97484e35b591ef1b4c602639fcae8c61645c646f49f066f99589e58d1aa1b9"
     },
     {
       "path": "ortak/player/avplay-player.js",
@@ -278,7 +298,7 @@
     {
       "path": "ortak/player/browser-player.js",
       "size": 30701,
-      "sha256": "a0f7837671414bd3fc8c21d4b6cde4727e29d795022f52dcedc00b676de98f53"
+      "sha256": "df1d8a9a55a81f23822416e09197af285761b0e11e119dd6c12bd3666ebd5329"
     },
     {
       "path": "ortak/player/engine-router.js",
@@ -287,8 +307,8 @@
     },
     {
       "path": "ortak/player/multi-site-sources.js",
-      "size": 21782,
-      "sha256": "5c29de4a26dbee46f2030dd24365d424617eaf8fd331d0bad07227614927db82"
+      "size": 21874,
+      "sha256": "dfb9bfb86dd1d5825eda710de56fb05c3e56ab5b8a8278a0558f487ba2555a59"
     },
     {
       "path": "ortak/player/playback-capabilities.js",
@@ -317,13 +337,13 @@
     },
     {
       "path": "ortak/player/player-view.js",
-      "size": 48965,
-      "sha256": "0dc215b3d74768d0cda0c6b480374ec7a5a90e7ab7d0f7ab2e166dd42b3fd8d9"
+      "size": 49197,
+      "sha256": "a72bc9e64e21465d4b105fea9e9bbbaf884fec6831e39ea8cd74e9c1968247d9"
     },
     {
       "path": "ortak/player/player.css",
-      "size": 8613,
-      "sha256": "e3477988bb70074bafde895fc1b6358219a84171fa206d96bf32d667cc0a0188"
+      "size": 8588,
+      "sha256": "515c31d2eca2af24a5d884749176a1429e304c6372669d56ef61bb153eb5f2ca"
     },
     {
       "path": "ortak/player/source-dispatcher.js",
@@ -342,8 +362,8 @@
     },
     {
       "path": "ortak/tani/diagnostics.js",
-      "size": 3488,
-      "sha256": "74134a49bf1427bac05cfa36e4fbf29b4a112c84ce1d2e62ce301c64032444c9"
+      "size": 3457,
+      "sha256": "07cbd597c3144ca226056cbce1506e066e2bf41bbaaaf7187ff3b6fec8e4c67c"
     },
     {
       "path": "ortak/uyumluluk/compat.js",
@@ -382,8 +402,8 @@
     },
     {
       "path": "runtime-shell.html",
-      "size": 10424,
-      "sha256": "8f24dcb3102d75f62e9d8df2366a8b793942a033b5dbec952d43af425531c35d"
+      "size": 10567,
+      "sha256": "2ab706f57f35cc9f3f9a3226d242b5d91f624965243e2dbcc4970090dd7b5a8c"
     },
     {
       "path": "site-listesi.json",
@@ -392,38 +412,38 @@
     },
     {
       "path": "network-policy.txt",
-      "size": 74,
-      "sha256": "99f61c6e4f2eb250de871a5e66bdb6196d3cf265d2d99d119be917af3ca03d7a"
+      "size": 101,
+      "sha256": "64a2e12ef9bad4b144675ae9ea0d3a30bfbfdbda79103db8be727a9f5a2ef672"
     },
     {
       "path": "network-policy.signature.txt",
       "size": 345,
-      "sha256": "7f5c30ba139903ed60fbb4a9dad9f64ed9498ea7bcd6cdabdb4f05bb9e84e17f"
+      "sha256": "56fda1449103d1b07577b3958c97328d568ca1abd7c2954ccfde7e9b5900b257"
     },
     {
       "path": "ortak/katalog/catalog-settings.js",
-      "size": 22523,
-      "sha256": "8815baaefda29f2a6247e0d8562f09b32d091cd75317e34230da58d3d0557d2d"
+      "size": 27216,
+      "sha256": "f73417d152e3bf4ff83e6f754cd298e8d59b88d4b0982a89bf24c9f01ade732f"
     },
     {
       "path": "ortak/katalog/catalog-settings.css",
-      "size": 2763,
-      "sha256": "9d2632dff1d7fd54def69551ba532ae08ab63dbe075ca797487fcf62ecd88293"
+      "size": 2819,
+      "sha256": "0b06a27330241b96f42b06402f5e3efeeeaf1350e057bf55a74768c83f282207"
     },
     {
       "path": "ortak/katalog/site-management.js",
-      "size": 9105,
-      "sha256": "cbdf93212bc4481aa2d1d20c0ba469befb20d0560d4db323fffd0025702dc93a"
+      "size": 9190,
+      "sha256": "6e142d8781d33eb5c298478689caa23ecf43347922509029c1f16d97d01b476a"
     },
     {
       "path": "ortak/katalog/management-panel.js",
-      "size": 27246,
-      "sha256": "2681b2a4cc646c4ccc9e9e19ce9a288352fe6943fc52861cf62ac34dbd356500"
+      "size": 27423,
+      "sha256": "c542f86769415c7d21e111a5ff4d252397f2bc39fc4a3e16936e383d59cec26f"
     },
     {
       "path": "ortak/kayit/settings-reset.js",
-      "size": 5460,
-      "sha256": "3430baba02d7bb03cead86a5d80c3f35a5cd3d50612df55525cbf2168414b201"
+      "size": 5970,
+      "sha256": "c03055cf037cd4d1a417cc46f8555afba3a15de954e5cfe52ccbd7040f3daef0"
     },
     {
       "path": "ortak/katalog/site-plugin-runtime.js",
@@ -437,13 +457,13 @@
     },
     {
       "path": "ortak/katalog/update-coordinator.js",
-      "size": 20786,
-      "sha256": "39f773b34ab08b3d1ea2e76a082d6646af380d8741cc9a094bdeebffc6a7c6a2"
+      "size": 12364,
+      "sha256": "98d09f030b5290f82c0bfe5f44c7aac0bb972ffee9012751af9aebc894ed202a"
     },
     {
       "path": "ortak/katalog/plugin-batch.js",
-      "size": 4546,
-      "sha256": "fd36757bcc95841a7284d9e512f6c862d120132bdc5879b6a51c4247a74d690a"
+      "size": 4498,
+      "sha256": "27c2205b9f0b57caf4f236b3d74644ab83cdf1bebd0b8d82222c395b5d9d34f2"
     },
     {
       "path": "ortak/destek/error-reporter.js",
@@ -457,8 +477,8 @@
     },
     {
       "path": "ortak/arayuz/repository-setup.js",
-      "size": 1736,
-      "sha256": "73a524d3eace60adc94bbee05e6c19e95e0c0f584cb8f367fde9e3e4d2706bfa"
+      "size": 2679,
+      "sha256": "c0705b2876ee4eddd4530dd8f1f175fd63fd0d34c4409f588449c66a162b988c"
     },
     {
       "path": "ortak/ag/package-client.js",
@@ -479,6 +499,106 @@
       "path": "ortak/katalog/inert-player-data.js",
       "size": 4822,
       "sha256": "c5ff6602397798803bf326426bad1f9e5b21ecf44fe4460bedc485a6207ba6fa"
+    },
+    {
+      "path": "ortak/katalog/metadata-config.js",
+      "size": 75,
+      "sha256": "15438dcaad119d58939edb11425e04404b12e94293ee5fdf9851b213994241d1"
+    },
+    {
+      "path": "ortak/katalog/metadata-service.js",
+      "size": 9241,
+      "sha256": "def4fa8ee159d818ec3a62ce39ba5da2d03a6fd08216c613957d815200a3c367"
+    },
+    {
+      "path": "ortak/katalog/metadata-search.js",
+      "size": 5110,
+      "sha256": "5cee49d9e448a85aa1c7110f7d7414dda42b22145a7685b1a5ab4e4382c12d46"
+    },
+    {
+      "path": "ortak/katalog/metadata-runtime.js",
+      "size": 19804,
+      "sha256": "2ef41f348c5c43f288889358a1cc87cd93beac26a9530a6a796cfbe683e05d99"
+    },
+    {
+      "path": "ortak/katalog/metadata-credits.js",
+      "size": 2908,
+      "sha256": "23c1a71395bf37b532f2b75fcfa62c5a29d2fb82c3ba79f9afd215668743fa37"
+    },
+    {
+      "path": "ortak/arayuz/keyboard-viewport.js",
+      "size": 2949,
+      "sha256": "afe0d5194517b1beda80772f26f21074050d2ec9004727448f18f624537eecc0"
+    },
+    {
+      "path": "ortak/katalog/site-availability.js",
+      "size": 4068,
+      "sha256": "d658d761385c2c6d5e9f480445ce9fc7db0bcad3bc2a4604c42a929db86d1d20"
+    },
+    {
+      "path": "ortak/katalog/repository-browser.js",
+      "size": 27633,
+      "sha256": "fdf719a3aa62f7ea49b4f37682927d94d108e836a3bf92150286799a3af74a42"
+    },
+    {
+      "path": "ortak/katalog/package-planner.js",
+      "size": 3082,
+      "sha256": "46d89f0ee069ad3270e24bba58ff163d01f784f4baf3c092b93b973dbdb892c8"
+    },
+    {
+      "path": "ortak/katalog/package-installer.js",
+      "size": 10810,
+      "sha256": "704d21fdc922d27af33a05a509de3e06484e9c66fc746b9abf91ddfd8edf77a4"
+    },
+    {
+      "path": "ortak/katalog/update-workflow.js",
+      "size": 11786,
+      "sha256": "15cf9966bd1cb754ec7d82d4a90fde5d9af06707a21d9334757cccd7a1683d68"
+    },
+    {
+      "path": "ortak/katalog/update-center.js",
+      "size": 15847,
+      "sha256": "45fe915a4cdf6cdf7d792a9dc957ca80d677a88ca7b9bc7bbb0c62e6d8cf1d1a"
+    },
+    {
+      "path": "ortak/katalog/catalog-toolbar.js",
+      "size": 9488,
+      "sha256": "271703769ea42442812298fcd77fca27fd91365f58b26b1683c45cc71c4fb2a5"
+    },
+    {
+      "path": "ortak/katalog/catalog-controls.css",
+      "size": 7817,
+      "sha256": "b22132024045c5613d701738943b903055201783656a88ec2e873100866c56cf"
+    },
+    {
+      "path": "ortak/katalog/repository-counts.js",
+      "size": 3254,
+      "sha256": "2be3041cdb4210caa72e8173b9fdcbf53f9fd495c9aefe21832ab19137aa1565"
+    },
+    {
+      "path": "ortak/arayuz/setup-wizard.js",
+      "size": 13707,
+      "sha256": "8e06030f1a1837fe9c36e16dc41752fe888622b3a74e95d66f351c3db0ecdb0a"
+    },
+    {
+      "path": "ortak/katalog/repository-discovery-panel.js",
+      "size": 13205,
+      "sha256": "9f3c315533dc686b6f5ade02cc83014ac76b3f3a1164afa997124eb21fa3f603"
+    },
+    {
+      "path": "ortak/katalog/update-progress.js",
+      "size": 4886,
+      "sha256": "1792371380644db054647a03bb4e9e99d90ebe6802c084656a1f9fed8d7e1508"
+    },
+    {
+      "path": "ortak/arayuz/first-run-update.js",
+      "size": 5130,
+      "sha256": "05961e1d9c4e567d39eca910dde4b398fb66bad881bf1a337a3f245cabd6c947"
+    },
+    {
+      "path": "ortak/katalog/catalog-sections.js",
+      "size": 3145,
+      "sha256": "21dd2445202ee17549ebd6958bbd46e6e038a225f9704f9760de39fe1d5769e8"
     }
   ],
   "nativeTransport": 1,

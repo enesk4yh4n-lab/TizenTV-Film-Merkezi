@@ -7,6 +7,16 @@
   root.addEventListener('error', function (event) { if (root.FilmPlugins && root.FilmPlugins.loading) { root.FilmPlugins.scriptErrors[root.FilmPlugins.loading] = event.message || 'Plugin script failed'; return; } if (manager && !manager.healthy && event.message) fail(new Error(event.message)); });
   function sequence(paths, fn) { var p = Promise.resolve(); paths.forEach(function (path) { p = p.then(function () { guard.check(); return fn(path); }); }); return p; }
   function newer(a, b) { var x = a.split('.'), y = b.split('.'), i; for (i = 0; i < 3; i++) { if (+x[i] !== +y[i]) return +x[i] > +y[i]; } return false; }
+  function compatibleSet(m) {
+    if (mode && mode !== 'normal' || !manager.state.active || m.version !== manager.baseline.version) return Promise.resolve(m);
+    /* A same-version WGT replacement can remove formerly bundled objects. Never mix sets. */
+    var local = {};manager.baseline.files.forEach(function (f) { local[f.path] = f.sha256; });
+    return manager.storage.list().then(function (names) {
+      var missing = m.files.some(function (f) { return local[f.path] !== f.sha256 && names.indexOf('obj-' + f.sha256 + '.txt') < 0; });
+      if (!missing) return m;
+      return manager.commit({previous:manager.state.active,active:manager.baselineRecord,pending:null,booting:false}).then(function () { return manager.baseline; });
+    });
+  }
   function start() {
     progress('Güncelleme seti hazırlanıyor…', 'Preparing installed updates…');
     manager = root.FilmUpdate = new root.FilmUpdateManager(); guard.bind(manager); guard.stage('storage and trust', 45000);
@@ -14,7 +24,7 @@
       guard.check();
       if (mode === 'bundled') { manager.blocked = true; manager.note = 'Kurtarma: WGT çekirdeği, eklentiler kapalı / Recovery: bundled core, plugins disabled'; }
       if (manager.state.booting && manager.state.active && !mode) throw new Error('Önceki başlangıç tamamlanmadı / Previous startup did not complete');
-    }).then(function () { return manager.record(mode === 'bundled' ? manager.baselineRecord : mode === 'previous' ? manager.state.previous || manager.baselineRecord : manager.state.active || manager.baselineRecord); }).then(function (m) {
+    }).then(function () { return manager.record(mode === 'bundled' ? manager.baselineRecord : mode === 'previous' ? manager.state.previous || manager.baselineRecord : manager.state.active || manager.baselineRecord); }).then(compatibleSet).then(function (m) {
       guard.check(); if (!mode && !manager.blocked && manager.state.active && newer(manager.baseline.version, m.version) && manager.state.baselineAttempted !== manager.baseline.version) return manager.commit({ previous: manager.state.active, active: manager.baselineRecord, pending: null, booting: false, baselineAttempted: manager.baseline.version }).then(function () { return manager.baseline; });
       return m;
     }).then(function (m) {
@@ -30,6 +40,7 @@
         var key = manager.selected._signer, descriptor = { channel: manager.config.channel, publicKey: key };
         return manager.registerChannel(descriptor, 'core-runtime').then(function () { return Promise.all([manager.source(selectedPolicy.file), manager.source(selectedPolicy.signature)]); }).then(function (files) { return new root.FilmUpdateVerify.Trust(key).verify(files[0], files[1]).then(function () { guard.check(); return root.FilmNativeTLS.configureRepository('core-runtime', 'core', files[0], files[1]); }); });
       });
+    }).then(function () { return root.FilmFirstRunBoot ? root.FilmFirstRunBoot.run(manager, mode) : false; }).then(function (reloading) { if (reloading) return new Promise(function () {});
     }).then(function () { progress('Eklentiler hazırlanıyor…', 'Preparing extensions…'); guard.stage('plugin preparation', 60000); root.FilmPlugins = new root.FilmPluginManager(manager); if (mode && mode !== 'normal') { root.FilmPlugins.blocked = true; root.FilmPlugins.note = 'Bu açılışta eklentiler kapalı / Plugins disabled for this launch'; return; } return root.FilmPlugins.init().then(function () { guard.check(); return root.FilmPlugins.prepare(); }); }).then(function () { return manager.source(manager.selected.sites); }).then(function (text) {
       guard.check(); guard.stage('interface styles', 30000); manager.groups = root.FilmUpdateVerify.sites(text, manager.selected).concat(root.FilmPlugins.groups());
       return manager.source(manager.selected.shell);

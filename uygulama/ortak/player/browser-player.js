@@ -214,7 +214,7 @@
           policy: self.policy,
           referer: source.referer,
           byteLimit: Math.min(
-            12 * 1024 * 1024,
+            24 * 1024 * 1024,
             Math.max(8 * 1024 * 1024, Number(source.fragmentByteLimit) || 0)
           ),
           deadline: function () {

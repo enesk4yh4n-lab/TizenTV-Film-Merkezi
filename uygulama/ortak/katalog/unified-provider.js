@@ -434,7 +434,7 @@
       token = this.begin(),
       sites = root.SiteRegistry.sites.filter(function (s) {
         return (
-          !s.virtual && (!query.quickQueries || !!query.quickQueries[s.id]) && (!query.type || !s.contentTypes || s.contentTypes.indexOf(query.type) >= 0)
+          !s.virtual && (!query.section || root.CatalogSections.supported(s,query.section)) && (!query.quickQueries || !!query.quickQueries[s.id]) && (!query.type || !s.contentTypes || s.contentTypes.indexOf(query.type) >= 0)
         );
       }),
       loadErrors = root.SiteRegistry.errors || [],
@@ -553,6 +553,7 @@
       r.catalogRevision = token + ':' + self.hub.revision + ':' + cards.length;
       return r;
     }
+    if(kind==='list'&&query.section)root.CatalogSections.known(self.hub,query.section,root.SiteRegistry.sites.filter(function(site){return !site.virtual;}).map(function(site){return site.id;}),self.hub.merging).forEach(function(card){if(ids.indexOf(card.contentId)<0){ids.push(card.contentId);view.remember(card);}});
     var received = [],
       observedSources = {},
       admission = Promise.resolve(),

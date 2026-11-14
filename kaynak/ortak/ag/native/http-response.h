@@ -19,7 +19,7 @@ inline std::string Trim(const std::string& text) {
   size_t a = text.find_first_not_of(" \t"), b = text.find_last_not_of(" \t");
   return a == std::string::npos ? "" : text.substr(a, b - a + 1);
 }
-inline Response Parse(const std::string& raw, size_t bodyLimit = kBodyLimit) {
+inline Response Parse(const std::string& raw, size_t bodyLimit = kBodyLimit, std::string* owned = NULL) {
   Response out;
   size_t split = raw.find("\r\n\r\n"), line = raw.find("\r\n");
   if (split == std::string::npos || split > kHeaderLimit || line == std::string::npos || line > split) { out.error = "HTTP basligi gecersiz"; return out; }
@@ -36,7 +36,9 @@ inline Response Parse(const std::string& raw, size_t bodyLimit = kBodyLimit) {
   }
   out.location = headers["location"];out.mimeType=headers["content-type"];out.contentRange=headers["content-range"];
   if (headers.count("content-encoding") && Lower(headers["content-encoding"]) != "identity") { out.error = "Desteklenmeyen HTTP sikistirmasi"; return out; }
-  std::string payload = raw.substr(split + 4);
+  std::string payload;
+  if (owned && owned == &raw) { owned->erase(0, split + 4); payload.swap(*owned); }
+  else payload = raw.substr(split + 4);
   if (headers.count("transfer-encoding")) {
     if (Lower(headers["transfer-encoding"]) != "chunked" || headers.count("content-length")) { out.error = "Belirsiz HTTP aktarimi"; return out; }
     size_t at = 0;
@@ -60,7 +62,7 @@ inline Response Parse(const std::string& raw, size_t bodyLimit = kBodyLimit) {
     if (value.empty() || value.size() > 8 || value.find_first_not_of("0123456789") != std::string::npos || std::strtoul(value.c_str(), NULL, 10) != payload.size()) { out.error = "Eksik HTTP govdesi"; return out; }
   }
   if (payload.size() > bodyLimit) { out.tooLarge=true;out.error = "HTTP boyut siniri"; return out; }
-  out.body = payload; return out;
+  out.body.swap(payload); return out;
 }
 }  // namespace film_http
 #endif

@@ -275,6 +275,7 @@
         });
       s.loading = true;
       s.error = null;
+      s.sectionUnsupported=!!(s.query.section&&!root.SiteRegistry.sites.some(function(site){return !site.virtual&&root.CatalogSections.supported(site,s.query.section);}));
       if (!more) {
         s.items = [];
         s.next = null;

@@ -102,7 +102,7 @@
   };
   function appearance(value) {
     value = value || {};
-    var result = { startScreen: ['home', 'movies', 'series', 'discover', 'watchlist', 'history'].indexOf(value.startScreen) >= 0 ? value.startScreen : 'home', largeText: value.largeText === true, exitConfirmation: value.exitConfirmation !== false, rows: {} };
+    var result = { startScreen: ['home', 'movies', 'series', 'animation', 'drama-short', 'watchlist', 'history'].indexOf(value.startScreen) >= 0 ? value.startScreen : 'home', largeText: value.largeText === true, exitConfirmation: value.exitConfirmation !== false, rows: {} };
     ['continue', 'following', 'movies', 'series', 'collections'].forEach(function (key) { result.rows[key] = !(value.rows && value.rows[key] === false); });
     return result;
   }

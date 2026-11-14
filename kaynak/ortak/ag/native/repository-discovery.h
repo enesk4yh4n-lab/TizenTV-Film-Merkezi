@@ -7,7 +7,7 @@ inline bool Part(const std::string& s) { return !s.empty() && s.size()<=100 && s
 inline bool Allowed(const std::string& host,const std::string& target) {
  if(host!="api.github.com" || target.size()>2048) return false;
  const std::string path=target.substr(0,target.find('?'));
- if(path=="/search/repositories") return target.find("filmmerkezi-repository.json")!=std::string::npos;
+ if(path=="/search/repositories") return target.find("filmmerkezi201-repository.json")!=std::string::npos;
  if(path.compare(0,7,"/repos/")) return false;
  const size_t ownerEnd=path.find('/',7); if(ownerEnd==std::string::npos) return false;
  const size_t repoEnd=path.find('/',ownerEnd+1); if(repoEnd==std::string::npos) return false;

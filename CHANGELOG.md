@@ -1,3 +1,19 @@
+## WGT 2.0.1 / Çekirdek 2.1.8 — 14 Kasım 2026
+
+- Ana menüye **ÇizgiFilm/Anime** ve **Drama/Short** eklendi; Keşfet kaldırıldı. Drama/Short, Kore/Asya ve kısa bölümlü diziler içindir.
+- Yeni bölümleri destekleyen P001 **2.0.7**, P004 **1.0.3**, P007 **1.0.2** hazırlandı. R paketleri değişmedi.
+- Kumanda odağı, menü geçişleri ve kaydırılmış listeden araçlara dönüş düzenlendi.
+- İlk kurulum öncesi çekirdek denetimi WGT'ye bağlandı; güncelleme yoksa kurulum normal devam eder.
+- Native taşımanın tavanı **24 MiB** oldu. Varsayılan 8 MiB ve daha küçük istek sınırları korunur; kullanılacak miktarı çekirdek belirler.
+- Paket temizliği bitmeden yeni iş başlamasına izin veren işlem kilidi hatası düzeltildi.
+- Yeni çekirdek kanalı **github-eklenti/201/update.json**, yeni eklenti listesi **filmmerkezi201-repository.json**. Eski WGT 2.0.0'ın kanalı, imzalı listeleri ve uyumlu paketleri korunur.
+- SDK **2.0.1**, yeni listeyi üretir; mevcut yayıncı anahtarını ve eski listeyi korur.
+
+**Kurulum:** Yeni çekirdek ve kategori özellikleri için WGT 2.0.1 kurulmalıdır. Eski WGT'ye uyumsuz paket sunulmaz. Hazır depo veya site eklenmez; TLS ve imza doğrulaması açık kalır.
+
+Tizen 3 emülatörü ve gerçek TV'de ilgili kısa kurulum/güncelleme/menü kontrolleri yapıldı. Bu yayın için yeni kapsamlı oynatma/ses testi yapılmadı.
+
+
 # Sürüm notları
 
 ## Çekirdek 2.1.6 — 14 Kasım 2026

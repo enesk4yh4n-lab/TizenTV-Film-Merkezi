@@ -68,7 +68,7 @@
         self.refresh = true;
         self.drawOptions('settings-posters');
       }, t('Kapalıyken afişler indirilmez; başlıklar ve içerik bilgileri görünür.', 'When off, posters are not downloaded; titles and content information remain visible.'));
-      var screens = [['home', t('Ana Sayfa', 'Home')], ['movies', t('Filmler', 'Movies')], ['series', t('Diziler', 'Series')], ['discover', t('Keşfet', 'Discover')], ['watchlist', t('Listem', 'My list')], ['history', t('Geçmiş', 'History')]];
+      var screens = [['home', t('Ana Sayfa', 'Home')], ['movies', t('Filmler', 'Movies')], ['series', t('Diziler', 'Series')], ['animation', t('ÇizgiFilm/Anime', 'Cartoons/Anime')], ['drama-short', t('Drama/Short', 'Drama/Short')], ['watchlist', t('Listem', 'My list')], ['history', t('Geçmiş', 'History')]];
       choice('settings-start', t('Açılış ekranı', 'Start screen'), screens.filter(function (v) { return v[0] === ui.startScreen; })[0][1], screens, ui.startScreen, function (x) { ui.startScreen = x; self.saveAppearance(ui, 'settings-start'); });
       row('settings-font', t('Menü yazısı', 'Menu text'), ui.largeText ? t('Büyük', 'Large') : t('Normal', 'Normal'), function () { ui.largeText = !ui.largeText; self.saveAppearance(ui, 'settings-font'); });
       row('settings-exit', t('Uygulamadan çıkış onayı', 'Confirm application exit'), on(ui.exitConfirmation), function () { ui.exitConfirmation = !ui.exitConfirmation; self.saveAppearance(ui, 'settings-exit'); });
