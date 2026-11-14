@@ -66,10 +66,11 @@
   function t(tr, en) { return root.FilmI18n && root.FilmI18n.language() === 'en' ? en : tr; }
   function draw(catalog, box, panel) {
     var manager = root.FilmPlugins, view = panel.pluginView || 'repositories';
+    if(view==='setup-search'&&root.FilmRepositoryDiscovery){root.FilmRepositoryDiscovery.setup(catalog,box,panel);return;}
     function line(value, small) { var p = document.createElement('p'); p.className = small ? 'support-description' : 'catalog-note'; p.style.wordWrap = 'break-word'; p.textContent = value; box.appendChild(p); return p; }
     function button(label, key, fn, enabled) { var b = document.createElement('button'); b.type = 'button'; b.className = 'filter-field'; b.setAttribute('data-focus', key); b.textContent = label; b.disabled = enabled === false || !!panel.working && key !== 'plugins-cancel-work'; b.onclick = fn; box.appendChild(b); return b; }
-    function show(next, focus) { panel.pluginView = next; catalog.renderPanel(focus); }
-    function work(fn, next, focus) { if (panel.working) return; panel.working = true; var promise; try { promise = fn(); } catch (e) { promise = Promise.reject(e); } catalog.renderPanel('plugins-cancel-work'); promise.then(function () { panel.working = false; if (next) panel.pluginView = next; if (catalog.panel === panel) catalog.renderPanel(focus); }, function (e) { panel.working = false; manager.note = e.message; manager.errorReport = root.FilmErrorReporter && root.FilmErrorReporter.capture({scope:'update',stage:'plugin-operation',siteId:panel.pluginId,error:e}); if (catalog.panel === panel) catalog.renderPanel(); }); }
+    function show(next, focus) { if(panel.centerEntry&&(next==='repository'||next==='repositories')){if(next==='repository'&&panel.settingsParent&&panel.settingsParent.onboarding&&panel.repoId)panel.settingsParent.installRepo=panel.repoId;catalog.closePanel(true);return;} panel.pluginView = next; catalog.renderPanel(focus); }
+    function work(fn, next, focus) { if (panel.working) return; panel.working = true; var promise; try { promise = fn(); } catch (e) { promise = Promise.reject(e); } catalog.renderPanel('plugins-cancel-work'); promise.then(function () { panel.working = false; if (catalog.panel === panel) { if(next) show(next,focus); else catalog.renderPanel(focus); } }, function (e) { panel.working = false; manager.note = e.message; manager.errorReport = root.FilmErrorReporter && root.FilmErrorReporter.capture({scope:'update',stage:'plugin-operation',siteId:panel.pluginId,error:e}); if (catalog.panel === panel) catalog.renderPanel(); }); }
     function back(next) { button(t('← Geri', '← Back'), 'plugins-back', function () { if(manager.search)manager.search.cancel();manager.discardCandidate(); show(next); }); }
     function name(repo) { return repo.displayName || repo.name; }
     function details(fingerprint) {
@@ -118,7 +119,7 @@
       back('repositories');
     } else if (view === 'address') {
       line(t('filmmerkezi-repository.json adresi', 'filmmerkezi-repository.json address'));
-      var input = document.createElement('input'); input.type = 'url'; input.id = 'plugins-url'; input.maxLength = 2048; input.value = panel.url || ''; input.readOnly = true; input.tabIndex = -1; input.style.cssText = 'box-sizing:border-box;width:100%;font-size:25px;padding:14px;background:#101d30;color:white;border:2px solid #576781'; input.oninput = function () { panel.url = input.value; }; box.appendChild(input);
+      var input = document.createElement('input'); input.type = 'url'; input.id = 'plugins-url'; input.maxLength = 2048; input.value = panel.url || ''; input.readOnly = true; input.tabIndex = -1; input.style.cssText = 'box-sizing:border-box;width:100%;font-size:25px;padding:14px;background:#101d30;color:white;border:2px solid #576781'; input.oninput = function () { panel.url = input.value; if(panel.settingsParent&&panel.settingsParent.wizard)root.FilmRepositorySetup.checkpoint(3,{url:input.value}); }; box.appendChild(input);
       button(t('Adresi düzenle · OK ile klavye', 'Edit address · OK opens keyboard'), 'plugins-url-edit', function () { panel.inputEditing = true; input.readOnly = false; input.focus(); });
       button(t('Devam et', 'Continue'), 'plugins-probe', function () { panel.url = input.value; panel.technical = false; work(function () { return manager.probe(panel.url); }, 'trust', 'plugins-trust'); });
       back(panel.replaceId ? 'repository' : 'repositories');
@@ -186,6 +187,11 @@
   }
   function key(catalog, event) {
     var panel = catalog.panel; if (!panel || panel.kind !== 'plugins') return false;
+    if (panel.pluginView === 'setup-search') {
+      if (root.FilmRepositoryDiscovery && root.FilmRepositoryDiscovery.key(catalog, event)) return true;
+      if (event.keyCode === 27 || event.keyCode === 10009) { event.preventDefault(); root.FilmRepositorySetup.complete(catalog); return true; }
+      return false;
+    }
     var renaming = panel.pluginView === 'rename', searching = panel.pluginView === 'find', input = document.getElementById(renaming ? 'plugins-name' : searching ? 'plugins-search' : 'plugins-url');
     var code = event.keyCode;
     if (panel.inputEditing) {
@@ -199,11 +205,12 @@
         function settled() { if (catalog.panel === panel && !panel.working && !panel.inputEditing) { var active = document.activeElement; catalog.renderPanel(active && active.getAttribute('data-focus')); } }
         if (root.FilmPlugins.operationTask) root.FilmPlugins.operationTask.then(settled, settled);
       }
-      if (panel.pluginView === 'find' && manager.search) manager.search.cancel();
+      if (panel.pluginView === 'find' && root.FilmPlugins.search) root.FilmPlugins.search.cancel();
+      if(panel.centerEntry&&panel.pluginView===panel.centerEntry){event.preventDefault();root.FilmPlugins.discardCandidate();catalog.closePanel(true);return true;}
       if (panel.pluginView && panel.pluginView !== 'repositories') {
         event.preventDefault(); root.FilmPlugins.discardCandidate();
         panel.pluginView = panel.pluginView === 'trust' ? panel.searchOrigin ? 'find' : 'address' : panel.pluginView === 'address' ? panel.replaceId ? 'repository' : 'repositories' : panel.pluginView === 'rename' || panel.pluginView === 'catalog' ? 'repository' : panel.pluginView === 'confirm' ? panel.confirmAction === 'repository' ? 'repository' : 'plugin' : panel.pluginView === 'plugin' ? panel.item ? 'catalog' : 'installed' : 'repositories';
-        catalog.renderPanel(); return true;
+        if(panel.centerEntry&&(panel.pluginView==='repository'||panel.pluginView==='repositories'))catalog.closePanel(true);else catalog.renderPanel(); return true;
       }
       root.FilmPlugins.discardCandidate();
       if (panel.onboarding) { event.preventDefault(); root.FilmRepositorySetup.complete(catalog); return true; }

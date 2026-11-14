@@ -121,10 +121,9 @@
       style('settings-sub-shadow', t('Altyazı gölgesi', 'Subtitle shadow'), [[true, on(true)], [false, on(false)]], 'shadow');
       style('settings-sub-bottom', t('Altyazı alt boşluğu', 'Subtitle bottom margin'), [[3, '%3'], [5, '%5'], [8, '%8'], [12, '%12'], [20, '%20'], [30, '%30']], 'bottom');
     } else if (category === 'updates') {
-      panel('tools-updates', t('Uygulama / çekirdek', 'Application / core'), 'update-center', { scope: 'core' });
-      panel('settings-site-packages', t('Site eklentileri', 'Site plugins'), 'update-center', { scope: 'sites' });
-      if (root.FilmPlugins) panel('settings-repositories', t('Eklenti depoları ve yeni paketler', 'Plugin repositories and new packages'), 'plugins', { pluginView: 'repositories' });
+      return result;
     } else if (category === 'storage') {
+      row('settings-reset-keep-core', t('Çekirdeği koruyarak sıfırla', 'Reset while keeping the core'), t('Ayarlar, kayıtlar, depolar ve eklentiler temizlenir; çekirdek korunur.', 'Settings, records, repositories and plugins are removed; the core is kept.'), function () { self.choose(t('Etkin çekirdek korunacak. Ayarlar, Listem, geçmiş, devam kayıtları, depolar ve eklentiler silinecek.', 'The active core will be kept. Settings, My list, history, progress, repositories and plugins will be removed.'), [[false, t('Vazgeç', 'Cancel')], [true, t('Sıfırla ve yeniden aç', 'Reset and restart')]], false, function (yes) { if (yes) self.resetAll(true); }, 'settings-reset-keep-core'); });
       row('tools-cache', t('Katalog önbelleğini temizle', 'Clear catalog cache'), '', function () { self.confirm(t('Katalog önbelleğini temizle', 'Clear catalog cache'), t('Listem ve izleme kayıtları korunur.', 'My list and viewing records are preserved.'), function () { a.cache.clear(); a.images.clear(); a.app.view.toast(t('Katalog önbelleği temizlendi.', 'Catalog cache cleared.')); }, 'tools-cache'); });
       row('settings-search-clear', t('Arama geçmişini temizle', 'Clear search history'), '', function () { self.confirm(t('Arama geçmişini temizle', 'Clear search history'), t('İzleme geçmişi korunur.', 'Viewing history is preserved.'), function () { self.p.clear(); }, 'settings-search-clear'); });
       panel('tools-history', t('İzleme geçmişini temizle', 'Clear viewing history'), 'clear-history');
@@ -140,30 +139,32 @@
     }
     return result;
   };
-  UI.prototype.resetAll = function () {
+  UI.prototype.resetAll = function (keepCore) {
     var self = this, a = this.a;
     if (this.resetting) return;
     this.resetting = true;
     Array.prototype.forEach.call(document.querySelectorAll('.settings-categories button, .settings-back'), function (x) { x.disabled = true; });
     this.info(t('Sıfırlanıyor', 'Resetting'), t('İşlem tamamlanana kadar uygulamayı kapatmayın.', 'Keep the application open until reset finishes.'));
     if (!this.resetService) this.resetService = new root.SettingsResetService(a.app);
-    this.resetService.resetAll().then(function () { root.location.reload(); }, function (e) {
+    this.resetService.resetAll({keepCore:!!keepCore}).then(function () { root.location.reload(); }, function (e) {
       self.resetting = false;
       self.resetFailed = true;
       document.querySelector('.settings-back').disabled = false;
-      self.choose(t('Sıfırlama tamamlanamadı: ', 'Reset could not finish: ') + e.message, [[false, t('Uygulamayı yeniden aç', 'Restart application')], [true, t('Yeniden dene', 'Retry')]], false, function (retry) { if (retry) self.resetAll(); else root.location.reload(); }, 'settings-reset-all');
+      self.choose(t('Sıfırlama tamamlanamadı: ', 'Reset could not finish: ') + e.message, [[false, t('Uygulamayı yeniden aç', 'Restart application')], [true, t('Yeniden dene', 'Retry')]], false, function (retry) { if (retry) self.resetAll(keepCore); else root.location.reload(); }, keepCore ? 'settings-reset-keep-core' : 'settings-reset-all');
     });
   };
   UI.prototype.info = function (title, text) { var active = document.activeElement, key = active && active.getAttribute('data-focus'); this.choose(title, [[0, text]], 0, function () {}, key); this.a.panel.settingsChoice.info = true; this.drawOptions('setting-choice-0'); };
   UI.prototype.confirm = function (title, text, action, key) { this.choose(title + ' · ' + text, [[false, t('Vazgeç', 'Cancel')], [true, t('Temizle', 'Clear')]], false, function (x) { if (x) action(); }, key); };
   UI.prototype.drawOptions = function (key) {
     var self = this, panel = this.a.panel, host = document.getElementById('settings-options'); if (!host || !panel) return;
-    host.textContent = '';
+    host.classList.remove('fm-update-center');host.classList.remove('fm-update-embedded');host.textContent = '';
     function append(row) { var x = row.action ? b('', row.key, row.action, 'settings-row') : n('div', 'settings-row settings-info'); x.appendChild(n('strong', '', row.title)); if (row.value) x.appendChild(n('span', 'settings-value', row.value)); if (row.help) x.appendChild(n('small', '', row.help)); host.appendChild(x); }
     var choice = panel.settingsChoice;
     if (choice) { host.appendChild(n('h2', 'settings-options-title', choice.title)); choice.values.forEach(function (v, i) { append({key:'setting-choice-'+i,title:(choice.selected === v[0] && !choice.info ? '✓ ' : '') + v[1],action:function(){delete panel.settingsChoice;choice.save(v[0]);self.drawOptions(choice.returnKey || 'settings-category-'+panel.settingsCategory);}}); }); }
     else if (panel.settingsRows) {
       [['continue',t('İzlemeye devam et','Continue watching')],['following',t('Takip ettiğim diziler','Followed series')],['movies',t('Filmler','Movies')],['series',t('Diziler','Series')],['collections',t('Koleksiyonlar','Collections')]].forEach(function(v){var value=self.p.appearance();append({key:'settings-row-'+v[0],title:v[1],value:on(value.rows[v[0]]),action:function(){value.rows[v[0]]=!value.rows[v[0]];self.saveAppearance(value,'settings-row-'+v[0]);}});});
+    } else if (panel.settingsCategory === 'updates') {
+      if(root.FilmUpdateCenter){root.FilmUpdateCenter.render(this.a,key);return;}
     } else this.rows(panel.settingsBuffering ? 'buffering' : panel.settingsCategory).forEach(append);
     if (key) {
       var target = this.a.findFocus(key);
@@ -178,7 +179,7 @@
     var header = n('header','settings-header'), logo = document.querySelector('.catalog-brand img'); if (logo) header.appendChild(logo.cloneNode(false));
     var title = n('h1','','Film Merkezi  v'+root.AppInfo.version+'  ·  '+t('Ayarlar','Settings'));title.id='settings-title';header.appendChild(title);header.appendChild(b(t('Geri','Back'),'settings-back',function(){self.back();},'settings-back'));box.appendChild(header);
     var body=n('div','settings-layout'),left=n('nav','settings-categories'),right=n('section','settings-options');left.setAttribute('aria-label',t('Ayar kategorileri','Settings categories'));right.id='settings-options';right.setAttribute('aria-labelledby','settings-title');
-    this.categories().forEach(function(v){var x=b(v[1],'settings-category-'+v[0],function(){self.focusFirstOption();},'settings-category');x.setAttribute('aria-pressed',p.settingsCategory===v[0]?'true':'false');x.onfocus=function(){if(p.settingsCategory===v[0])return;p.settingsCategory=v[0];delete p.settingsChoice;delete p.settingsRows;delete p.settingsBuffering;Array.prototype.forEach.call(left.querySelectorAll('button'),function(k){k.setAttribute('aria-pressed',k===x?'true':'false');});self.drawOptions();};left.appendChild(x);});body.appendChild(left);body.appendChild(right);box.appendChild(body);box.appendChild(n('p','settings-help',t('↑ ↓ Gezin · → Seçenekler · ← Kategoriler · OK Değiştir · Geri Dön','↑ ↓ Navigate · → Options · ← Categories · OK Change · Back Return')));
+    this.categories().forEach(function(v){var x=b(v[1],'settings-category-'+v[0],function(){self.focusFirstOption();},'settings-category');x.setAttribute('aria-pressed',p.settingsCategory===v[0]?'true':'false');x.onfocus=function(){if(p.settingsCategory===v[0])return;if(p.settingsCategory==='updates'&&root.FilmRepositoryDiscovery){root.FilmRepositoryDiscovery.cancel(p);p.centerAction='';p.repoOptions='';}p.settingsCategory=v[0];delete p.settingsChoice;delete p.settingsRows;delete p.settingsBuffering;Array.prototype.forEach.call(left.querySelectorAll('button'),function(k){k.setAttribute('aria-pressed',k===x?'true':'false');});self.drawOptions();};left.appendChild(x);});body.appendChild(left);body.appendChild(right);box.appendChild(body);box.appendChild(n('p','settings-help',t('↑ ↓ Gezin · → Seçenekler · ← Kategoriler · OK Değiştir · Geri Dön','↑ ↓ Navigate · → Options · ← Categories · OK Change · Back Return')));
     this.drawOptions();this.focus(key || 'settings-category-'+p.settingsCategory);return true;
   };
   UI.prototype.focusFirstOption = function () { var x = document.querySelector('#settings-options button'); if(x)this.focus(x.getAttribute('data-focus')); };
@@ -186,6 +187,7 @@
   UI.prototype.key = function (event) {
     if(!this.active())return false;var code=event.keyCode,active=document.activeElement,key=active&&active.getAttribute('data-focus'),category=key&&key.indexOf('settings-category-')===0,items,index,next;
     if(this.resetting){event.preventDefault();return true;}
+    if(this.a.panel.settingsCategory==='updates'&&root.FilmUpdateCenter&&root.FilmUpdateCenter.key(this.a,event))return true;
     if([9,13,27,37,38,39,40,10009].indexOf(code)<0)return false;event.preventDefault();
     if(code===27||code===10009){this.back();return true;}if(code===13){if(active&&active.tagName==='BUTTON')active.click();return true;}
     if(code===37){if(this.a.panel.settingsChoice||this.a.panel.settingsRows||this.a.panel.settingsBuffering)this.back();else this.focus('settings-category-'+this.a.panel.settingsCategory);return true;}

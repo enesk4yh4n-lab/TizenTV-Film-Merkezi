@@ -24,11 +24,11 @@
  Workflow.prototype.prepare=function(keys,includeCore,install){
   var self=this;if(this.running||this.plugins.busy||this.core.busy||this.app.controller.content)return Promise.reject(Error(t('Önce mevcut işlemi tamamlayın.','Finish the current operation first.')));
   if(this.readOnly)return Promise.reject(Error(t('Toplu işlem kaydı kullanılamıyor.','Batch storage unavailable.')));
-  var groups=this.groups(),rows=install?groups.newSites:groups.updates,requested=[],seen={},repos=this.plugins.state.repositories;
+  var groups=this.groups(),rows=install==='mixed'?groups.updates.concat(groups.newSites):install?groups.newSites:groups.updates,requested=[],seen={},repos=this.plugins.state.repositories;
   keys.forEach(function(key){var group=rows.filter(function(r){return r.key===key;})[0];if(!group)throw Error('Package selection changed');group.updateKeys.forEach(function(k){if(seen[k])return;seen[k]=true;var slash=k.lastIndexOf('/'),repoId=k.slice(0,slash),id=k.slice(slash+1),repo=repos[repoId];if(!repo||!repo.enabled)throw Error('Repository disabled');requested.push({key:k,repoId:repoId,id:id,name:group.name});});});
   var found=includeCore&&this.core.found,target=found&&found.updateVersion||'',old=this.job,unplanned={};
   if(!requested.length&&!target)return Promise.reject(Error(t('Güncelleme bulunmadı.','No updates available.')));
-  this.running=true;this.cancelled=false;this.draw();
+  this.progress=null;this.running=true;this.cancelled=false;this.draw();
   return Promise.resolve().then(function(){self.check();return requested.length?self.plugins.installationPlan(requested[0].repoId,requested[0].id,function(){self.check();},{requests:requested,coreVersion:target||self.core.status().current}):[];}).catch(function(error){self.check();var chain=Promise.resolve(),plans=[];requested.forEach(function(item){chain=chain.then(function(){return self.plugins.installationPlan(item.repoId,item.id,function(){self.check();},{coreVersion:target||self.core.status().current}).then(function(rows){rows.forEach(function(c){if(!plans.some(function(v){return v.key===c.key&&v.manifest.version===c.manifest.version;}))plans.push(c);});},function(e){self.check();unplanned[item.key]=e.message;});});});return chain.then(function(){return plans;});}).then(function(plan){
    self.check();var pins=plan.map(function(c){var record=self.plugins.state.plugins[c.key];return {key:c.key,publisher:c.publisher,repoId:c.repo.id,id:c.manifest.id,version:c.manifest.version,hash:c.item?c.item.manifestSha256:(record.pending||record.active).hash};});
    // Connected roots share one transaction so a shared dependency cannot be half-updated.
@@ -38,7 +38,7 @@
  };
  Workflow.prototype.cancel=function(){this.cancelled=true;if(this.running){this.core.cancel();this.plugins.cancel();}if(this.job){this.job.phase='interrupted';this.job.items.forEach(function(i){if(i.status==='running')i.status='queued';});try{this.save();}catch(e){this.notice=e.message;}}this.draw();};
  Workflow.prototype.run=function(){
-  var self=this,job=this.job;if(!job||this.running)return Promise.resolve();if(job.core&&S.compare(this.core.status().current,job.core)<0)job.phase='core';this.running=true;this.cancelled=false;this.draw();
+  var self=this,job=this.job;if(!job||this.running)return Promise.resolve();if(job.core&&S.compare(this.core.status().current,job.core)<0)job.phase='core';this.progress=null;this.running=true;this.cancelled=false;this.draw();
   function changed(){self.save();self.draw();}
   function reboot(){self.check();self.running=false;if(self.app.catalog.hub)self.app.catalog.hub.flush();root.location.reload();}
   function items(){
@@ -46,7 +46,7 @@
    if(!pending.length)return Promise.resolve();
    // All requested roots are planned together; retrying uses immutable approved pins.
    pending.forEach(function(i){i.status='running';});changed();
-   function progress(id){job.current=id;self.draw();}
+   function progress(id,detail){job.current=id;if(detail)self.progress=detail;var now=Date.now();if(!self.progressDrawAt||now-self.progressDrawAt>=150||!detail||detail.stage!=='downloading'){self.progressDrawAt=now;self.draw();}}
    return self.plugins.download(pending[0].repoId,pending[0].id,{requests:pending,approved:job.pins,onProgress:progress}).then(function(){pending.forEach(function(i){i.status='ready';});changed();},function(error){
     if(error.cancelled||self.cancelled)throw error;
     // A dependency conflict cannot be bypassed. Independent roots can still succeed.
@@ -58,10 +58,10 @@
  };
  Workflow.prototype.resume=function(){
   var self=this,job=this.job;if(!job)return false;
-  if(job.phase==='site-restart'){var ok=job.pins.every(function(pin){var p=self.plugins.state.plugins[pin.key],v=p&&(p.enabled?p.active:p.pending||p.active);return p&&v&&v.hash===pin.hash&&v.version===pin.version&&!p.error;});if(!ok){job.phase='failed';this.notice=t('Paketlerin etkinleşmesi tamamlanamadı; ayrıntıları kontrol edin.','Packages did not activate successfully; check details.');this.save();return false;}this.job=null;try{this.save();this.notice=t('Güncellemeler tamamlandı.','Updates completed.');}catch(e){this.notice=e.message;}return false;}
+  if(job.phase==='site-restart'){var ok=job.pins.every(function(pin){var p=self.plugins.state.plugins[pin.key],v=p&&(p.enabled?p.active:p.pending||p.active);return p&&v&&v.hash===pin.hash&&v.version===pin.version&&!p.error;});if(!ok){job.phase='failed';this.notice=t('Paketlerin etkinleşmesi tamamlanamadı; ayrıntıları kontrol edin.','Packages did not activate successfully; check details.');this.save();return false;}this.coreCompleted=!!job.core;this.job=null;try{this.save();this.notice=t('Güncellemeler tamamlandı.','Updates completed.');}catch(e){this.notice=e.message;}return false;}
   if(job.phase!=='core-restart')return false;
   if(this.core.status().current!==job.core||!this.core.state.active||!this.core.healthy){this.notice=t('Çekirdek geçişi doğrulanamadı; site güncellemeleri başlatılmadı.','Core transition was not verified; site updates were not started.');job.phase='failed';this.save();return false;}
-  return root.FilmUpdateVerify.sha(this.core.state.active.text).then(function(hash){if(hash!==job.coreHash)throw Error('Core digest changed');job.phase='items';self.save();return self.run();}).catch(function(e){job.phase='failed';self.notice=e.message;self.save();self.draw();});
+  return root.FilmUpdateVerify.sha(this.core.state.active.text).then(function(hash){if(hash!==job.coreHash)throw Error('Core digest changed');if(!job.items.length){self.job=null;self.coreCompleted=true;self.save();return false;}job.phase='items';self.save();return self.run();}).catch(function(e){job.phase='failed';self.notice=e.message;self.save();self.draw();});
  };
  root.FilmUpdateWorkflow=Workflow;
 })(window);

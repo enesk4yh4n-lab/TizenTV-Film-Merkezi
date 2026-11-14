@@ -4,9 +4,9 @@
   function text(tr, en) { return root.FilmI18n && root.FilmI18n.language() === 'en' ? en : tr; }
   function serial(items, fn) { var p = Promise.resolve(); items.forEach(function (x) { p = p.then(function () { return fn(x); }); }); return p; }
   function Reset(app, options) { this.app = app; this.options = options || {}; this.running = null; this.stage = ''; }
-  Reset.prototype.resetAll = function () {
+  Reset.prototype.resetAll = function (options) {
     if (this.running) return this.running;
-    var self = this, app = this.app, core = root.FilmUpdate, plugins = root.FilmPlugins, catalog = app.catalog, raw, coreStore, pluginStore;
+    var self = this, keepCore = !!(options && options.keepCore), app = this.app, core = root.FilmUpdate, plugins = root.FilmPlugins, catalog = app.catalog, raw, coreStore, pluginStore;
     function step(name, action) { return function () { self.stage = name; return action(); }; }
     function emptyStore(store, state) {
       if (!store) return Promise.resolve();
@@ -27,10 +27,13 @@
       if (app.controller.content) throw new Error(text('Önce oynatıcıdan çıkın.', 'Exit the player first.'));
       raw = self.options.storage || root.localStorage;
       if (!raw) throw new Error(text('Depolama kullanılamıyor.', 'Storage is unavailable.'));
-      if (core && (!core.baselineRecord || !core.baseline)) throw new Error(text('Başlangıç paketi doğrulanamadı.', 'The bundled package could not be verified.'));
-      return core ? core.record(core.baselineRecord) : null;
+      if (core && keepCore && (!core.healthy || !core.state.active)) throw new Error(text('Etkin çekirdek doğrulanamadı.', 'The active core could not be verified.'));
+      if (core && !keepCore && (!core.baselineRecord || !core.baseline)) throw new Error(text('Başlangıç paketi doğrulanamadı.', 'The bundled package could not be verified.'));
+      return core ? core.record(keepCore ? core.state.active : core.baselineRecord) : null;
     })).then(step(text('İşlemleri durdurma', 'Stopping operations'), function () {
       if (catalog) catalog.begin();
+      if (root.FilmUpdateCoordinator && root.FilmUpdateCoordinator.current) root.FilmUpdateCoordinator.current.cancel();
+      if (app.updateWorkflow) app.updateWorkflow.cancel();
       if (app.siteManagement) app.siteManagement.cancel();
       if (core) core.cancel();
       if (plugins) { plugins.cancel(); plugins.discardCandidate(); }
@@ -52,8 +55,9 @@
         return emptyStore(pluginStore, { schemaVersion: 1, seq: (plugins ? plugins.state.seq : 0) + 1, repositories: {}, plugins: {} });
       });
     })).then(step(text('Kişisel kayıtları temizleme', 'Removing personal records'), deleteUserData)).then(step(text('İndirilen çekirdeği temizleme', 'Removing downloaded core'), function () {
+      if (keepCore) return;
       return emptyStore(coreStore, { schemaVersion: 1, seq: (core ? core.state.seq : 0) + 1, active: null, previous: null, pending: null, booting: false, revision: 0, checkedAt: 0 });
-    })).then(function () { self.stage = ''; return { reset: true, bundled: core && core.baseline.version }; });
+    })).then(function () { self.stage = ''; return { reset: true, keptCore: keepCore, bundled: core && core.baseline && core.baseline.version }; });
     this.running = task.then(function (result) { self.running = null; return result; }, function (error) {
       self.running = null;
       throw new Error(self.stage + ' · ' + error.message + text(' Bazı veriler silinmiş olabilir.', ' Some data may already have been removed.'));

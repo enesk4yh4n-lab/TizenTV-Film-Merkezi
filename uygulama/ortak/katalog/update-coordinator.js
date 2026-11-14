@@ -46,7 +46,7 @@
     this.noticeReturn = document.activeElement;
     this.noticeHost = host; host.id = 'update-notification';
     host.setAttribute('role', 'status'); host.setAttribute('aria-live', 'polite');
-    host.style.cssText = 'position:absolute;right:72px;top:235px;width:620px;max-width:90%;z-index:20;padding:22px 26px;background:#203249;color:#fff;border:1px solid #65768b;border-radius:10px;box-shadow:0 8px 28px #070c15;font:24px Arial';
+    host.style.cssText = 'position:absolute;right:72px;top:235px;width:760px;max-width:90%;z-index:20;padding:22px 26px;background:#203249;color:#fff;border:1px solid #65768b;border-radius:10px;box-shadow:0 8px 28px #070c15;font:24px Arial';
     function line(text, secondary) { var p = document.createElement('p'); p.textContent = text; p.style.cssText = secondary ? 'margin:12px 0;color:#c0cbd9;font-size:21px' : 'margin:0 0 8px;font-weight:bold'; host.appendChild(p); }
     if (r.core) line(t('Yeni çekirdek güncellemesi var', 'A new core update is available'));
     if (r.updates.length) line(t('Yeni site güncellemesi var', 'Site updates are available'));
@@ -64,6 +64,7 @@
       b.onblur = function () { b.style.borderColor = 'transparent'; };
       b.onclick = fn; host.appendChild(b); return b;
     }
+    var install = action(r.core||r.updates.length?t('Güncelle ve yükle','Update and install'):t('Yükle','Install'), 'install', function () { self.install({includeCore:true}); });
     var inspect = action(t('İncele', 'Review'), 'inspect', function () { self.offer(); });
     var later = action(t('Daha sonra', 'Later'), 'later', function () { self.dismissNotice(true); });
     function key(e) {
@@ -76,7 +77,7 @@
         if (e.repeat || repeated) return;
         if (code === 27 || code === 10009) self.dismissNotice(true);
         else if (code === 13) document.activeElement.click();
-        else (code === 37 ? inspect : later).focus();
+        else {var buttons=[install,inspect,later],at=buttons.indexOf(document.activeElement);buttons[Math.max(0,Math.min(buttons.length-1,at+(code===37?-1:1)))].focus();}
       }
     }
     function cleanup() { if (active || Object.keys(held).length) return; root.removeEventListener('keydown', key, true); root.removeEventListener('keyup', release, true); root.removeEventListener('blur', blur); }
@@ -89,7 +90,20 @@
   };
 
   Coordinator.prototype.offer = function () {
-    if(this.app.controller.content||this.downloading)return;this.dismissNotice(false);var a=this.app.catalog;a.save();a.panel={kind:'update-center',returnKey:'catalog-tools',pluginTab:'updates'};a.renderPanel('update-install-all');
+    if(this.app.controller.content||this.downloading)return;this.dismissNotice(false);var a=this.app.catalog;a.save();a.panel={kind:'tools',settingsCategory:'updates',returnKey:'catalog-tools'};a.renderPanel('settings-category-updates');
+  };
+  Coordinator.prototype.install = function (options) {
+    options=options||{};var self=this,a=this.app.catalog,flow=this.app.updateWorkflow;
+    if(this.opening||this.downloading||this.app.controller.content||flow.running)return Promise.resolve(false);
+    if(options.setup&&root.FilmRepositorySetup.pending())root.FilmRepositorySetup.complete(a);
+    this.offer();var panel=a.panel;if(!panel||panel.settingsCategory!=='updates')return Promise.resolve(false);
+    this.opening=true;panel.working=true;panel.notice=t('Eklentiler hazırlanıyor…','Preparing plugins…');a.renderPanel('management-check-all');
+    function current(){if(a.panel!==panel||self.app.controller.content){var e=Error('Selection cancelled');e.cancelled=true;throw e;}}
+    return this.check().then(function(){current();var groups=flow.groups(),rows=groups.updates.concat(groups.newSites).filter(function(r){return !options.repoId||r.repoId===options.repoId;}),repoIds=options.repoId?[options.repoId]:Object.keys(self.plugins.state.repositories);panel.expandedRepos=panel.expandedRepos||{};repoIds.forEach(function(id){panel.expandedRepos[id]=true;});
+      if(options.choose){panel.notice=t('Yüklemek istediğiniz eklentileri seçin. Gerekli bileşenler birlikte yüklenir.','Choose plugins to install. Required components are included.');return false;}
+      var core=!!(options.includeCore&&self.last&&self.last.core);if(!rows.length&&!core){panel.notice=t('Yüklenecek yeni eklenti veya güncelleme bulunamadı.','No new plugins or updates found.');return false;}
+      panel.notice='';return flow.prepare(rows.map(function(r){return r.key;}),core,'mixed').then(function(){current();panel.confirmUpdate=true;return true;});
+    }).then(function(result){self.opening=false;panel.working=false;if(a.panel===panel)a.renderPanel(result?'update-confirm-cancel':'update-add-repo');return result;},function(e){self.opening=false;panel.working=false;if(a.panel===panel){panel.notice=e.message;panel.errorReport=root.FilmErrorReporter&&root.FilmErrorReporter.capture({scope:'update',stage:'install-selection',error:e});a.renderPanel('management-check-all');}return false;});
   };
   Coordinator.prototype.start = function () {
     var self = this, stopped = false;

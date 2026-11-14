@@ -1137,11 +1137,11 @@
     if (root.FilmPlugins && !Object.keys(root.FilmPlugins.state.repositories).length) {
       parent.appendChild(node('h1', 'catalog-empty', tr('Henüz depo eklenmedi')));
       parent.appendChild(button(tr('Depo ekle'), 'home-add-repository', function () {
-        self.panel = { kind: 'plugins', pluginView: 'repositories' };
-        self.renderPanel('plugins-add-repository');
+        root.FilmUpdateCoordinator.current.offer();root.FilmRepositoryDiscovery.open(self,self.panel,function(key){if(self.panel&&self.panel.settingsCategory==='updates')root.FilmUpdateCenter.render(self,key);});
       }, 'quiet-button'));
       return;
     }
+    if(root.FilmPlugins&&!root.SiteRegistry.sites.length&&!Object.keys(root.FilmPlugins.state.plugins||{}).some(function(key){var entry=root.FilmPlugins.state.plugins[key];return entry.type==='site'&&!!(entry.active||entry.pending);})){var english=root.FilmI18n&&root.FilmI18n.language()==='en';parent.appendChild(node('h1','catalog-empty',english?'No plugins installed yet':'Henüz eklenti yüklenmedi'));parent.appendChild(button(english?'Install plugins':'Eklentileri yükle','home-install-plugins',function(){root.FilmUpdateCoordinator.current.install({});},'quiet-button'));return;}
     if (!data) return;
     if (!s.heroCard)
       s.heroCard =
@@ -1800,6 +1800,7 @@
     if (restore && root.CatalogManagementPanel && root.CatalogManagementPanel.back(this)) return;
     if (this.panel && /^(active-sites|site-management|update-center)$/.test(this.panel.kind) && this.app.siteManagement) this.app.siteManagement.cancel();
     if (!this.panel) return;
+    if((this.panel.kind==='update-center'||/^(tools|application-settings)$/.test(this.panel.kind)&&this.panel.settingsCategory==='updates')&&root.FilmRepositoryDiscovery)root.FilmRepositoryDiscovery.cancel(this.panel);
     var settings = this.experience.settings;
     if (settings && settings.beforeClose(restore)) return;
     if(this.panel.kind==='plugins'&&root.FilmPlugins.search)root.FilmPlugins.search.cancel();
@@ -1828,6 +1829,8 @@
     this.renderPanel('filter-' + key);
   };
   App.prototype.renderPanel = function (focusKey) {
+    if(this.panel&&this.panel.wizard&&root.FilmSetupWizard){root.FilmSetupWizard.attach(this.app);return;}
+    document.getElementById('catalog-modal-card').classList.remove('fm-setup-discovery');
     if(!this.panel||this.panel.kind!=='update-center')document.getElementById('catalog-modal').classList.remove('fm-update-center');
     if (this.experience.renderPanel(focusKey)) return;
     var self = this,
@@ -2332,6 +2335,7 @@
   App.prototype.key = function (event) {
     if (event.defaultPrevented || this.app.controller.content) return;
     if (this.hub && this.hub.identityRebuilding) { event.preventDefault(); return; }
+    if (root.FilmRepositoryDiscovery && root.FilmRepositoryDiscovery.key(this, event)) return;
     if (root.FilmPluginPanel && root.FilmPluginPanel.key(this, event)) return;
     var code = event.keyCode;
     if (this.editing || document.activeElement === el('catalog-search')) {

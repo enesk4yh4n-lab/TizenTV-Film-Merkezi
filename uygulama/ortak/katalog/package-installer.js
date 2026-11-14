@@ -45,32 +45,34 @@
   function download(repoId, pluginId, options) {
     options = options || {}; var self = this;
     return this.operation('download', function (check) {
-      var plan, records = {}, allOrigins = {};
+      var plan, records = {}, allOrigins = {}, progress={stage:'planning',packages:[],current:'',downloaded:0,reused:0,processed:0,total:0,packageBytes:0,packageTotal:0};
+      function emit(stage,c){progress.stage=stage;if(c){progress.current=c.manifest.id;progress.packages.forEach(function(p){if(p.id===c.manifest.id)p.stage=stage;});}if(options.onProgress)options.onProgress(progress.current,clone(progress));}
+      emit('planning');
       return self.installationPlan(repoId, pluginId, check, options).then(function (rows) {
         if(options.approved)rows.forEach(function(c){var pin=options.approved.filter(function(p){return p.key===c.key;})[0];if(!pin||pin.publisher!==c.publisher||pin.version!==c.manifest.version||pin.hash!==(c.item?c.item.manifestSha256:(self.state.plugins[c.key].pending||self.state.plugins[c.key].active).hash))throw new Error('Approved package changed; check again');});
         rows.forEach(function (c) { Object.keys(self.state.plugins).forEach(function (key) { var p = self.state.plugins[key], r = self.state.repositories[p.repoId]; if (key !== c.key && p.enabled && r && r.enabled && r.fingerprint === c.publisher && p.id === c.manifest.id) throw new Error('Publisher package already installed through another repository: ' + p.id); }); });
         var siteOwners = {};
         Object.keys(self.state.plugins).forEach(function (key) { var p = self.state.plugins[key]; if (p.enabled && p.siteId && !rows.some(function (c) { return c.key === key; })) siteOwners[p.siteId] = key; });
         rows.forEach(function (c) { if (c.manifest.type !== 'site') return; var id = c.manifest.site.id; if (siteOwners[id] && siteOwners[id] !== c.key) throw new Error('Site identity already installed: ' + id); siteOwners[id] = c.key; });
-        plan = rows; self.lastPlan = rows.map(function (c) { return { key: c.key, type: c.manifest.type, name: c.manifest.name, version: c.manifest.version }; });
+        plan = rows;progress.packages=rows.map(function(c){return {id:c.manifest.id,stage:'waiting'};});rows.forEach(function(c){c.manifest.files.forEach(function(f){progress.total+=f.size;});});emit('planning');self.lastPlan = rows.map(function (c) { return { key: c.key, type: c.manifest.type, name: c.manifest.name, version: c.manifest.version }; });
         if (Object.keys(self.state.plugins).concat(rows.map(function (c) { return c.key; })).filter(function (key, i, a) { return a.indexOf(key) === i; }).length > 64) throw new Error('64 package limit');
         return serial(rows, function (c) {
-          if(options.onProgress)options.onProgress(c.manifest.id);
+          progress.packageBytes=0;progress.packageTotal=c.manifest.files.reduce(function(n,f){return n+f.size;},0);emit('storage',c);
           var m = c.manifest, old = self.state.plugins[c.key], base = c.repo.url.replace(/filmmerkezi-repository\.json$/, '');
           if (old && old.active && S.compare(m.version, old.active.version) < 0) throw new Error('Downgrade requires rollback');
           if (old && old.active && old.active.version === m.version && old.active.hash !== (c.item ? c.item.manifestSha256 : old.active.hash)) throw new Error('Immutable package version changed');
           return self.preflightStorage(m, c.raw).then(function () { return serial(m.files, function (f) {
-            check(); return self.blob(f.sha256).catch(function () {
+            check();var fetched=false,loaded=0,baseBytes=progress.processed,packageBytes=progress.packageBytes;emit('reading',c);return self.blob(f.sha256).catch(function () {
               if (!c.item) throw new Error('Installed dependency file missing');
-              return self.fetch(base + c.item.manifest.replace(/manifest\.json$/, 'runtime/') + f.path, check, Math.max(1, f.size));
-            }).then(function (text) { return V.sha(text).then(function (hash) {
+              fetched=true;emit('downloading',c);var url=base+c.item.manifest.replace(/manifest\.json$/,'runtime/')+f.path;if(!self.transport||!self.transport.supported())return self.fetch(url,check,Math.max(1,f.size));var task=self.transport.request(url,'',{timeoutMs:20000,byteLimit:Math.max(1,f.size),onprogress:function(size){try{check();}catch(ignore){return;}var n=Math.max(loaded,Math.min(f.size,Number(size)||0));progress.downloaded+=n-loaded;loaded=n;progress.processed=baseBytes+loaded;progress.packageBytes=packageBytes+loaded;emit('downloading',c);}});self.currentTask=task;return task.promise.then(function(r){self.currentTask=null;check();if(!r||typeof r.body!=='string')throw Error('Invalid package response');return r.body;},function(e){self.currentTask=null;throw e;});
+            }).then(function (text) {check();if(fetched){var size=V.bytes(text).length;progress.downloaded+=Math.max(0,size-loaded);}else progress.reused+=f.size;progress.processed=baseBytes+f.size;progress.packageBytes=packageBytes+f.size;emit('verifying',c);return V.sha(text).then(function (hash) {
               if (hash !== f.sha256 || V.bytes(text).length !== f.size) throw new Error('Package file mismatch: ' + f.path);
               return self.put(text);
             }); });
           }); }).then(function () { return self.policy(c.repo, m); }).then(function (a) {
             V.networkPolicy(a[0]).forEach(function (origin) { allOrigins[origin] = true; });
             return self.put(c.raw);
-          }).then(function (hash) { records[c.key] = { hash: hash, signature: c.signature, version: m.version }; });
+          }).then(function (hash) {progress.packages.forEach(function(p){if(p.id===m.id)p.stage='verified';});emit('verified',c);records[c.key] = { hash: hash, signature: c.signature, version: m.version }; });
         });
       }).then(function () {
         return serial(Object.keys(self.state.plugins), function (key) {
@@ -81,7 +83,7 @@
         return self.core.local(self.core.baseline.networkPolicy.file).then(function (text) { V.networkPolicy(text).forEach(function (origin) { allOrigins[origin] = true; }); });
       }).then(function () {
         if (Object.keys(allOrigins).length > 128) throw new Error('Network origin budget exceeded');
-        check(); return self.commit(function (state) {
+        check();emit('installing');return self.commit(function (state) {
           if (!state.pendingSet) state.pendingSet = { previous: clone(state.plugins) };
           plan.forEach(function (c) {
             var m = c.manifest, p = state.plugins[c.key] || { repoId: c.repo.id, id: m.id, active: null, previous: null };
@@ -89,7 +91,7 @@
             state.plugins[c.key] = p;
           });
         });
-      }).then(function () { self.note = 'Packages verified; restart to activate / Paketler dogrulandi; yeniden acin'; self.restartNeeded = true; return records[repoId + '/' + pluginId]; });
+      }).then(function () {progress.packages.forEach(function(p){p.stage='ready';});emit('ready');self.note = 'Packages verified; restart to activate / Paketler dogrulandi; yeniden acin'; self.restartNeeded = true; return records[repoId + '/' + pluginId]; });
     });
   };
 

@@ -1,5 +1,21 @@
 # Sürüm notları
 
+## Çekirdek 2.1.6 — 14 Kasım 2026
+
+WGT **2.0.0** değişmedi. Güncelleme uygulama içinden alınır; site ve çözümleyici paketleri değişmedi.
+
+- Güncelleme Merkezi ayarların sağ paneline entegre edildi. Depolar, paketler ve çekirdek aynı alanda yönetilir; gereksiz ara menüler kaldırıldı.
+- Depo bazında tüm eklentileri yükleme ve güncelleme, genel Kontrol et/Güncelle ve eklenmiş depolar için Sil işlemleri düzenlendi. Depo arama aynı arayüzde açılır.
+- Depo başlıklarında güncel, imzası doğrulanmış site eklentisi sayısı gösterilir. Çözümleyiciler sayıyı artırmaz. Depolar çoktan aza sıralanır; sonuçlar gelirken seçili depo odağı korunur.
+- Paket yüklerken etkin paket yüzdesi ve boyutu, toplam hazırlık, indirme/önbellek ayrımı ve doğrulama aşamaları gösterilir. Çekirdekte ölçülemeyen ilerleme için tahmini yüzde verilmez.
+- İlk açılış altı anlaşılır adıma ayrıldı: Dil → Bilgilendirme → Depo → Birleştirme → Arama → Yükleme. Birleştirme Aktif (Varsayılan), arama önerileri Pasif (Varsayılan) olarak sunulur; mevcut tercihler korunur.
+- Kurulumda Devam et ve depo satırındaki Ekle odağı düzenlendi. Fazladan alt Ekle kaldırıldı; Geri dönüşleri, klavye ve geç yanıtların odağı değiştirmesi düzeltildi.
+- İlk kurulumda depo seçildikten sonra eklenti yüklemeye geçilir. Yeni eklenti bildirimine Yükle, boş ana sayfaya Eklentileri yükle işlemi eklendi; son kurulum özeti kullanıcı onayıyla uygulanır.
+- Çekirdeği koruyarak diğer uygulama ayarlarını sıfırlama seçeneği eklendi.
+
+İlgili TR/EN, 1080p/720p ve Tizen 3 emülatör kontrolleri yapıldı. Hazır depo veya site otomatik eklenmez. Bu yayın için yeni kapsamlı fiziksel TV testi yapılmadı.
+
+
 ## Çekirdek 2.1.5 — 14 Kasım 2026
 
 WGT **2.0.0** değişmedi. Güncelleme uygulama içinden alınır.

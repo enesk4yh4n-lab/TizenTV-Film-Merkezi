@@ -467,6 +467,7 @@
         if (root.FilmRepositorySetup) root.FilmRepositorySetup.init(storage, api.preferences.existingInstall);
       }
       api.consent = new Consent(storage);
+      if(root.FilmSetupWizard&&root.FilmRepositorySetup&&root.FilmRepositorySetup.pending()){root.FilmSetupWizard.start(ready);return;}
       if (api.consent.accepted) {
         ready();
         return;
