@@ -4,6 +4,14 @@ Samsung Tizen TV’ler için ücretsiz ve açık kaynaklı bir **medya merkezi**
 
 **Yeni yapı:** Uygulamanın mimarisi tamamen yenilendi. Eski sürümler güncel dağıtımdan kaldırıldı; eski biçimdeki eklentiler yeni yapıda çalışmaz. Site ve çözümleyiciler artık kullanıcının seçtiği depolardan ayrı paketler olarak kurulur.
 
+## Son güncelleme · Çekirdek 2.1.6
+
+- Daha sade Güncelleme Merkezi ve ayrıntılı indirme göstergeleri.
+- Adım adım ilk kurulum ve kolay eklenti yükleme.
+- Depolarda eklenti sayısı, çoktan aza sıralama ve kumanda odağı düzeltmeleri.
+
+**Güncelleme Merkezi → Kontrol et → Güncelle** yoluyla alabilirsiniz. WGT değişmedi. Ayrıntılar: [Sürüm notları](CHANGELOG.md).
+
 ## Özellikler
 
 - Ortak arama, filtreleme ve içerik birleştirme.
