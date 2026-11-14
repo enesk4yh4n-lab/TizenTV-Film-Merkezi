@@ -575,13 +575,13 @@
     },
     {
       "path": "ortak/arayuz/setup-wizard.js",
-      "size": 13615,
-      "sha256": "9a1903c0fe619cdf1cb272ddfc8134f4d860fe3b464b719655af750da540d60a"
+      "size": 13707,
+      "sha256": "8e06030f1a1837fe9c36e16dc41752fe888622b3a74e95d66f351c3db0ecdb0a"
     },
     {
       "path": "ortak/katalog/repository-discovery-panel.js",
-      "size": 12936,
-      "sha256": "e16a0cf40eaa55ecfe6718cbc9ee06176b72c6f0936228c1de1e3f3ec5703b46"
+      "size": 13205,
+      "sha256": "9f3c315533dc686b6f5ade02cc83014ac76b3f3a1164afa997124eb21fa3f603"
     },
     {
       "path": "ortak/katalog/update-progress.js",

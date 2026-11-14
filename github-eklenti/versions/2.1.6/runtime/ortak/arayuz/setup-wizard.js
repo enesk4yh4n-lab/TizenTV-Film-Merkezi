@@ -13,6 +13,7 @@
  function inputOpen(){return panel&&panel.repositoryDiscovery&&panel.repositoryDiscovery.editing;}
  function key(e){var c=e.keyCode;if(!active){if(held[c]){e.preventDefault();e.stopImmediatePropagation();}return;}
   if(inputOpen()){if([13,65376,65385,27,10009].indexOf(c)<0)return;e.preventDefault();e.stopImmediatePropagation();var input=document.getElementById('update-discovery-query');if(input){panel.repositoryDiscovery.query=input.value;save(3,{query:input.value});input.readOnly=true;input.blur();}panel.repositoryDiscovery.editing=false;draw('wizard-next');return;}
+  if(step()===3&&panel&&[9,13,37,38,39,40].indexOf(c)>=0)panel.repositoryFocusTouched=true;
   e.preventDefault();e.stopImmediatePropagation();var repeated=held[c];held[c]=true;if(c===13&&!repeated&&!e.repeat){if(document.activeElement&&document.activeElement.tagName==='BUTTON')document.activeElement.click();return;}if((c===27||c===10009)&&!repeated){back();return;}
   if([9,37,38,39,40].indexOf(c)>=0){var nodes=Array.prototype.filter.call(document.querySelectorAll('#legal-card button'),function(n){return !n.disabled&&n.offsetWidth;}),at=nodes.indexOf(document.activeElement),delta=c===37||c===38||c===9&&e.shiftKey?-1:1,target=nodes[Math.max(0,Math.min(nodes.length-1,at+delta))];if(target){target.focus();target.scrollIntoView(false);}}
  }
