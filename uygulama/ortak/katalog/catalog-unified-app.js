@@ -188,6 +188,8 @@
         }
       }
       if (kind === 'history' && this.hub) {
+        this.save();if(root.CatalogToolbar)root.CatalogToolbar.remember(this);
+        if(root.CatalogToolbar&&this.sectionViews&&this.sectionViews.history){this.begin();this.history=[];root.CatalogToolbar.restore(this,'history');return;} 
         this.hideKeyboard(false);
         this.closePanel(false);
         this.save();
@@ -555,6 +557,8 @@
       var d = s.detail,
         self = this;
       if (!d || !d.variants) return;
+      if (d.episodeSourcesIncomplete)
+        parent.appendChild(n('p', 'catalog-note', 'Bazı sitelerin bölüm listesi alınamadı. Bulunan bölümler gösteriliyor.'));
       s.card = this.hub.card(d.contentId) || s.card;
       var actions = parent.querySelector('.detail-actions'),
         row = n('section', 'detail-providers');

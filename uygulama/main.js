@@ -4,6 +4,8 @@
     return root.FilmI18n ? root.FilmI18n.text(value) : value;
   }
   root.FilmLegal.start(function () {
+    if(root.FilmPackageInstaller)root.FilmPackageInstaller.attach(root.FilmPlugins);
+    if(root.FilmRepositorySearch&&root.FilmPlugins)root.FilmPlugins.search=new root.FilmRepositorySearch();
     root.CatalogRuntime.install();
     root.SiteRegistry.load(function () {
       var siteManagement = root.FilmSiteManagement ? new root.FilmSiteManagement({ preferences: root.FilmLegal.preferences, registry: root.SiteRegistry, plugins: root.FilmPlugins || null, core: root.FilmUpdate || null }) : null;

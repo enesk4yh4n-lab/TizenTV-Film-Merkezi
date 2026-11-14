@@ -434,7 +434,7 @@
       token = this.begin(),
       sites = root.SiteRegistry.sites.filter(function (s) {
         return (
-          !s.virtual && (!query.type || !s.contentTypes || s.contentTypes.indexOf(query.type) >= 0)
+          !s.virtual && (!query.quickQueries || !!query.quickQueries[s.id]) && (!query.type || !s.contentTypes || s.contentTypes.indexOf(query.type) >= 0)
         );
       }),
       loadErrors = root.SiteRegistry.errors || [],
@@ -825,7 +825,7 @@
                   ? [force]
                   : kind === 'search'
                     ? [query.text, force, cursors[site.id] || null]
-                    : [query, cursors[site.id] || null, force];
+                    : [query.quickQueries ? query.quickQueries[site.id] : query, cursors[site.id] || null, force];
             self
               .invoke(site, method, args)
               .then(function (value) {
@@ -959,6 +959,104 @@
     }
     return next();
   };
+  Provider.prototype.completeSeries = function (result, selected, group, force, token) {
+    var self = this;
+    if (this.hub.merging === false || result.type !== 'series' || group.variants.length < 2)
+      return Promise.resolve(result);
+    var variants = C.copy(group.variants),
+      details = [{ value: selected, providerId: selected.providerId ||
+        (root.SiteRegistry.forContent(selected) || {}).id }],
+      attempts = [], seen = {}, index = 0;
+    seen[(selected.providerId || (root.SiteRegistry.forContent(selected) || {}).id) + '|' + selected.pageUrl] = true;
+    function check() { if (token !== self.generation) throw cancelled(); }
+    function next() {
+      check();
+      if (index >= variants.length) return Promise.resolve();
+      var raw = variants[index++], site = root.SiteRegistry.get(raw.providerId),
+        key = raw.providerId + '|' + raw.pageUrl;
+      if (!site || site.virtual || seen[key]) return next();
+      seen[key] = true;
+      if (Date.now() >= self.deadline - 100) {
+        attempts.push({ providerId: raw.providerId, status: 'incomplete' });
+        return next();
+      }
+      var input = C.copy(raw); input.type = input.rawType || input.type;
+      return self.invoke(site, 'detail', [input, force], Math.min(10000, self.deadline - Date.now())).then(function (value) {
+        check();
+        if (Date.now() >= self.deadline) throw new Error('Bölüm kontrolü süresi doldu.');
+        if (!value || value.type !== 'series' || value.contentId !== raw.contentId || !value.pageUrl ||
+            root.ContentIdentity.decide(raw, value).state === 'different' ||
+            variants.some(function (v) { return root.ContentIdentity.decide(v, value).state === 'different'; }))
+          throw new Error('Bölüm listesi aynı diziye ait değil.');
+        var linked = self.hub.observeDetail(value, site.id);
+        if (!linked || self.hub.resolveId(linked.id) !== self.hub.resolveId(group.id))
+          throw new Error('Bölüm listesi ortak diziye bağlanamadı.');
+        details.push({ value: value, providerId: site.id });
+        attempts.push({ providerId: site.id, status: 'ready', count: (value.episodes || []).length });
+      }, function (error) {
+        check();
+        attempts.push({ providerId: site.id, status: 'error', message: C.safeMessage(error.message) });
+      }).then(null, function (error) {
+        check();
+        attempts.push({ providerId: site.id, status: 'error', message: C.safeMessage(error.message) });
+      }).then(function () {
+        return new Promise(function (resolve) { setTimeout(resolve, 0); });
+      }).then(next);
+    }
+    return next().then(function () {
+      check();
+      var rows = {}, list = [], seasons = [], unknown = [], primary = selected.contentId;
+      details.forEach(function (item) {
+        var local = {};
+        (item.value.episodes || []).forEach(function (e) {
+          var ep = e && e.episode, site = e && root.SiteRegistry.forContent(e), key;
+          if (!e || e.type !== 'episode' || !ep || ep.seriesId !== item.value.contentId ||
+              !site || site.id !== item.providerId || (e.providerId && e.providerId !== site.id) ||
+              !/^https?:\/\//i.test(e.pageUrl || '')) return;
+          if (!(ep.season > 0) || ep.season % 1 || !(ep.number > 0) || ep.number % 1) {
+            if (item.value.contentId === primary) unknown.push(C.copy(e));
+            return;
+          }
+          key = ep.season + ':' + ep.number;
+          if (!local[key]) local[key] = [];
+          if (!local[key].some(function (v) { return v.contentId === e.contentId; })) local[key].push(e);
+        });
+        item.numbers = local;
+        Object.keys(local).forEach(function (key) {
+          // Conflicting links for one site's episode number are not guessed.
+          if (local[key].length !== 1) return;
+          var e = local[key][0];
+          if (!rows[key]) { rows[key] = C.copy(e); list.push(rows[key]); rows[key].variants = []; }
+          if (!rows[key].variants.some(function (v) { return v.contentId === e.contentId; }))
+            rows[key].variants.push(C.copy(e));
+        });
+      });
+      list.sort(function (a, b) { return a.episode.season - b.episode.season || a.episode.number - b.episode.number; });
+      list.forEach(function (e, i) {
+        e.canonicalId = self.hub.resolveId(e.contentId);
+        e.providerNames = [];
+        e.variants.forEach(function (v) {
+          var site = root.SiteRegistry.forContent(v);
+          if (site && e.providerNames.indexOf(site.name) < 0) e.providerNames.push(site.name);
+        });
+        e.providerCount = e.providerNames.length;
+        e.episodeSourceExclusions = details.filter(function (item) {
+          var found = item.numbers[e.episode.season + ':' + e.episode.number];
+          return found ? found.length !== 1 : !item.value.episodePagesIncomplete;
+        }).map(function (item) { return item.value.contentId; });
+        if (seasons.indexOf(e.episode.season) < 0) seasons.push(e.episode.season);
+        e.nextId = list[i + 1] ? list[i + 1].contentId : null;
+      });
+      result.episodes = list.concat(unknown);
+      result.seasons = seasons;
+      result.episodeSourceAttempts = attempts;
+      result.episodeSourcesIncomplete = attempts.some(function (a) { return a.status !== 'ready'; }) ||
+        details.some(function (d) { return d.value.episodePagesIncomplete; });
+      if (list.length) result.seasonSourcePlayable = false;
+      self.hub.flush();
+      return result;
+    });
+  };
   Provider.prototype.detail = function (card, force, requested) {
     var self = this,
       token = this.begin(),
@@ -1091,7 +1189,7 @@
           result.detailAttempts = C.copy(failures);
         }
         self.hub.flush();
-        return result;
+        return self.completeSeries(result, value, g, force, token);
       }).then(null, function (error) {
         error = error || new Error('Site yanıtı alınamadı.');
         if (token !== self.generation || error.cancelled) throw cancelled();

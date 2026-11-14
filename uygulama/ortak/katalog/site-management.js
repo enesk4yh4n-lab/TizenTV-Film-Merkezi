@@ -42,7 +42,7 @@
     installed.sort(order); available.sort(order);
     return { installed: installed, updates: installed.filter(function (r) { return r.repositoryEnabled && (r.updateState === 'available' || r.needsDownload || r.version && r.pending && root.FilmPluginSchema.compare(r.pending, r.version) > 0); }), newSites: available.filter(function (row) { return row.packageType === 'site'; }), checkedAt: this.checkedAt };
   };
-  Manager.prototype.busy = function () { return !!(this.batch && this.batch.running || this.checking || this.plugins && this.plugins.busy || this.core && this.core.busy); };
+  Manager.prototype.busy = function () { return !!(root.ChainApp&&root.ChainApp.updateWorkflow&&root.ChainApp.updateWorkflow.running || this.batch && this.batch.running || this.checking || this.plugins && this.plugins.busy || this.core && this.core.busy); };
   Manager.prototype.runBatch = function (action, keys, notify) { return root.FilmPluginBatch.start(this, action, keys, notify); };
   Manager.prototype.cancelBatch = function () { if (this.batch) this.batch.cancel(); };
   Manager.prototype.checkSites = function (onlyRepo) {

@@ -450,6 +450,7 @@ FilmI18n.register({
     ['Diğer işlemler', 'More actions'],
     ['Son aramalar', 'Recent searches'],
     ['İzlenecek site', 'Choose a site to watch'],
+    ['Bazı sitelerin bölüm listesi alınamadı. Bulunan bölümler gösteriliyor.', 'Some sites could not provide their episode lists. Available episodes are shown.'],
     [
       'Seçtiğiniz sorgu açık katalogda aranır.',
       'The selected query searches the currently open catalog.'

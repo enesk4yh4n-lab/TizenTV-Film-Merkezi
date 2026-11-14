@@ -93,8 +93,11 @@
       self.openTools();
     });
     document.addEventListener('keydown', function (e) {
+      if(e.keyCode===13&&!self.editing&&!self.app.controller.content){if(self.okHeld){e.preventDefault();return;}self.okHeld=true;}
       self.key(e);
     });
+    document.addEventListener('keyup',function(e){if(e.keyCode===13)self.okHeld=false;});
+    root.addEventListener('blur',function(){self.okHeld=false;});
     el('catalog-scroll').addEventListener('scroll', function () {
       if (self.scrollTimer) return;
       self.scrollTimer = setTimeout(function () {
@@ -208,6 +211,7 @@
   App.prototype.selectSite = function (site) {
     this.begin();
     this.closePanel(false);
+    this.sectionViews = {};
     this.site = site;
     this.siteId = site.id;
     var self = this,
@@ -248,8 +252,10 @@
     this.hideKeyboard(false);
     this.closePanel(false);
     this.save();
+    if(root.CatalogToolbar)root.CatalogToolbar.remember(this);
     this.begin();
     this.history = [];
+    if(root.CatalogToolbar&&root.CatalogToolbar.restore(this,kind))return;
     if (kind === 'movies' || kind === 'series' || kind === 'discover') {
       this.screen = {
         kind: 'list',
@@ -1460,6 +1466,7 @@
     episodes.slice(epStart, epStart + 24).forEach(function (episode, i) {
       var savedEntry = states[episode.contentId],
         label = episode.episodeTitle || episode.title || tr(episode.episode.number + '. Bölüm');
+      if (episode.providerCount > 0) label += '  · ' + tr('Siteler') + ': ' + episode.providerCount;
       if (savedEntry && savedEntry.completed) label += '  ' + tr('✓ İzlendi');
       else if (savedEntry && savedEntry.position >= 5)
         label +=
@@ -1795,6 +1802,7 @@
     if (!this.panel) return;
     var settings = this.experience.settings;
     if (settings && settings.beforeClose(restore)) return;
+    if(this.panel.kind==='plugins'&&root.FilmPlugins.search)root.FilmPlugins.search.cancel();
     var key = this.panel.returnKey, repositoriesChanged = this.panel.kind === 'plugins';
     this.panel = null;
     el('catalog-modal').style.display = 'none';
@@ -1820,6 +1828,7 @@
     this.renderPanel('filter-' + key);
   };
   App.prototype.renderPanel = function (focusKey) {
+    if(!this.panel||this.panel.kind!=='update-center')document.getElementById('catalog-modal').classList.remove('fm-update-center');
     if (this.experience.renderPanel(focusKey)) return;
     var self = this,
       p = this.panel,
@@ -2239,6 +2248,7 @@
     this.renderPanel();
   };
   App.prototype.move = function (code) {
+    if(root.CatalogToolbar&&root.CatalogToolbar.move(this,code))return;
     var s = this.screen,
       active = document.activeElement,
       index = active && active.getAttribute('data-card-index'),

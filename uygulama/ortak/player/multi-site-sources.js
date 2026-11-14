@@ -93,6 +93,7 @@
         s.virtual ||
         !publicPage(raw.pageUrl) ||
         raw.type !== base.type ||
+        (episode && (content.episodeSourceExclusions || []).indexOf(raw.contentId) >= 0) ||
         seen[raw.contentId]
       )
         return;

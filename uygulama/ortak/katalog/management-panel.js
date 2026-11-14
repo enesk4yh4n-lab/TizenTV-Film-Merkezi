@@ -3,7 +3,7 @@
   'use strict';
   function t(tr, en) { return root.FilmI18n && root.FilmI18n.language() === 'en' ? en : tr; }
   function render(a, focusKey) {
-    var p = a.panel; if (!p || ['active-sites', 'site-management', 'update-center'].indexOf(p.kind) < 0) return false;
+    var p = a.panel; if(p&&p.kind==='update-center'&&root.FilmUpdateCenter)return root.FilmUpdateCenter.render(a,focusKey); if (!p || ['active-sites', 'site-management', 'update-center'].indexOf(p.kind) < 0) return false;
     var m = a.app.siteManagement, updates = root.FilmUpdateCoordinator && root.FilmUpdateCoordinator.current, host = document.getElementById('catalog-modal'), box = document.getElementById('catalog-modal-card');
     host.classList.remove('fm-settings'); host.style.display = 'block'; box.textContent = '';
     function line(text, title) { var x = document.createElement(title ? 'h2' : 'p'); x.className = title ? '' : 'catalog-note'; x.textContent = text; box.appendChild(x); }
@@ -202,7 +202,7 @@
     p.view = 'list'; render(a, row ? 'management-item-' + row.id : 'panel-cancel'); return true;
   }
   function key(a, event) {
-    var p = a.panel, code = event.keyCode;
+    var p = a.panel, code = event.keyCode; if(root.FilmUpdateCenter&&root.FilmUpdateCenter.key(a,event))return true;
     if(p&&p.kind==='update-center'&&code===13&&event.repeat&&(p.bulkMode||p.batchConfirm||p.batchResults||a.app.siteManagement.batch&&a.app.siteManagement.batch.running)){event.preventDefault();return true;}
     if (!p || ['active-sites', 'site-management', 'update-center'].indexOf(p.kind) < 0 || [37,38,39,40].indexOf(code) < 0) return false;
     event.preventDefault();

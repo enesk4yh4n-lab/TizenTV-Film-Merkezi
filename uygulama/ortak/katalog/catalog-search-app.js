@@ -140,16 +140,27 @@
         cache = s.orderedGrid;
       if (cache && cache.items === items && cache.length === items.length &&
           cache.revision === revision && cache.catalogRevision === s.catalogRevision &&
-          cache.mode === mode && cache.query === query && cache.tab === s.tab)
+          cache.mode === mode && cache.query === query && cache.tab === s.tab && cache.localType === s.localType)
         return cache.value;
       var source = items;
       if (s.kind === 'search' && s.tab && s.tab !== 'all')
         items = items.filter(function (c) {
           return c.type === s.tab && c.identityState !== 'pending';
         });
+      if (s.localType && s.localType !== 'all') items = items.filter(function(c){return c.type===s.localType;});
       var value = enabled(s) ? this.orderCards(items, s) : items;
+      if (s.kind === 'search' && s.selectedMetadataRef)
+        value = value.filter(function (card) { return card.searchMatch !== 'possible'; }).concat(
+          value.filter(function (card) { return card.searchMatch === 'possible'; }));
+      if (s.kind === 'search' && s.selectedSuggestion) {
+        var selectedId = s.selectedSuggestion.contentId,
+          selectedCard = this.site && this.site.virtual && this.hub && this.hub.card(selectedId);
+        if (selectedCard) selectedId = selectedCard.contentId;
+        value = value.filter(function (card) { return card.contentId === selectedId; }).concat(
+          value.filter(function (card) { return card.contentId !== selectedId; }));
+      }
       s.orderedGrid = { items: source, length: source.length, revision: revision,
-        catalogRevision: s.catalogRevision, mode: mode, query: query, tab: s.tab, value: value };
+        catalogRevision: s.catalogRevision, mode: mode, query: query, tab: s.tab, localType:s.localType, value: value };
       return value;
     };
     P.collectionEntries = function (s) {
@@ -296,6 +307,7 @@
         self.renderPanel();
       };
       heading.appendChild(button);
+      if(root.CatalogToolbar)root.CatalogToolbar.draw(this,parent,heading,button);
       if (restore && !this.panel && !this.editing) {
         if (intent) {
           s.focusKey = intent;
@@ -306,6 +318,7 @@
       this.orderRenderFocus = null;
     };
     P.renderPanel = function (key) {
+      if(root.CatalogToolbar&&root.CatalogToolbar.panel(this))return;
       if (!this.panel || ['catalog-order', 'search-sort'].indexOf(this.panel.kind) < 0)
         return renderPanel.call(this, key);
       var self = this,
