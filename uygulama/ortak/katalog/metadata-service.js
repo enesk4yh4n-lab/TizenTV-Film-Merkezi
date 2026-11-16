@@ -45,9 +45,9 @@
     var self = this, now = this.clock();
     this.cache.items[key] = { at: now, until: now + (value.length ? ttl : 300000), value: copy(value) };
     var ids = Object.keys(this.cache.items).sort(function (a, b) { return self.cache.items[a].at - self.cache.items[b].at; });
-    ['search', 'work'].forEach(function (kind) {
+    ['search', 'work', 'season'].forEach(function (kind) {
       var rows = ids.filter(function (k) { return k.indexOf(kind + '|') === 0; });
-      while (rows.length > (kind === 'search' ? 50 : 200)) delete self.cache.items[rows.shift()];
+      while (rows.length > (kind === 'work' ? 200 : 50)) delete self.cache.items[rows.shift()];
     });
     function distinct() {
       var seen = {}, count = 0;
@@ -134,10 +134,23 @@
   Service.prototype.detail = function (reference, context) {
     var kind = reference.type === 'series' ? 'tv' : 'movie', id = Number(reference.id);
     if (!(id > 0) || id % 1) return Promise.reject(failure('metadata-id'));
-    return this.request(kind + '/' + id, { append_to_response: 'alternative_titles,external_ids' }, 'work|' + kind + '|' + id, 86400000, context, function (body) {
+    var cacheKey = 'work|' + kind + '|' + id, old = this.get(cacheKey);
+    if (kind === 'tv' && old && old[0] && !Array.isArray(old[0].seasons)) delete this.cache.items[cacheKey];
+    return this.request(kind + '/' + id, { append_to_response: 'alternative_titles,external_ids' }, cacheKey, 86400000, context, function (body) {
       var result = work(body, kind);
       if (!result || result.id !== id) throw failure('metadata-response');
+      if (kind === 'tv') result.seasons = (body.seasons || []).filter(function (s) { return s.season_number > 0 && s.season_number % 1 === 0 && s.episode_count >= 0 && s.episode_count % 1 === 0; }).map(function (s) { return { season: s.season_number, count: s.episode_count }; });
       return [result];
+    });
+  };
+  Service.prototype.season = function (id, season, context) {
+    id = Number(id); season = Number(season);
+    if (!(id > 0) || id % 1 || !(season > 0) || season % 1) return Promise.reject(failure('metadata-id'));
+    return this.request('tv/' + id + '/season/' + season, {}, 'season|' + id + '|' + season, 900000, context, function (body) {
+      if (body.season_number !== season || !Array.isArray(body.episodes)) throw failure('metadata-response');
+      return body.episodes.filter(function (e) { return e.id > 0 && e.season_number === season && e.episode_number > 0 && e.episode_number % 1 === 0; }).slice(0, 5000).map(function (e) {
+        return { id: e.id, type: 'episode', seriesId: id, season: season, number: e.episode_number, title: String(e.name || '').slice(0, 300), date: /^\d{4}-\d{2}-\d{2}$/.test(e.air_date || '') ? e.air_date : '' };
+      });
     });
   };
   root.MetadataService = Service;

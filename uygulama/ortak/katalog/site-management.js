@@ -77,7 +77,14 @@
     return task.then(function () { self.restartNeeded = true; if (self.plugins) self.plugins.restartNeeded = true; });
   };
   Manager.prototype.download = function (key) { var self = this, row = this.rows().filter(function (x) { return x.key === key; })[0]; if (this.busy()) return Promise.reject(new Error('Önce mevcut işlemi tamamlayın.')); if (!row || row.builtin) return Promise.reject(new Error('Bu site yerleşik paketle güncellenir.')); return this.plugins.download(row.repoId, row.pluginId).then(function (v) { self.restartNeeded = true; return v; }); };
-  Manager.prototype.remove = function (key) { if (this.busy()) return Promise.reject(new Error('Önce mevcut işlemi tamamlayın.')); if (!this.plugins || key.indexOf('builtin:') === 0) return Promise.reject(new Error('Yerleşik site kaldırma yerine devre dışı bırakılabilir.')); var self = this; return this.plugins.removePlugin(key).then(function () { self.restartNeeded = true; }); };
+  Manager.prototype.changed = function () {
+    this.restartNeeded = true;if(this.plugins)this.plugins.restartNeeded = true;
+    var catalog=root.ChainApp&&root.ChainApp.catalog;
+    // A removed module remains loaded until restart. Stop its old catalog/image work;
+    // do not register a second copy or mutate the running provider registry in place.
+    if(catalog&&catalog.begin){catalog.begin();if(catalog.screen)catalog.screen.loading=false;}
+  };
+  Manager.prototype.remove = function (key) { if (this.busy()) return Promise.reject(new Error('Önce mevcut işlemi tamamlayın.')); if (!this.plugins || key.indexOf('builtin:') === 0) return Promise.reject(new Error('Yerleşik site kaldırma yerine devre dışı bırakılabilir.')); var self = this; return this.plugins.removePlugin(key).then(function () { self.changed(); }); };
   Manager.prototype.rollback = function (key) { if (this.busy()) return Promise.reject(new Error('Önce mevcut işlemi tamamlayın.')); var self = this; return this.plugins.rollback(key).then(function () { self.restartNeeded = true; }); };
   root.FilmSiteManagement = Manager;
 })(window);

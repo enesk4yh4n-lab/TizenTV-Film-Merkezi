@@ -108,7 +108,7 @@
     if (
       card.episode &&
       card.episode.seriesId &&
-      Number(card.episode.season) > 0 &&
+      (Number(card.episode.season) > 0 || card.episode.season === 0 && card.episodeIdentity && card.episodeIdentity.kind === 'special') &&
       Number(card.episode.number) > 0
     ) {
       v.episode = {
@@ -119,6 +119,8 @@
       v.seriesTitle = U.clean(card.seriesTitle);
       v.seriesPageUrl = U.url(card.seriesPageUrl);
       v.episodeTitle = U.clean(card.episodeTitle || card.title);
+      if (card.rawEpisode && card.rawEpisode.seriesId) v.rawEpisode = C.copy(card.rawEpisode);
+      if (card.episodeIdentity && card.episodeIdentity.version === 1) v.episodeIdentity = C.copy(card.episodeIdentity);
     }
     return v;
   }
@@ -670,6 +672,7 @@
       g = null,
       keys = this.merging ? I.keys(v) : [],
       parent = null,
+      movedEpisode = null,
       conflict = false,
       detachedFavorite = null;
     if (old) {
@@ -678,10 +681,18 @@
       })[0];
       if (prior && prior.identityEvidence && !v.identityEvidence)
         v.identityEvidence = C.copy(prior.identityEvidence);
+      if (v.type === 'episode' && v.episode && (old.season !== v.episode.season || old.number !== v.episode.number)) {
+        old.variants = old.variants.filter(function (x) { return x.contentId !== v.contentId; });
+        if (!old.variants.length) { movedEpisode = old.id; this.unindex(old.id); delete this.data.items[old.id]; }
+        else this.indexGroup(old);
+        old = null;
+      }
+    }
+    if (old) {
       conflict = this.merging && old.variants.some(function (x) {
         return (
           x.contentId !== v.contentId &&
-          (I.decide(v, x).state === 'different' || I.evidence(v).imdbConflict)
+          (v.type === 'episode' ? !x.episode || !v.episode || x.episode.season !== v.episode.season || x.episode.number !== v.episode.number : I.decide(v, x).state === 'different' || I.evidence(v).imdbConflict)
         );
       });
     }
@@ -777,6 +788,7 @@
       g.number = v.episode.number;
       g.seriesTitle = v.seriesTitle;
     }
+    if (movedEpisode && movedEpisode !== g.id) { this.data.redirects[movedEpisode] = g.id; this.seriesDirty = true; }
     if (detachedFavorite) detachedFavorite.id = g.id;
     g.updated = Date.now();
     this.indexGroup(g);
@@ -847,12 +859,12 @@
     });
     return out;
   };
-  Hub.prototype.observeDetail = function (detail, provider) {
+  Hub.prototype.observeDetail = function (detail, provider, parentOnly) {
     var self = this;
     return this.batch(function () {
       var g = self.observe(detail, provider, true);
       if (!g) return null;
-      var list = detail.episodes || [],
+      var list = parentOnly ? [] : detail.episodes || [],
         children = [];
       list.forEach(function (e) {
         var child = self.observe(e, provider, true);
@@ -1052,6 +1064,8 @@
       c.seriesTitle = g.seriesTitle;
       c.seriesPageUrl = (this.card(g.parent) || {}).pageUrl;
       c.episodeTitle = v.episodeTitle || v.title;
+      if (v.episodeIdentity) c.episodeIdentity = C.copy(v.episodeIdentity);
+      if (v.rawEpisode) c.rawEpisode = C.copy(v.rawEpisode);
       c.nextId = this.resolveId(g.nextId);
     }
     return c;

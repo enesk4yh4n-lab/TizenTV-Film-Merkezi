@@ -271,7 +271,7 @@
       typeVerified: !!e.typeVerified,
       year: y,
       yearVerified: !!e.yearVerified,
-      imdbId: e.imdbConflict ? '' : imdb(e.imdbId || card.imdbId || card.imdbUrl),
+      imdbId: e.imdbConflict || weakOldReference(card) ? '' : imdb(e.imdbId || card.imdbId || card.imdbUrl),
       imdbType: e.imdbType || '',
       season: Number(e.season || card.sourceSeason || s.season) || null,
       seriesHint: !!s.season || /\bdizi(?:si|leri)?\b/.test(fold(raw)),
@@ -310,7 +310,13 @@
     var r = card && card.metadataRef;
     if (!r || ['movie', 'series'].indexOf(r.type) < 0 || !(Number(r.id) > 0) || Number(r.id) % 1 ||
         ['direct', 'confirmed', 'flexible'].indexOf(r.binding) < 0) return null;
-    return { id: Number(r.id), type: r.type, binding: r.binding };
+    return { id: Number(r.id), type: r.type, binding: weakOldReference(card) ? 'flexible' : r.binding };
+  }
+  function weakOldReference(card) {
+    var r = card && card.metadataRef, e = card && card.identityEvidence || {};
+    if (!r || r.type !== 'movie' || r.binding !== 'confirmed' || e.verificationReason !== 'tmdb-confirmed') return false;
+    var primary = name(card.rawTitle || card.title), original = name(e.originalTitle || card.originalTitle);
+    return primary.indexOf(' ') < 0 && (!original || original === primary);
   }
   function similarity(left, right) {
     if (left === right) return 1;
@@ -363,7 +369,10 @@
           if (titleMatch(n.key, k)) near = true;
         });
       });
-      if (exact && facts.yearVerified && r.year === facts.year) strong.push({ reference: r, binding: 'confirmed' });
+      var shortMovie = facts.type === 'movie' && facts.names[0] && facts.names[0].key.indexOf(' ') < 0,
+        original = normalized(facts.evidence.originalTitle || card.originalTitle || ''),
+        independent = original && original !== facts.names[0].key && original === normalized(r.originalTitle || '');
+      if (exact && facts.yearVerified && r.year === facts.year && (!shortMovie || independent)) strong.push({ reference: r, binding: 'confirmed' });
       else if (policy !== 'strict' && (exact || near && (facts.year === r.year || policy === 'flexible')) && facts.type === r.type) soft.push({ reference: r, binding: 'flexible' });
     });
     var matches = strong.length ? strong : soft, unique = {}, values = [];
@@ -402,6 +411,15 @@
     if (policy === 'strict') return result('uncertain', 'identity-required');
     if (a.type !== b.type) return result(a.typeVerified && b.typeVerified ? 'different' : 'uncertain', 'type');
     if (a.yearVerified && b.yearVerified && a.year !== b.year) return result('different', 'year');
+    var shortTitle = a.names[0] && b.names[0] &&
+      (a.names[0].key.indexOf(' ') < 0 || b.names[0].key.indexOf(' ') < 0), extra = false;
+    if (shortTitle && a.type === 'movie') {
+      var ao = normalized(a.evidence.originalTitle || left.originalTitle || ''),
+        bo = normalized(b.evidence.originalTitle || right.originalTitle || '');
+      extra = !!ao && ao === bo && ao !== a.names[0].key && bo !== b.names[0].key;
+      if (!(extra && a.yearVerified && b.yearVerified && a.year === b.year && a.typeVerified && b.typeVerified))
+        return result('uncertain', 'short-title-needs-evidence');
+    }
     a.names.forEach(function (x) { b.names.forEach(function (y) {
       if (x.key === y.key && x.strong && y.strong) shared = true;
       if (titleMatch(x.key, y.key)) fuzzy = true;
@@ -852,7 +870,7 @@
     return result;
   }
   root.ContentIdentity = {
-    version: 4,
+    version: 5,
     referenceMatch: referenceMatch,
     reference: reference,
     bindReference: bindReference,

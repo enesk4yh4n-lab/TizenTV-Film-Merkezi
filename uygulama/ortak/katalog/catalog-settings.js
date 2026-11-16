@@ -75,6 +75,11 @@
       row('settings-rows', t('Ana sayfa satırları', 'Home screen rows'), '', function () { a.panel.settingsRows = true; self.drawOptions('settings-row-continue'); });
       choice('settings-language', t('Arayüz dili', 'Interface language'), root.FilmI18n.language() === 'tr' ? 'Türkçe' : 'English', [['tr', 'Türkçe'], ['en', 'English']], root.FilmI18n.language(), function (x) { root.FilmI18n.set(x); self.render('settings-language'); });
     } else if (category === 'catalog') {
+      row('settings-validation', t('TMDB ile içerik/bölüm doğrulama', 'Verify content/episodes with TMDB'), on(this.p.validation()), function () {
+        self.p.validation(!self.p.validation());
+        if (a.experience.metadata) a.experience.metadata.configure();
+        self.drawOptions('settings-validation');
+      }, t('İçerik bilgileri ve bölüm sırası TMDB ile doğrulanır. Arama önerilerinden bağımsızdır.', 'Content and episode order are checked with TMDB, independently of search suggestions.'));
       row('settings-suggestions', t('Arama önerileri', 'Search suggestions'), on(this.p.suggestions()), function () {
         self.p.suggestions(!self.p.suggestions());
         if (a.experience.metadata) a.experience.metadata.configure();
@@ -157,7 +162,7 @@
   UI.prototype.confirm = function (title, text, action, key) { this.choose(title + ' · ' + text, [[false, t('Vazgeç', 'Cancel')], [true, t('Temizle', 'Clear')]], false, function (x) { if (x) action(); }, key); };
   UI.prototype.drawOptions = function (key) {
     var self = this, panel = this.a.panel, host = document.getElementById('settings-options'); if (!host || !panel) return;
-    host.classList.remove('fm-update-center');host.classList.remove('fm-update-embedded');host.textContent = '';
+    host.classList.remove('fm-update-center');host.classList.remove('fm-update-embedded');if(root.FilmUpdateCenter)root.FilmUpdateCenter.clear(host);else host.textContent = '';
     function append(row) { var x = row.action ? b('', row.key, row.action, 'settings-row') : n('div', 'settings-row settings-info'); x.appendChild(n('strong', '', row.title)); if (row.value) x.appendChild(n('span', 'settings-value', row.value)); if (row.help) x.appendChild(n('small', '', row.help)); host.appendChild(x); }
     var choice = panel.settingsChoice;
     if (choice) { host.appendChild(n('h2', 'settings-options-title', choice.title)); choice.values.forEach(function (v, i) { append({key:'setting-choice-'+i,title:(choice.selected === v[0] && !choice.info ? '✓ ' : '') + v[1],action:function(){delete panel.settingsChoice;choice.save(v[0]);self.drawOptions(choice.returnKey || 'settings-category-'+panel.settingsCategory);}}); }); }
@@ -175,14 +180,14 @@
   UI.prototype.render = function (key) {
     if (!this.active()) { this.hide(); return false; }
     var self = this, p = this.a.panel, host = document.getElementById('catalog-modal'), box = document.getElementById('catalog-modal-card');
-    p.settingsCategory = p.settingsCategory || 'general'; host.style.display = 'block'; host.classList.add('fm-settings'); box.textContent = '';
+    p.settingsCategory = p.settingsCategory || 'general'; host.style.display = 'block'; host.classList.add('fm-settings'); if(root.FilmUpdateCenter)root.FilmUpdateCenter.clear(box);else box.textContent = '';
     var header = n('header','settings-header'), logo = document.querySelector('.catalog-brand img'); if (logo) header.appendChild(logo.cloneNode(false));
     var title = n('h1','','Film Merkezi  v'+root.AppInfo.version+'  ·  '+t('Ayarlar','Settings'));title.id='settings-title';header.appendChild(title);header.appendChild(b(t('Geri','Back'),'settings-back',function(){self.back();},'settings-back'));box.appendChild(header);
     var body=n('div','settings-layout'),left=n('nav','settings-categories'),right=n('section','settings-options');left.setAttribute('aria-label',t('Ayar kategorileri','Settings categories'));right.id='settings-options';right.setAttribute('aria-labelledby','settings-title');
-    this.categories().forEach(function(v){var x=b(v[1],'settings-category-'+v[0],function(){self.focusFirstOption();},'settings-category');x.setAttribute('aria-pressed',p.settingsCategory===v[0]?'true':'false');x.onfocus=function(){if(p.settingsCategory===v[0])return;if(p.settingsCategory==='updates'&&root.FilmRepositoryDiscovery){root.FilmRepositoryDiscovery.cancel(p);p.centerAction='';p.repoOptions='';}p.settingsCategory=v[0];delete p.settingsChoice;delete p.settingsRows;delete p.settingsBuffering;Array.prototype.forEach.call(left.querySelectorAll('button'),function(k){k.setAttribute('aria-pressed',k===x?'true':'false');});self.drawOptions();};left.appendChild(x);});body.appendChild(left);body.appendChild(right);box.appendChild(body);box.appendChild(n('p','settings-help',t('↑ ↓ Gezin · → Seçenekler · ← Kategoriler · OK Değiştir · Geri Dön','↑ ↓ Navigate · → Options · ← Categories · OK Change · Back Return')));
+    this.categories().forEach(function(v){var x=b(v[1],'settings-category-'+v[0],function(){self.focusFirstOption();},'settings-category');x.setAttribute('aria-pressed',p.settingsCategory===v[0]?'true':'false');x.onfocus=function(){if(p.settingsCategory===v[0])return;if(p.settingsCategory==='updates'&&root.FilmRepositoryDiscovery){root.FilmRepositoryDiscovery.cancel(p);if(root.FilmUpdateCenter)root.FilmUpdateCenter.dispose(p);p.centerAction='';p.repoOptions='';}p.settingsCategory=v[0];delete p.settingsChoice;delete p.settingsRows;delete p.settingsBuffering;Array.prototype.forEach.call(left.querySelectorAll('button'),function(k){k.setAttribute('aria-pressed',k===x?'true':'false');});self.drawOptions();};left.appendChild(x);});body.appendChild(left);body.appendChild(right);box.appendChild(body);box.appendChild(n('p','settings-help',t('↑ ↓ Gezin · → Seçenekler · ← Kategoriler · OK Değiştir · Geri Dön','↑ ↓ Navigate · → Options · ← Categories · OK Change · Back Return')));
     this.drawOptions();this.focus(key || 'settings-category-'+p.settingsCategory);return true;
   };
-  UI.prototype.focusFirstOption = function () { var x = document.querySelector('#settings-options button'); if(x)this.focus(x.getAttribute('data-focus')); };
+  UI.prototype.focusFirstOption = function () { var nodes=document.querySelectorAll('#settings-options button:not([disabled])'),i;for(i=0;i<nodes.length;i++){if(nodes[i].offsetWidth){this.focus(nodes[i].getAttribute('data-focus'));return;}} };
   UI.prototype.back = function () { if(this.resetting)return;if(this.resetFailed){root.location.reload();return;}var p=this.a.panel;if(p.settingsChoice){var key=p.settingsChoice.returnKey;delete p.settingsChoice;this.drawOptions(key || 'settings-category-'+p.settingsCategory);}else if(p.settingsRows){delete p.settingsRows;this.drawOptions('settings-rows');}else if(p.settingsBuffering){delete p.settingsBuffering;this.drawOptions('settings-buffering');}else this.a.closePanel(true); };
   UI.prototype.key = function (event) {
     if(!this.active())return false;var code=event.keyCode,active=document.activeElement,key=active&&active.getAttribute('data-focus'),category=key&&key.indexOf('settings-category-')===0,items,index,next;
@@ -193,7 +198,7 @@
     if(code===37){if(this.a.panel.settingsChoice||this.a.panel.settingsRows||this.a.panel.settingsBuffering)this.back();else this.focus('settings-category-'+this.a.panel.settingsCategory);return true;}
     if(code===39){if(category||key==='settings-back')this.focusFirstOption();return true;}
     items=Array.prototype.slice.call(document.querySelectorAll(code===9?'#catalog-modal-card button:not([disabled])':category?'.settings-categories button:not([disabled])':'#settings-options button:not([disabled])'));index=items.indexOf(active);
-    if(key==='settings-back'){this.focus('settings-category-'+this.a.panel.settingsCategory);return true;}
+    if(key==='settings-back'){if(code===40)this.focusFirstOption();else this.focus('settings-category-'+this.a.panel.settingsCategory);return true;}
     next=index+(code===38||event.shiftKey?-1:1);if(next<0){this.focus('settings-back');return true;}if(next>=items.length)next=code===9?0:items.length-1;if(items[next])this.focus(items[next].getAttribute('data-focus'));return true;
   };
   root.CatalogSettingsUI=UI;

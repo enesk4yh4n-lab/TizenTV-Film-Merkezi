@@ -4,13 +4,13 @@ Samsung Tizen TV’ler için ücretsiz ve açık kaynaklı bir **medya merkezi**
 
 **2.x yapısı:** Site ve çözümleyiciler kullanıcının seçtiği depolardan ayrı paketler olarak kurulur. WGT hazır site veya önceden seçili depo içermez.
 
-## Son güncelleme · WGT 2.0.1 / Çekirdek 2.1.8
+## Son güncelleme · Çekirdek 2.1.9
 
-- ÇizgiFilm/Anime ve Drama/Short kategorileri, menü ve kumanda düzenlemeleri.
-- İlk kurulumdan önce çekirdek denetimi, kaynakların kullanabildiği 24 MiB taşıma tavanı.
-- Eski kurulumları koruyan ayrı güncelleme kanalı ve paket işlemlerinde kararlılık düzeltmesi.
+- Daha sade Güncelleme Merkezi, kolay ilk kurulum ve tutarlı yükleme ilerlemesi.
+- Kumanda odağı/kaydırma, eklenti işlemleri ve kapasite hesabında düzeltmeler.
+- Dizi bölüm eşleştirmesi, film/dizi filtreleri ve içerik kimliğinde iyileştirmeler.
 
-Bu sürüm için [WGT 2.0.1'i kurun](https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/releases/tag/v2.0.1). WGT 2.0.0 mevcut uyumlu kanalında kalır; yeni çekirdek ve yeni eklenti özellikleri için WGT güncellemesi gerekir. Ayrıntılar: [Sürüm notları](CHANGELOG.md).
+WGT **2.0.1** değişmedi; güncellemeyi uygulama içinden alın. WGT 2.0.0 mevcut uyumlu kanalında kalır. Ayrıntılar: [Sürüm notları](CHANGELOG.md).
 
 ## Özellikler
 

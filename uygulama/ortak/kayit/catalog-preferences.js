@@ -40,6 +40,7 @@
       language: 'tr',
       mergeCatalog: true,
       searchSuggestions: false,
+      metadataValidation: true,
       showPosters: true,
       suggestionSource: 'site:hdf',
       matchingMode: 'smart',
@@ -63,6 +64,7 @@
         this.data.language = d.language === 'en' ? 'en' : 'tr';
         if (typeof d.mergeCatalog === 'boolean') this.data.mergeCatalog = d.mergeCatalog;
         if (typeof d.searchSuggestions === 'boolean') this.data.searchSuggestions = d.searchSuggestions;
+        if (typeof d.metadataValidation === 'boolean') this.data.metadataValidation = d.metadataValidation;
         if (typeof d.showPosters === 'boolean') this.data.showPosters = d.showPosters;
         if (d.suggestionSource === 'tmdb' || /^site:[a-z][a-z0-9-]{0,63}$/.test(d.suggestionSource || '')) this.data.suggestionSource = d.suggestionSource;
         if (['strict', 'smart', 'flexible'].indexOf(d.matchingMode) >= 0) this.data.matchingMode = d.matchingMode;
@@ -139,6 +141,10 @@
   Preferences.prototype.suggestions = function (value) {
     if (typeof value === 'boolean') { this.data.searchSuggestions = value; this.flush(); }
     return this.data.searchSuggestions;
+  };
+  Preferences.prototype.validation = function (value) {
+    if (typeof value === 'boolean') { this.data.metadataValidation = value; this.flush(); }
+    return this.data.metadataValidation;
   };
   Preferences.prototype.posters = function (value) {
     if (typeof value === 'boolean') {

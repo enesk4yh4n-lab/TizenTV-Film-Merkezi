@@ -1056,28 +1056,6 @@
     var s = this.screen,
       offsets = s.railOffsets || (s.railOffsets = {}),
       first = offsets[index] || 0;
-    if (cards.length > 6) {
-      heading.appendChild(
-        button(
-          '‹',
-          'rail-prev-' + index,
-          function () {
-            self.railMove(index, -5);
-          },
-          'rail-arrow'
-        )
-      );
-      heading.appendChild(
-        button(
-          '›',
-          'rail-next-' + index,
-          function () {
-            self.railMove(index, 5);
-          },
-          'rail-arrow'
-        )
-      );
-    }
     section.appendChild(heading);
     var track = node('div', 'rail-track');
     track.setAttribute('data-track', index);
@@ -1473,7 +1451,7 @@
     var tracking = this.series.get(d.contentId);
     episodes.slice(epStart, epStart + 24).forEach(function (episode, i) {
       var savedEntry = states[episode.contentId],
-        label = episode.episodeTitle || episode.title || tr(episode.episode.number + '. Bölüm');
+        label = episode.episode.season + (root.FilmI18n && root.FilmI18n.language() === 'en' ? '. Season · ' : '. Sezon · ') + episode.episode.number + (root.FilmI18n && root.FilmI18n.language() === 'en' ? '. Episode' : '. Bölüm');
       if (episode.providerCount > 0) label += '  · ' + tr('Siteler') + ': ' + episode.providerCount;
       if (savedEntry && savedEntry.completed) label += '  ' + tr('✓ İzlendi');
       else if (savedEntry && savedEntry.position >= 5)
@@ -1808,6 +1786,7 @@
     );
   };
   App.prototype.closePanel = function (restore) {
+    if(root.FilmUpdateCenter)root.FilmUpdateCenter.dispose(this.panel);
     if (restore && root.CatalogManagementPanel && root.CatalogManagementPanel.back(this)) return;
     if (this.panel && /^(active-sites|site-management|update-center)$/.test(this.panel.kind) && this.app.siteManagement) this.app.siteManagement.cancel();
     if (!this.panel) return;
@@ -1818,7 +1797,7 @@
     var key = this.panel.returnKey, repositoriesChanged = this.panel.kind === 'plugins';
     this.panel = null;
     el('catalog-modal').style.display = 'none';
-    el('catalog-modal-card').textContent = '';
+    if(root.FilmUpdateCenter)root.FilmUpdateCenter.clear(el('catalog-modal-card'));else el('catalog-modal-card').textContent = '';
     if (repositoriesChanged && this.screen && this.screen.kind === 'home') this.render(true);
     if (restore) this.focus(key || 'search-activate');
     if (settings) settings.afterClose();
@@ -1840,6 +1819,7 @@
     this.renderPanel('filter-' + key);
   };
   App.prototype.renderPanel = function (focusKey) {
+    if(root.FilmUpdateCenter&&root.FilmUpdateCenter.route(this))return;
     if(this.panel&&this.panel.wizard&&root.FilmSetupWizard){root.FilmSetupWizard.attach(this.app);return;}
     document.getElementById('catalog-modal-card').classList.remove('fm-setup-discovery');
     if(!this.panel||this.panel.kind!=='update-center')document.getElementById('catalog-modal').classList.remove('fm-update-center');
@@ -1851,7 +1831,7 @@
     if (!p) return;
     host.setAttribute('data-panel-kind', p.kind);
     host.style.display = 'block';
-    box.textContent = '';
+    if(root.FilmUpdateCenter)root.FilmUpdateCenter.clear(box);else box.textContent = '';
     box.appendChild(
       node(
         'h2',
@@ -2115,6 +2095,15 @@
         })[0],
         watched = savedEpisode && savedEpisode.completed;
       box.appendChild(node('p', '', p.episode.title, true));
+      if (p.episode.episodeIdentity) {
+        var englishEpisode = root.FilmI18n && root.FilmI18n.language() === 'en',
+          originalLabels = (p.episode.variants || [p.episode]).slice(0, 16).map(function (v) {
+            var source = root.SiteRegistry.get(v.providerId), raw = v.rawEpisode || v.episode;
+            return (source ? source.name : v.providerId) + ': ' + (raw ? raw.season + '×' + raw.number : v.title);
+          });
+        box.appendChild(node('p', 'catalog-note',
+          (p.episode.episodeIdentity.binding === 'estimated' ? (englishEpisode ? 'Estimated numbering. ' : 'Tahmini numaralandırma. ') : '') + originalLabels.join(' · '), true));
+      }
       box.appendChild(
         button(
           '▶ Bölümü oynat',
@@ -2264,57 +2253,8 @@
   };
   App.prototype.move = function (code) {
     if(root.CatalogToolbar&&root.CatalogToolbar.move(this,code))return;
-    var s = this.screen,
-      active = document.activeElement,
-      index = active && active.getAttribute('data-card-index'),
-      rail = active && active.getAttribute('data-rail'),
-      key = active && active.getAttribute('data-focus'),
-      target;
-    if (!this.panel && index !== null && index !== undefined) {
-      index = Number(index);
-      if (rail !== null) {
-        rail = Number(rail);
-        if (code === 37 || code === 39) {
-          target = index + (code === 37 ? -1 : 1);
-          if (target >= 0 && target < s.rails[rail].items.length)
-            this.railMove(rail, code === 37 ? -1 : 1, target);
-          return;
-        }
-        var nextRail = rail + (code === 38 ? -1 : 1);
-        if (s.rails[nextRail]) {
-          target = Math.min(index, s.rails[nextRail].items.length - 1);
-          this.railMove(nextRail, 1, target);
-          return;
-        }
-      } else {
-        target = index + (code === 37 ? -1 : code === 39 ? 1 : code === 38 ? -COLS : COLS);
-        if (
-          (code === 37 && index % COLS === 0) ||
-          (code === 39 && (index % COLS === COLS - 1 || target >= this.gridItems().length))
-        )
-          return;
-        if (target >= 0 && target < this.gridItems().length) {
-          var row = Math.floor(target / COLS);
-          s.focusKey = 'card-' + target;
-          if (row < (s.startRow || 0) || row >= (s.startRow || 0) + 10) {
-            this.saveScroll();
-            s.startRow = Math.max(0, row - 3);
-            this.renderFocusIntent = s.focusKey;
-            this.render(true);
-          }
-          this.focus(s.focusKey);
-          return;
-        }
-        if (code === 40 && target >= this.gridItems().length && this.findFocus('load-more')) {
-          this.focus('load-more');
-          return;
-        }
-      }
-    }
-    if (key === 'load-more' && code === 38) {
-      this.focus('card-' + (this.gridItems().length - 1));
-      return;
-    }
+    if (!this.panel) return;
+    var active = document.activeElement;
     var buttons = this.visibleButtons(this.panel ? el('catalog-modal-card') : null),
       a = active.getBoundingClientRect(),
       centerX = (a.left + a.right) / 2,

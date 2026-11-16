@@ -18,6 +18,7 @@
     this.diagnostics = diagnostics;
     this.visible = true;
     this.menu = null;
+    this.menuParents = [];
     this.seekTarget = null;
     this.quickSeek = false;
     this.lastActivity = Date.now();
@@ -32,6 +33,7 @@
       el('shell').style.display = 'none';
       el('player-ui').style.display = 'block';
       self.menu = null;
+      self.menuParents = [];
       self.seekTarget = null;
       self.gotoTime = 0;
       self.show();
@@ -58,6 +60,7 @@
     controller.on('error', function () {
       if (!controller.content) return;
       self.show();
+      self.menuParents = [];
       self.openMenu('error');
     });
     controller.on('countdown', function (remaining) {
@@ -71,6 +74,7 @@
     });
     controller.on('ended', function () {
       self.show();
+      self.menuParents = [];
       self.openMenu('ended');
     });
     el('player-ui').addEventListener('click', function (event) {
@@ -150,6 +154,7 @@
     clearTimeout(this.toastTimer);
     el('toast').style.display = 'none';
     this.menu = null;
+    this.menuParents = [];
     this.seekTarget = null;
     this.dialogFocus = null;
     this.sourcesDirty = false;
@@ -369,7 +374,7 @@
     if (this.c.dialog) list = this.buttons(el('dialog-actions'));
     else if (this.menu) {
       if (code === 37) {
-        this.closeMenu();
+        this.backMenu();
         return;
       }
       list = [el('back-menu')].concat(this.buttons(el('menu-items')));
@@ -402,7 +407,7 @@
     }
     if (!list.length) return;
     i = list.indexOf(document.activeElement);
-    i = (i + (code === 37 || code === 38 ? -1 : 1) + list.length) % list.length;
+    i = Math.max(0, Math.min(list.length - 1, i + (code === 37 || code === 38 ? -1 : 1)));
     this.focus(list[i]);
   };
   View.prototype.enter = function () {
@@ -445,7 +450,7 @@
       return;
     }
     if (this.menu) {
-      this.closeMenu();
+      this.backMenu();
       return;
     }
     if (['resolving', 'loading', 'recovering', 'error'].indexOf(this.c.phase) >= 0) {
@@ -481,8 +486,14 @@
     this.focus(container.firstChild);
     this.show();
   };
+  View.prototype.backMenu = function () {
+    var parent = this.menuParents.pop();
+    if (parent) this.openMenu(parent.name, parent.index);
+    else this.closeMenu();
+  };
   View.prototype.closeMenu = function () {
     this.menu = null;
+    this.menuParents = [];
     if (this.c.setSourcesMenuVisible) this.c.setSourcesMenuVisible(false);
     el('menu-shade').style.display = 'none';
     this.lastActivity = Date.now();
@@ -543,14 +554,14 @@
       c.requestExit();
     } else if (command === 'previous') c.navigate(-1);
     else if (command === 'next-content') c.navigate(1);
-    else if (command === 'back-menu') this.closeMenu();
+    else if (command === 'back-menu') this.backMenu();
     else if (command === 'next') c.next();
     else if (command === 'cancel-next') {
       c.cancelCountdown();
       this.focus(el('play-button'));
     } else if (command === 'revert') c.revertSource();
     else if (command === 'skip-intro' && this.skipChapter) c.seek(this.skipChapter.end);
-    else this.openMenu(command);
+    else { this.menuParents = []; this.openMenu(command); }
     this.render(true);
   };
   View.prototype.openMenu = function (name, keepIndex) {
@@ -581,6 +592,8 @@
       item(
         label,
         function () {
+          if (self.menuParents.length >= 16) self.menuParents.shift();
+          self.menuParents.push({ name: self.menu, index: self.focusIndex() });
           self.openMenu(target);
         },
         false,

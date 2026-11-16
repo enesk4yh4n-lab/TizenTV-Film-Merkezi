@@ -23,6 +23,9 @@
       'originalTitle',
       'titleAliases',
       'language',
+      'episode',
+      'episodeIdentity',
+      'rawEpisode',
       'selectedEpisodePageUrl'
     ].forEach(function (k) {
       if (value[k] !== undefined) out[k] = copy(value[k]);
@@ -98,7 +101,6 @@
       )
         return;
       seen[raw.contentId] = true;
-      providers[s.id] = true;
       var entry = fields(raw);
       entry.preferred = raw.contentId === base.preferred;
       entry.contextId = raw.contentId;
@@ -106,13 +108,13 @@
       entry.primary =
         s.id === site.id &&
         (!episode ? raw.contentId === content.contentId : raw.contentId === episode.seriesId);
-      if (episode && group && group.type === 'episode') {
-        var exact = group.variants.filter(function (v) {
+      if (episode) {
+        var exact = (content.variants || group && group.type === 'episode' && group.variants || []).filter(function (v) {
           return (
             v.providerId === s.id &&
             v.episode &&
-            v.episode.season === episode.season &&
-            v.episode.number === episode.number &&
+            (root.EpisodeIdentity ? root.EpisodeIdentity.coordinate(v).season : v.episode.season) === episode.season &&
+            (root.EpisodeIdentity ? root.EpisodeIdentity.coordinate(v).number : v.episode.number) === episode.number &&
             v.episode.seriesId === raw.contentId
           );
         })[0];
@@ -122,8 +124,9 @@
           entry.contextId = raw.contentId;
           entry.lookup = 'episode';
           entry.primary = s.id === site.id;
-        }
+        } else if (content.episodeIdentity) return;
       }
+      providers[s.id] = true;
       entry.order = variants.length;
       variants.push(entry);
     });
@@ -608,7 +611,7 @@
                   };
                   return resolver
                     .resolve(
-                      media,
+                      root.EpisodeIdentity ? root.EpisodeIdentity.source(media) : media,
                       deadline,
                       function (sources) {
                         accept(state, media, sources);

@@ -141,10 +141,12 @@
         cache = s.orderedGrid;
       if (cache && cache.items === items && cache.length === items.length &&
           cache.revision === revision && cache.catalogRevision === s.catalogRevision &&
-          cache.mode === mode && cache.query === query && cache.tab === s.tab && cache.localType === s.localType)
+          cache.mode === mode && cache.query === query && cache.tab === s.tab && cache.localType === s.localType && cache.type === s.type && cache.section === s.section)
         return cache.value;
       var source = items;
       if(s.kind==='list'&&root.CatalogSections){var library=this.hub;items=items.filter(function(c){return root.CatalogSections.matches(c,s.section||'general',library);});}
+      if (s.kind === 'list' && !root.CatalogSections.special(s.section) && s.type)
+        items = items.filter(function (c) { return c.type === s.type && c.identityState !== 'pending'; });
       if (s.kind === 'search' && s.tab && s.tab !== 'all')
         items = items.filter(function (c) {
           return c.type === s.tab && c.identityState !== 'pending';
@@ -162,7 +164,7 @@
           value.filter(function (card) { return card.contentId !== selectedId; }));
       }
       s.orderedGrid = { items: source, length: source.length, revision: revision,
-        catalogRevision: s.catalogRevision, mode: mode, query: query, tab: s.tab, localType:s.localType, value: value };
+        catalogRevision: s.catalogRevision, mode: mode, query: query, tab: s.tab, localType:s.localType, type:s.type, section:s.section, value: value };
       return value;
     };
     P.collectionEntries = function (s) {

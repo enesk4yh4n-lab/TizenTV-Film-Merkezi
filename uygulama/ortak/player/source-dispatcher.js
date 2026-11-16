@@ -115,7 +115,7 @@
       try {
         resolver
           .resolve(
-            content,
+            !pooled && root.EpisodeIdentity ? root.EpisodeIdentity.source(content) : content,
             deadline,
             typeof onProgress === 'function'
               ? function (sources) {

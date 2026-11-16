@@ -69,6 +69,15 @@
       });
     }).catch(function (error) {
       if (markerWritten) { try { self.storage.removeItem(KEY); } catch (ignore) {} }
+      /* A stale signed feed must not prevent loading a locally verified installed core.
+         The updater still rejects that feed and never changes its stored revision. */
+      if (error && error.message === 'Eski güncelleme bildirimi reddedildi.' && core && core.record && core.state && core.state.active) {
+        return core.record(core.state.active).then(function (installed) {
+          if (!core.selected || installed.version !== core.selected.version) throw error;
+          self.emit('ready', null, 'verified-installed-core');
+          return { action: 'continue', reason: 'verified-installed-core' };
+        }).catch(function () { return self.choice(error); });
+      }
       return self.choice(error);
     });
   };

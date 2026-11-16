@@ -201,6 +201,7 @@
     this.identityUsed = {};
     this.identityCount = 0;
     this.queue.validations = 0;
+    this.queue.detailMetadataCalls = 0;
     this.lastAlternateSearchCount = 0;
     this.searchCandidates = {};
     this.metadataPromise = null;
@@ -826,7 +827,11 @@
                   ? [force]
                   : kind === 'search'
                     ? [query.text, force, cursors[site.id] || null]
-                    : [query.quickQueries ? query.quickQueries[site.id] : query, cursors[site.id] || null, force];
+                    : [query.quickQueries ? C.copy(query.quickQueries[site.id]) : query, cursors[site.id] || null, force];
+            if (kind === 'list' && query.quickQueries) {
+              args[0].type = query.type;
+              if (query.section) args[0].section = query.section;
+            }
             self
               .invoke(site, method, args)
               .then(function (value) {
@@ -962,9 +967,9 @@
   };
   Provider.prototype.completeSeries = function (result, selected, group, force, token) {
     var self = this;
-    if (this.hub.merging === false || result.type !== 'series' || group.variants.length < 2)
+    if (result.type !== 'series')
       return Promise.resolve(result);
-    var variants = C.copy(group.variants),
+    var variants = this.hub.merging === false ? [] : C.copy(group.variants),
       details = [{ value: selected, providerId: selected.providerId ||
         (root.SiteRegistry.forContent(selected) || {}).id }],
       attempts = [], seen = {}, index = 0;
@@ -989,7 +994,7 @@
             root.ContentIdentity.decide(raw, value).state === 'different' ||
             variants.some(function (v) { return root.ContentIdentity.decide(v, value).state === 'different'; }))
           throw new Error('Bölüm listesi aynı diziye ait değil.');
-        var linked = self.hub.observeDetail(value, site.id);
+        var linked = self.hub.observeDetail(value, site.id, true);
         if (!linked || self.hub.resolveId(linked.id) !== self.hub.resolveId(group.id))
           throw new Error('Bölüm listesi ortak diziye bağlanamadı.');
         details.push({ value: value, providerId: site.id });
@@ -1006,15 +1011,21 @@
     }
     return next().then(function () {
       check();
+      if (self.hub.metadata && self.hub.metadata.episodes)
+        return self.hub.metadata.episodes(details, self.queue, self.deadline);
+      if (root.EpisodeIdentity) root.EpisodeIdentity.normalize(details, null);
+    }).then(function () {
+      check();
       var rows = {}, list = [], seasons = [], unknown = [], primary = selected.contentId;
       details.forEach(function (item) {
+        self.hub.observeDetail(item.value, item.providerId);
         var local = {};
         (item.value.episodes || []).forEach(function (e) {
           var ep = e && e.episode, site = e && root.SiteRegistry.forContent(e), key;
           if (!e || e.type !== 'episode' || !ep || ep.seriesId !== item.value.contentId ||
               !site || site.id !== item.providerId || (e.providerId && e.providerId !== site.id) ||
               !/^https?:\/\//i.test(e.pageUrl || '')) return;
-          if (!(ep.season > 0) || ep.season % 1 || !(ep.number > 0) || ep.number % 1) {
+          if (!(ep.season > 0 || ep.season === 0 && e.episodeIdentity && e.episodeIdentity.kind === 'special') || ep.season % 1 || !(ep.number > 0) || ep.number % 1) {
             if (item.value.contentId === primary) unknown.push(C.copy(e));
             return;
           }
@@ -1025,11 +1036,10 @@
         item.numbers = local;
         Object.keys(local).forEach(function (key) {
           // Conflicting links for one site's episode number are not guessed.
-          if (local[key].length !== 1) return;
+          if (local[key].length !== 1 && !local[key].every(function (e) { return e.episodeIdentity && e.episodeIdentity.reason !== 'source-fallback'; })) return;
           var e = local[key][0];
           if (!rows[key]) { rows[key] = C.copy(e); list.push(rows[key]); rows[key].variants = []; }
-          if (!rows[key].variants.some(function (v) { return v.contentId === e.contentId; }))
-            rows[key].variants.push(C.copy(e));
+          local[key].forEach(function (v) { if (!rows[key].variants.some(function (old) { return old.contentId === v.contentId; })) { var raw = C.copy(v); delete raw.variants; rows[key].variants.push(raw); } });
         });
       });
       list.sort(function (a, b) { return a.episode.season - b.episode.season || a.episode.number - b.episode.number; });
@@ -1117,6 +1127,9 @@
         work = self.invoke(site, 'detail', [sourceCard, force], allowFallback && candidates.length ? 10000 : 26000);
       }
       if (self.hub.metadata) work = work.then(function (value) { return self.hub.metadata.detail(value, self.queue, self.deadline); });
+      if (resume && self.hub.metadata && self.hub.metadata.episodes) work = work.then(function (value) {
+        return self.hub.metadata.episodes([{value:value,providerId:site.id}],self.queue,self.deadline).then(function () { return value; });
+      });
       return work.then(function (value) {
         if (token !== self.generation) throw cancelled();
         if (Date.now() >= self.deadline) throw exhausted(true);
@@ -1153,7 +1166,7 @@
             throw new Error(resume.season + '. sezon ' + resume.number + '. bölüm bu sitede doğrulanamadı.');
           target = matches[0];
         }
-        var g = self.hub.observeDetail(value, site.id);
+        var g = self.hub.observeDetail(value, site.id, value.type === 'series');
         if (!g) throw new Error('Site içeriği ortak kütüphaneye bağlanamadı.');
         if ((failures.length || resume) && self.hub.resolveId(g.id) !== self.hub.resolveId(group.id))
           throw new Error('Site detayı aynı yapıma bağlanamadı.');

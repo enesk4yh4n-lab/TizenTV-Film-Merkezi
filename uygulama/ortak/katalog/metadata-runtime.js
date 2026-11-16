@@ -14,7 +14,7 @@
       task.promise.then(done, done); return task.promise;
     }, cancel: function () { self.tasks.splice(0).forEach(function (task) { task.cancel(); }); if (fallback) fallback.cancel(); } };
     this.service = new root.MetadataService({ apiKey: (root.FilmMetadataConfig || {}).apiKey,
-      storage: app.storage, enabled: this.enabled(), client: transport });
+      storage: app.storage, enabled: this.accessEnabled(), client: transport });
     this.suggestionService = { enabled: preferences.suggestions(), cancel: function () { self.cancel(); },
       search: function (query, type, context) {
         if (!preferences.suggestions()) return Promise.reject(new Error('Suggestions disabled'));
@@ -49,14 +49,16 @@
     if (!queue.running.length && !queue.pending.length) queue.paused = false;
     return this.context(queue, Date.now() + 5000, false);
   };
-  Runtime.prototype.enabled = function () { return this.preferences.suggestions() &&
+  Runtime.prototype.enabled = function () { return this.preferences.validation ? this.preferences.validation() : this.preferences.suggestions() &&
+    (!this.preferences.suggestionSource || this.preferences.suggestionSource() === 'tmdb'); };
+  Runtime.prototype.accessEnabled = function () { return this.enabled() || this.preferences.suggestions() &&
     (!this.preferences.suggestionSource || this.preferences.suggestionSource() === 'tmdb'); };
   Runtime.prototype.suggestionSources = function () {
     return [{ value: 'tmdb', label: 'TMDB' }].concat(root.SiteRegistry.sites.filter(function (site) {
       return site.suggestions === true && typeof site.Provider === 'function' && typeof site.Provider.prototype.suggest === 'function';
     }).map(function (site) { return { value: 'site:' + site.id, label: site.name, site: true }; }));
   };
-  Runtime.prototype.configure = function () { this.cancel(); this.service.setEnabled(this.enabled()); this.suggestionService.enabled = this.preferences.suggestions(); };
+  Runtime.prototype.configure = function () { this.cancel(); this.service.setEnabled(this.accessEnabled()); this.suggestionService.enabled = this.preferences.suggestions(); };
   Runtime.prototype.siteSuggestions = function (query, type, context) {
     var self = this, selected = this.preferences.suggestionSource(), site = root.SiteRegistry.get(selected.slice(5)), token = this.generation, queue = this.app.provider && this.app.provider.queue;
     function unavailable(code) { var error = new Error(code); error.code = code; return Promise.reject(error); }
@@ -155,12 +157,56 @@
   Runtime.prototype.detail = function (value, queue, deadline) {
     var self = this;
     if (!this.enabled() || !this.app.screen || this.app.screen.kind !== 'detail') return Promise.resolve(value);
-    var selected = this.selected, session = this.session(queue, deadline, value.title, selected);
+    var selected = this.selected, session = this.session(queue, deadline, value.title, selected), originalTake = session.context.take;
+    queue.detailMetadataCalls = queue.detailMetadataCalls || 0;
+    session.context.take = function () { if (queue.detailMetadataCalls >= 3 || !originalTake()) return false; queue.detailMetadataCalls++; return true; };
     return this.enrich([value], session).then(function () {
       if (value.type === 'series' && value.rawType === 'movie' && Number(value.sourceSeason) > 0 && !(value.episodes || []).length)
         value.seasonSourcePlayable = true;
       return value;
     });
+  };
+  Runtime.prototype.episodes = function (details, queue, deadline) {
+    var self = this, token = this.generation, first = details[0] && details[0].value, I = root.ContentIdentity,
+      ref = first && I.reference(first), catalog = null;
+    if (!root.EpisodeIdentity || !first) return Promise.resolve(details);
+    if (!ref && this.app.hub && this.app.hub.group) { var group = this.app.hub.group(first.contentId); if (group) group.variants.some(function (v) { if (v.contentId === first.contentId) { ref = I.reference(v); return true; } return false; }); }
+    function normalize() { if (token !== self.generation) throw new Error('Bölüm kontrolü iptal edildi.'); root.EpisodeIdentity.normalize(details, catalog); return details; }
+    var context = this.context(queue, deadline, true), take = context.take;
+    queue.detailMetadataCalls = queue.detailMetadataCalls || 0;
+    context.take = function () { if (!self.enabled() || queue.detailMetadataCalls >= 3 || !take()) return false; queue.detailMetadataCalls++; return true; };
+    function getReference() {
+      if (ref && ref.binding !== 'flexible' && ref.type === 'series') return Promise.resolve([ref]);
+      if (!self.enabled()) return Promise.resolve([]);
+      var facts = I.analyze(first);
+      return facts.imdbId ? self.service.find(facts.imdbId, context) : self.service.search(first.title, 'series', context);
+    }
+    return getReference().then(function (refs) {
+      if (!ref || ref.binding === 'flexible') {
+        var bound = I.bindReference(first, refs);
+        ref = bound && I.reference(bound);
+        if ((!ref || ref.binding === 'flexible') && first.episodes && first.episodes.length) {
+          var matches = refs.filter(function (r) { var a = I.analyze(first); return r.type === 'series' && I.name(r.title) === I.name(first.title) && (!a.year || !r.year || a.year === r.year); });
+          if (matches.length === 1) ref = matches[0];
+        }
+      }
+      if (!ref || ref.type !== 'series') return [];
+      var hit = self.service.get('work|tv|' + ref.id);
+      return hit && hit[0] && Array.isArray(hit[0].seasons) ? hit : self.enabled() ? self.service.detail(ref, context) : [];
+    }).then(function (values) {
+      var work = values && values[0];
+      if (!work || !work.seasons) return;
+      catalog = { id: work.id, seasons: work.seasons, episodes: [] };
+      var seasons = work.seasons.filter(function (s) { return details.some(function (d) { return (d.value.episodes || []).some(function (e) { return e.episode && e.episode.season === s.season; }); }); });
+      var chain = Promise.resolve();
+      seasons.forEach(function (s) { chain = chain.then(function () {
+        if (token !== self.generation) return;
+        var hit = self.service.get('season|' + work.id + '|' + s.season);
+        if (hit) { catalog.episodes = catalog.episodes.concat(hit); return; }
+        if (!self.enabled() || queue.detailMetadataCalls >= 3) return;
+        return self.service.season(work.id, s.season, context).then(function (v) { catalog.episodes = catalog.episodes.concat(v); }, function () {});
+      }); }); return chain;
+    }).catch(function () {}).then(normalize);
   };
   Runtime.prototype.filter = function (cards, selected) {
     if (!selected) return cards;
@@ -288,12 +334,16 @@
     var self = this, token = this.generation, raw = root.PlayerCore.copy(card);
     raw.type = raw.rawType || raw.type;
     this.queue.paused = false; this.queue.validations = 0;
+    this.queue.detailMetadataCalls = 0;
     this.queue.deadline = this.deadline || Date.now() + 30000; this.base.deadline = this.queue.deadline;
     this.identity.active = raw.pageUrl; this.identity.value = null; this.identity.counted = false;
     return this.base.detail(raw, force).then(function (value) {
       if (token !== self.generation) throw new Error('İptal edildi');
       value = root.ContentIdentity.attachDetail(value, self.identity.value);
-      return self.runtime.detail(value, self.queue, self.queue.deadline);
+      return self.runtime.detail(value, self.queue, self.queue.deadline).then(function (v) {
+        if (v.type !== 'series') return v;
+        return self.runtime.episodes([{value:v,providerId:self.site.id}],self.queue,self.queue.deadline).then(function () { return v; });
+      });
     }).then(function (value) {
       if (token !== self.generation) throw new Error('İptal edildi');
       self.identity.active = ''; self.hub.observeDetail(value, self.site.id); return value;

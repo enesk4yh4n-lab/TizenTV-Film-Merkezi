@@ -1,3 +1,18 @@
+## Çekirdek 2.1.9 — 16 Kasım 2026
+
+WGT **2.0.1** değişmedi. Güncelleme uygulama içinden alınır; yerel ara denemeler tek genel sürümde toplandı.
+
+- **Güncelleme Merkezi sadeleşti:** Güncelleme denetimi, Eklentilerim, Eklenti ekle ve Depolarım aynı panelde; teknik işlemler ayrıntılara taşındı. Eski ara ekranlar güncel arayüze bağlandı.
+- **Kurulum kolaylaştı:** Birleştirme ve arama önerileri aynı sihirbaz ekranında. Depo bilgileri/sayıları hazır olduğunda birlikte gösterilir; ekleme ve seçilmiş paketler için yinelenen onaylar kaldırıldı. Boş depo ile devam açıklaması ve kurulum sonu yeniden açma işlemi netleştirildi.
+- **İlerleme ve kapasite:** İndirme, doğrulama ve gerçek kurulum aşamaları ayrıldı; indirme sırasında kurulum sayacı ilerlemez. Hazırlık durumu, seçim tikleri ve kapasiteye sığmayan paketlerin açıklaması düzenlendi. Değişmeyen paketler için kapasite hesabı tekrar tekrar çalıştırılmaz; son kurulum denetimi korunur.
+- **Kararlılık ve kumanda:** Eklenti kaldırma/yeniden kurma sonrasında eski katalog/görsel işleri ve arayüz dinleyicileri temizlenir. Menü, araç çubuğu, vitrin, ayarlar, kaynaklar ve bölüm listelerinde odak/geçiş/kaydırma düzeltildi; içerikten dönüş odağı korunur.
+- **Dizi bölümleri:** Sezon içi ve toplam bölüm numaraları tek gösterimde eşleştirilir; siteye ait gerçek bağlantı ve ham numara çözümleyiciye korunarak verilir. Tahmini eşleşmeler belirtilir. TMDB içerik/bölüm doğrulaması, arama önerilerinden bağımsız açılıp kapatılabilir.
+- **Katalog ve birleştirme:** Tür filtrelerinde film/dizi ayrımı korunur. Ortak güçlü kimliği olmayan tek kelimelik film adlarının yanlış birleşmesi sınırlandırıldı; eski zayıf kimlikler yeniden değerlendirilir.
+
+İlgili otomatik kontroller ile Tizen 3 emülatöründe kurulum, kumanda, dizi ve kısa oynatma kontrolleri yapıldı; önceki başarılı turlar gereksiz yere tekrarlanmadı. Bu sürüm için yeni fiziksel TV/ses/kumanda kabulü yapılmadı. Bölüm tahminleri kusursuz eşleşme garantisi değildir.
+
+Hazır depo/site eklenmez. TLS ve imza doğrulaması, 128 toplam ağ kökeni ve 60 kartlık DOM sınırı korunur. Eski WGT 2.0.0 kanalı değişmez. R001/R008 düzeltmeleri kullanıcı tarafından eklenen eklenti deposundan ayrıca alınır; diğer site paketleri bu yayında değişmez.
+
 ## WGT 2.0.1 / Çekirdek 2.1.8 — 14 Kasım 2026
 
 - Ana menüye **ÇizgiFilm/Anime** ve **Drama/Short** eklendi; Keşfet kaldırıldı. Drama/Short, Kore/Asya ve kısa bölümlü diziler içindir.

@@ -164,7 +164,7 @@
         }
       } else if (buttons.length) {
         var target = i;
-        if (sites.length > 8 && (code === 38 || code === 40)) {
+        if (code === 38 || code === 40) {
           var rect = buttons[i >= 0 ? i : 0].getBoundingClientRect(),
             best = Infinity;
           buttons.forEach(function (b, index) {
@@ -177,7 +177,14 @@
               target = index;
             }
           });
-        } else target = (i + (code === 37 ? -1 : 1) + buttons.length) % buttons.length;
+        } else {
+          var currentRect = buttons[i >= 0 ? i : 0].getBoundingClientRect(), horizontalBest = Infinity;
+          buttons.forEach(function (b, index) {
+            var r = b.getBoundingClientRect(), dx = r.left + r.width / 2 - currentRect.left - currentRect.width / 2, dy = r.top + r.height / 2 - currentRect.top - currentRect.height / 2;
+            if (Math.abs(dy) >= Math.min(r.height, currentRect.height) / 2 || (code === 37 ? dx >= -2 : dx <= 2)) return;
+            if (Math.abs(dx) < horizontalBest) { horizontalBest = Math.abs(dx); target = index; }
+          });
+        }
         buttons[Math.max(0, target)].focus();
       }
     },
