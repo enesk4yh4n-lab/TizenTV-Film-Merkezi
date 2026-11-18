@@ -1,15 +1,17 @@
 {
   "qa": false,
-  "sourceSha256": "6394df438e42597c03280a443ae01ee7ed21913681bcc6931d411865b41dd3a1",
+  "sourceSha256": "b53c88f8bc3b3f072f7e95a2fce95e8ce17edd2831bf7f8c6e3ab238af5f9b6e",
   "inputs": {
-    "secure-http.cpp": "6394df438e42597c03280a443ae01ee7ed21913681bcc6931d411865b41dd3a1",
+    "secure-http.cpp": "b53c88f8bc3b3f072f7e95a2fce95e8ce17edd2831bf7f8c6e3ab238af5f9b6e",
     "ca-bundle.h": "0bf632e879abbe487c714aaef5439d906908b7c600151fe3b0ff93a23f6eabff",
     "film-tls-config.h": "4522af5585ce00940b9082323fc3a118d92c0628f4c0f9287dc1203253ceb46a",
-    "http-response.h": "a2bcaea423c17e58842241b88a28ad3137d310e016ffef6585affdf60fe0fc43",
+    "http-completion.h": "0358ec1bda266a65c71f85f9d361a855588d1ce2ea27ea339163527ce2387440",
+    "http-response.h": "aa032df22206dfc8c3dcd9d9ba19b06fff5eac9f0fcaa4ecfa8be0109feb9ace",
     "network-policy.h": "6511c8919763adeb265fdec60d0af1cda17f5188dd0d380b4c94318998560cb1",
     "origin-patterns.inc.h": "b2ed1a57a557bb5c8289516317924ac49c36cd461138ca45f7aa0bbcf6c7b5c0",
-    "repository-discovery.h": "fe446f84c478fd2ea416386e1f1d435ece42d02ed5821b49f9f15b0e92370ccb",
-    "repository-policy.h": "96acb0f860595e21d78d0e5f16c6a95fbfb00c4d5fda536efbd09fc50ee1e19b",
+    "repository-capacity.h": "c9f4bb4c37cc8cc72c382eea8595c01d51fd1f2c05c2cf5acb6fa98480d457be",
+    "repository-discovery.h": "3325dfb8343ef600e628fdb3ea9ca0efcfe13b31e2b91c6b7dad970b4553d788",
+    "repository-policy.h": "d95a43a590bf7af69996f3d8fddfd53322e74855244b4337621c488b34b93f10",
     "update-public-key.h": "4bc371c8d88e326dacd31c3cdebec069f2d0d24b57189963fedd2679d2a8f4c5",
     "ca-bundle.pem": "796f1389bfea13c0ed78f663b765baaff54a508e5483786bd6ece73c5e3e3cbe"
   },
@@ -17,16 +19,16 @@
   "tlsArchiveSha256": "a7e8bcbec0e6f761b4af24f25677626b35f762f68eef79c08677a363212d11f6",
   "files": {
     "https-arm.nexe": {
-      "sha256": "fd2cfd869a4ebf6baad138df9e9b84a23a3ead6fe2fa1be65eb1aa8ae09379e8",
-      "size": 2331144
+      "sha256": "12e92bdd1d68dda54389e9c1e6f16672d5d10875345e80b1b6ac7df9df1ab69c",
+      "size": 2331920
     },
     "https-x86-32.nexe": {
-      "sha256": "9bd0658b0b6917c0d82798906e4be9a3f3b7184f3b5a7289c501a993d7f9cc96",
-      "size": 2758039
+      "sha256": "2290cd42cbc16445a71e519ad11d49e5c158396bf1e0dfca63028f188c2d9ced",
+      "size": 2758224
     },
     "https-x86-64.nexe": {
-      "sha256": "4c41c4724f01a79e0e40acb65c42a5642916fd0898c75a1d78d30f63a0a34bb4",
-      "size": 3091247
+      "sha256": "343f42efd9a5ff7233b473f6c8ce7458f1901c8e79c694dbc2df50417cd7a073",
+      "size": 3091472
     }
   }
 }

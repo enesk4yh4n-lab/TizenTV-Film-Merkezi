@@ -12,7 +12,7 @@
     this.state = { schemaVersion: 1, seq: 0, active: null, previous: null, pending: null, booting: false, revision: 0, checkedAt: 0 };
     this.selected = null; this.baseline = null; this.baselineRecord = null; this.entries = {}; this.groups = []; this.found = null; this.busy = ''; this.note = ''; this.blocked = false; this.generation = 0; this.writes = Promise.resolve(); this.checking = null; this.downloading = null; this.app = null; this.healthy = false; this.watchdog = null;
   }
-  Manager.prototype.record = function (record) { var self = this; if (!record || typeof record.text !== 'string' || record.text.length > 131072) return Promise.reject(new Error('Bileşen kaydı geçersiz.')); return this.channels.verifyRecord(record).then(function (key) { var m = V.manifest(record.text, self.config.appVersion); m._signer = key; return m; }); };
+  Manager.prototype.record = function (record) { var self = this; if (!record || typeof record.text !== 'string' || record.text.length > 131072) return Promise.reject(new Error('Bileşen kaydı geçersiz.')); return this.channels.verifyRecord(record).then(function (key) { var m = V.manifest(record.text, self.config.appVersion); if (!V.meets(m.requires, self.config.capabilities)) throw new Error('Bu çekirdek daha yeni bir Film Merkezi kurulumu gerektiriyor.'); m._signer = key; return m; }); };
   Manager.prototype.commit = function (patch) {
     var self = this;
     if (this.bootStopped) return Promise.reject(new Error('Başlangıç iptal edildi.'));
@@ -39,48 +39,58 @@
       }).catch(function (e) { self.blocked = true; self.state.active = null; self.note = e.message; self.channels = new root.FilmCoreChannel({ channel: self.channels.anchor.channel, publicKey: self.channels.anchor.publicKey, appVersion: self.config.appVersion }); });
     }).then(function () { return self.blocked ? null : self.clean(); });
   };
-  Manager.prototype.get = function (path, metadata, channel, releaseHash) {
+  Manager.prototype.get = function (path, metadata, channel, releaseHash, progress) {
     var self = this, url = (channel || this.config.channel) + '/' + path + (metadata ? '?check=' + Date.now() : releaseHash ? '?release=' + releaseHash : ''), ms = metadata ? 10000 : 30000, task;
     if (root.FilmUpdateHttp && root.FilmUpdateHttp.supported()) {
-      task = this.nativeTask = root.FilmUpdateHttp.request(url, '', { timeout: ms, deadline: Date.now() + ms });
+      task = this.nativeTask = root.FilmUpdateHttp.request(url, '', { timeout: ms, deadline: Date.now() + ms, onprogress: progress });
       task = task.promise.then(function (r) { self.nativeTask = null; return r; }, function (e) { self.nativeTask = null; throw e; });
-    } else task = this.client.get(url, '', {}, { siteAddresses: false, timeoutMs: ms, deadline: Date.now() + ms });
+    } else task = this.client.get(url, '', {}, { siteAddresses: false, timeoutMs: ms, deadline: Date.now() + ms, onprogress: progress });
     return task.then(function (r) { if (!r || typeof r.body !== 'string' || (metadata && V.bytes(r.body).length > 131072)) throw new Error('Güncelleme yanıtı geçersiz.'); return r.body; });
   };
   Manager.prototype.check = function () {
     if (this.checking) return this.checking;
     if (this.busy) return Promise.reject(new Error('Başka bir güncelleme işlemi sürüyor.'));
     var self = this, text, pointer, token = this.generation;
-    this.busy = 'check'; this.note = ''; this.errorReport = null;
+    this.busy = 'check'; this.note = ''; this.errorReport = null; this.requirement = null;
     var task = this.registerChannel().then(function () { return self.get('update.json', true); }).then(function (v) { text = v; return self.get('update.sig', true); }).then(function (signature) { return self.trust.verify(text, signature); }).then(function () {
       if (token !== self.generation) throw new Error('Güncelleme iptal edildi.');
-      pointer = V.pointer(text, self.config.appVersion);
-      if (pointer.updateVersion.split(".").map(Number).reduce(function (r, n, i) { return r || n - Number(self.config.componentMinVersion.split(".")[i]); }, 0) < 0) {
+      pointer = V.pointer(text, self.config.appVersion, self.config.capabilities);
+      if (pointer.updateVersion && !V.compatible(self.config.componentMinVersion, pointer.updateVersion)) {
         var installed = self.selected || self.baseline, older = new Error('Bu kanal eski çekirdek sürümü sunuyor.');
         /* A verified feed older than our usable bundled core offers no update. */
-        if (installed && V.compatible(self.config.componentMinVersion, installed.version)) older.code = 'CORE_ALREADY_CURRENT';
-        throw older;
+        if (!installed || !V.compatible(self.config.componentMinVersion, installed.version)) throw older;
+        if (root.FilmPluginSchema.compare(pointer.latest.updateVersion, installed.version) <= 0) {
+          older.code = 'CORE_ALREADY_CURRENT';
+          throw older;
+        }
       }
       if (pointer.revision < self.state.revision) throw new Error('Eski güncelleme bildirimi reddedildi.');
       if (pointer.revision === self.state.revision && self.state.pointerHash) return V.sha(text).then(function (hash) { if (hash !== self.state.pointerHash) throw new Error('Güncelleme revizyonu çelişiyor.'); });
     }).then(function () { return V.sha(text); }).then(function (hash) {
       if (token !== self.generation) throw new Error('Güncelleme iptal edildi.');
       return self.commit({ revision: pointer.revision, pointerHash: hash, checkedAt: Date.now() });
-    }).then(function () { self.migrationOffer = null; self.migrationDetails = null; if (!pointer.migration) return; return self.channels.next(pointer.migration).then(function (details) { return V.fingerprint(details.publicKey).then(function (hash) { self.migrationOffer = pointer.migration; self.migrationDetails = { channel: details.channel, fingerprint: hash }; }); }); }).then(function () { var current = self.selected && self.selected.version, newer = !current || root.FilmPluginSchema.compare(pointer.updateVersion, current) > 0; self.found = newer ? pointer : null; self.note = newer ? 'Yeni bileşen sürümü bulundu.' : 'Bileşenler güncel.'; return self.status(); });
+    }).then(function () { self.migrationOffer = null; self.migrationDetails = null; if (!pointer.migration) return; return self.channels.next(pointer.migration).then(function (details) { return V.fingerprint(details.publicKey).then(function (hash) { self.migrationOffer = pointer.migration; self.migrationDetails = { channel: details.channel, fingerprint: hash }; }); }); }).then(function () {
+      var current = (self.selected || self.baseline).version, S = root.FilmPluginSchema;
+      var newer = pointer.updateVersion && V.compatible(self.config.componentMinVersion, pointer.updateVersion) && S.compare(pointer.updateVersion, current) > 0;
+      self.requirement = S.compare(pointer.latest.updateVersion, current) > 0 ? S.compatibility(pointer.latest, self.config, current) : null;
+      self.found = newer ? pointer : null;
+      self.note = newer ? 'Yeni bileşen sürümü bulundu.' : self.requirement ? self.requirement.message : 'Bileşenler güncel.';
+      return self.status();
+    });
     this.checking = task.then(function (result) { self.checking = null; self.busy = ''; return result; }, function (e) { self.checking = null; self.busy = ''; if (e.code === 'CORE_ALREADY_CURRENT') { self.found = null; self.note = 'Bileşenler güncel.'; return self.status(); } self.note = e.message; self.errorReport = root.FilmErrorReporter && root.FilmErrorReporter.capture({scope:'update',stage:'core-check',error:e}); throw e; }); return this.checking;
   };
   Manager.prototype.registerChannel = function (descriptor, id) {
     var c = descriptor || this.channels.current;
     if (!c.sequence && !descriptor) return Promise.resolve();
-    return root.FilmNativeTLS.registerRepository(id || 'core-channel-' + c.sequence, c.channel + '/filmmerkezi201-repository.json', c.publicKey);
+    return root.FilmNativeTLS.registerRepository(id || 'core-channel-' + c.sequence, c.channel + '/filmmerkezi-repository.json', c.publicKey);
   };
   Manager.prototype.migrate = function () {
     var self = this, offer = this.migrationOffer, candidate, raw, pointer, token = this.generation;
     if (!offer || this.busy || this.blocked || (this.app && this.app.controller.content) || (root.FilmPlugins && root.FilmPlugins.busy)) return Promise.reject(new Error('Kanal geçişi şu anda kullanılamıyor.'));
     this.busy = 'migration';
     return this.channels.next(offer).then(function (p) { candidate = p; return self.registerChannel(p, 'core-candidate-' + p.sequence); }).then(function () { return self.get('update.json', true, candidate.channel); }).then(function (text) { raw = text; return self.get('update.sig', true, candidate.channel); }).then(function (sig) { return new V.Trust(candidate.publicKey).verify(raw, sig); }).then(function () {
-      pointer = V.pointer(raw, self.config.appVersion);
-      if (pointer.revision < candidate.minRevision || !V.compatible(self.config.componentMinVersion, pointer.updateVersion) || self.selected && !V.compatible(self.selected.version, pointer.updateVersion)) throw new Error('Hedef kanal eski çekirdek veya revizyon sunuyor.');
+      pointer = V.pointer(raw, self.config.appVersion, self.config.capabilities);
+      if (!pointer.updateVersion || pointer.revision < candidate.minRevision || !V.compatible(self.config.componentMinVersion, pointer.updateVersion) || self.selected && !V.compatible(self.selected.version, pointer.updateVersion)) throw new Error('Hedef kanal eski veya uyumsuz çekirdek sunuyor.');
       return V.sha(raw);
     }).then(function (hash) {
       if (token !== self.generation) throw new Error('Kanal geçişi iptal edildi.');
@@ -88,28 +98,41 @@
     }).then(function () { self.busy = ''; return true; }, function (e) { self.busy = ''; self.note = e.message; throw e; });
   };
   Manager.prototype.cancel = function () { this.generation++; this.client.cancel(); if (this.nativeTask) this.nativeTask.cancel(); };
-  Manager.prototype.download = function () {
+  Manager.prototype.download = function (options) {
     if (root.FilmPlugins && root.FilmPlugins.busy) return Promise.reject(new Error("Eklenti işlemi sürüyor."));
     if (this.downloading) return this.downloading;
     if (this.app && this.app.controller.content) return Promise.reject(new Error('Önce oynatıcıdan çıkın.'));
     if (this.blocked) return Promise.reject(new Error('Güncelleme alanı kullanılamıyor.'));
     var self = this, pointer, record, m, token, began = Date.now(), fetched = 0, reused = 0;
+    var completedBytes = 0, currentBytes = 0, totalBytes = 0, downloadedBytes = 0, reusedBytes = 0, verifiedFiles = 0, lastPercent = 0, lastNotice = 0;
+    function progress(phase, force) {
+      if (!m || !totalBytes || !force && Date.now() - lastNotice < 100) return;
+      lastNotice = Date.now();
+      lastPercent = Math.max(lastPercent, phase === 'verified' ? 97 : Math.min(95, 5 + 90 * (completedBytes + currentBytes * 0.8) / totalBytes));
+      self.downloadProgress = { phase: phase, percent: lastPercent, filesDone: verifiedFiles, filesTotal: m.files.length, bytesDone: completedBytes + currentBytes, bytesTotal: totalBytes, downloadedBytes: downloadedBytes + currentBytes, reusedBytes: reusedBytes };
+      if (options && typeof options.onprogress === 'function') try { options.onprogress(self.downloadProgress); } catch (ignore) {}
+    }
+    function complete(file, localFile) {
+      if (localFile) { reused++; reusedBytes += file.size; } else { fetched++; downloadedBytes += file.size; }
+      completedBytes += file.size; verifiedFiles++; currentBytes = 0; progress('downloading', true);
+    }
     var task = this.check().then(function () {
       pointer = self.found; if (!pointer) throw new Error('Yeni çekirdek güncellemesi yok.'); token = self.generation; self.busy = 'download';
       return self.get(pointer.manifest, false, null, pointer.manifestSha256);
     }).then(function (text) { record = { text: text }; return V.sha(text); }).then(function (hash) { if (hash !== pointer.manifestSha256) throw new Error('Manifest özeti eşleşmiyor.'); return self.get('versions/' + pointer.updateVersion + '/manifest.sig', false, null, pointer.manifestSha256); }).then(function (signature) { record.signature = signature; return self.record(record); }).then(function (value) {
-      m = value; if (m.version !== pointer.updateVersion) throw new Error('Bileşen sürümleri eşleşmiyor.');
+      m = value; if (m.version !== pointer.updateVersion || m.minAppVersion !== pointer.minAppVersion || !V.sameRequirements(m.requires, pointer.requires)) throw new Error('Bileşen manifesti güncelleme bildirimiyle eşleşmiyor.');
+      totalBytes = m.files.reduce(function (sum, file) { return sum + file.size; }, 0); progress('downloading', true);
       return serial(m.files, function (file) {
         function active() { if (token !== self.generation || Date.now() - began > 120000 || (self.app && self.app.controller.content)) throw new Error('Güncelleme iptal edildi veya süresi doldu.'); }
         active();
         var bundled = self.baseline.files.filter(function (v) { return v.path === file.path && v.sha256 === file.sha256; })[0];
-        if (bundled) { reused++; return; }
+        if (bundled) { complete(file, true); return; }
         return self.storage.read('obj-' + file.sha256 + '.txt').then(function (text) { return text === null ? false : V.sha(text).then(function (hash) { return hash === file.sha256 && V.bytes(text).length === file.size; }); }).then(function (valid) {
-          active(); if (valid) { reused++; return; }
-          return self.get('versions/' + m.version + '/runtime/' + file.path, false, null, pointer.manifestSha256).then(function (text) { active(); return V.sha(text).then(function (hash) { active(); if (hash !== file.sha256 || V.bytes(text).length !== file.size) throw new Error('Dosya özeti eşleşmiyor: ' + file.path); return self.storage.write('obj-' + file.sha256 + '.txt', text); }); }).then(function () { fetched++; });
+          active(); if (valid) { complete(file, true); return; }
+          return self.get('versions/' + m.version + '/runtime/' + file.path, false, null, pointer.manifestSha256, function (loaded) { if (token !== self.generation) return; currentBytes = Math.max(currentBytes, Math.min(file.size, Number(loaded) || 0)); progress('downloading'); }).then(function (text) { active(); currentBytes = file.size; progress('downloading', true); return V.sha(text).then(function (hash) { active(); if (hash !== file.sha256 || V.bytes(text).length !== file.size) throw new Error('Dosya özeti eşleşmiyor: ' + file.path); return self.storage.write('obj-' + file.sha256 + '.txt', text); }); }).then(function () { complete(file, false); });
         });
       });
-    }).then(function () { if (token !== self.generation) throw new Error('Güncelleme iptal edildi.'); return self.commit({ pending: record }); }).then(function () { self.note = 'Güncelleme doğrulandı; uygulamaya hazır.'; self.lastDownload = { fetched: fetched, reused: reused, version: m.version }; return self.status(); });
+    }).then(function () { if (token !== self.generation) throw new Error('Güncelleme iptal edildi.'); return self.commit({ pending: record }); }).then(function () { progress('verified', true); self.note = 'Güncelleme doğrulandı; uygulamaya hazır.'; self.lastDownload = { fetched: fetched, reused: reused, version: m.version }; return self.status(); });
     this.downloading = task.then(function (v) { self.busy = ''; self.downloading = null; return self.clean().then(function () { return v; }); }, function (e) { self.busy = ''; self.downloading = null; self.note = e.message; self.errorReport = root.FilmErrorReporter && root.FilmErrorReporter.capture({scope:'update',stage:'core-download',error:e}); return self.clean().then(function () { throw e; }); }); return this.downloading;
   };
   Manager.prototype.clean = function () {
@@ -141,7 +164,7 @@
   Manager.prototype.modules = function () { return this.groups; };
   Manager.prototype.status = function () {
     function v(record) { try { return record && JSON.parse(record.text).version || ''; } catch (ignore) { return ''; } }
-    return { application: this.config.appVersion, current: this.selected ? this.selected.version : this.baseline && this.baseline.version, previous: v(this.state.previous), pending: v(this.state.pending), available: this.found && this.found.updateVersion || '', busy: this.busy, note: this.note, blocked: this.blocked, download: this.lastDownload || null };
+    return { application: this.config.appVersion, current: this.selected ? this.selected.version : this.baseline && this.baseline.version, previous: v(this.state.previous), pending: v(this.state.pending), available: this.found && this.found.updateVersion || '', requirement: this.requirement || null, busy: this.busy, note: this.note, blocked: this.blocked, download: this.lastDownload || null };
   };
   Manager.prototype.markHealthy = function () { if (this.healthy || this.bootStopped) return; this.healthy = true; if (root.FilmBootRecovery) root.FilmBootRecovery.healthy(); clearTimeout(this.watchdog); if (root.FilmBootProgress) root.FilmBootProgress.finish(); else document.getElementById('update-boot').style.display = 'none'; if (!this.blocked) this.commit(this.recoveryRecord ? { booting: false, active: this.recoveryRecord, previous: this.state.active, pending: null } : { booting: false }).catch(function () {}); };
   Manager.prototype.bind = function (app) {

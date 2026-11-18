@@ -11,36 +11,48 @@
     this.registry.sites.splice(0, this.registry.sites.length);
     selected.forEach(function (site) { self.registry.sites.push(site); });
   };
+  Manager.prototype.packageChoice = function (index, id, installed) {
+    var S = root.FilmPluginSchema, config = this.core && this.core.config;
+    var latest = index && index.plugins.filter(function (item) { return item.id === id; })[0];
+    if (!latest || !this.plugins.selectInstallation) return { item: latest };
+    var current = this.core.status().current;
+    return { item: S.choices(index, id).filter(function (item) { return !S.compatibility(item, config, current); })[0],
+      requirement: (!installed || S.compare(latest.version, installed.version) > 0) && S.compatibility(latest, config, current) };
+  };
   Manager.prototype.rows = function () {
     var self = this, rows = [], manager = this.plugins;
     this.allSites.filter(function (site) { return !site.pluginKey; }).forEach(function (site) { rows.push({ key: 'builtin:' + site.id, id: site.id, name: site.name, builtin: true, enabled: self.preferences.siteEnabled(site.id), loaded: self.registry.sites.indexOf(site) >= 0, updateState: 'builtin', coreVersion: self.core ? self.core.status().current : root.AppInfo && root.AppInfo.version }); });
     if (!manager) return rows;
     Object.keys(manager.state.plugins).forEach(function (key) {
-      var p = manager.state.plugins[key], repo = manager.state.repositories[p.repoId], index = self.catalogs[p.repoId], item = index && index.plugins.filter(function (x) { return x.id === p.id; })[0], active = p.active, pending = p.pending, state = 'unknown', error = self.failures[p.repoId] || p.error || manager.errors[p.repoId] || '';
+      var p = manager.state.plugins[key], repo = manager.state.repositories[p.repoId], index = self.catalogs[p.repoId], active = p.active, choice = self.packageChoice(index, p.id, p.pending || active), item = choice.item, pending = p.pending, state = 'unknown', error = self.failures[p.repoId] || p.error || manager.errors[p.repoId] || '';
       if (pending) state = 'ready';
       else if (item && active) {
         var compare = root.FilmPluginSchema.compare(item.version, active.version);
         state = compare > 0 ? 'available' : compare === 0 ? 'current' : 'older';
         if (compare === 0 && item.manifestSha256 !== active.hash) { state = 'error'; error = 'Aynı eklenti sürümü farklı dosyalarla yayımlanmış.'; }
       } else if (item) state = 'available';
-      rows.push({ key: key, id: p.siteId || p.id, pluginId: p.id, packageType: p.type || 'legacy', repoId: p.repoId, name: p.name || p.id, builtin: false, enabled: p.enabled && !!repo && repo.enabled, ownEnabled: p.enabled, repositoryEnabled: !!repo && repo.enabled, loaded: !!manager.loaded[key], version: active && active.version || '', pending: pending && pending.version || '', previous: p.previous && p.previous.version || '', available: item && item.version || '', updateState: state, error: error, needsDownload: !!p.needsDownload });
+      rows.push({ key: key, id: p.siteId || p.id, pluginId: p.id, packageType: p.type || 'legacy', repoId: p.repoId, name: p.name || p.id, builtin: false, enabled: p.enabled && !!repo && repo.enabled, ownEnabled: p.enabled, repositoryEnabled: !!repo && repo.enabled, loaded: !!manager.loaded[key], version: active && active.version || '', pending: pending && pending.version || '', previous: p.previous && p.previous.version || '', available: item && item.version || '', updateState: state, requirement: choice.requirement, error: error, needsDownload: !!p.needsDownload });
     });
     return rows;
   };
   Manager.prototype.packageGroups = function () {
-    var self = this, manager = this.plugins, installed = this.rows().filter(function (r) { return !r.builtin; }), available = [];
+    var self = this, manager = this.plugins, installed = this.rows().filter(function (r) { return !r.builtin; }), available = [], requirements = installed.filter(function (r) { return r.repositoryEnabled && r.requirement; });
     if (manager) Object.keys(manager.state.repositories).forEach(function (id) {
       var repo = manager.state.repositories[id], catalog = self.catalogs[id];
       if (!repo.enabled || !catalog) return;
       catalog.plugins.forEach(function (item) {
         var key = id + '/' + item.id;
         if (manager.state.plugins[key]) return;
+        var choice = self.packageChoice(catalog, item.id);
+        if (choice.requirement && item.type === 'site') requirements.push({name: item.name, requirement: choice.requirement});
+        if (!choice.item) return;
+        item = choice.item;
         available.push({ key: key, pluginId: item.id, packageType: item.type, repoId: id, name: item.name, available: item.version, error: self.failures[id] || '', item: item });
       });
     });
     function order(a, b) { var x = a.name.toLowerCase(), y = b.name.toLowerCase(); return x < y ? -1 : x > y ? 1 : a.key < b.key ? -1 : a.key > b.key ? 1 : 0; }
     installed.sort(order); available.sort(order);
-    return { installed: installed, updates: installed.filter(function (r) { return r.repositoryEnabled && (r.updateState === 'available' || r.needsDownload || r.version && r.pending && root.FilmPluginSchema.compare(r.pending, r.version) > 0); }), newSites: available.filter(function (row) { return row.packageType === 'site'; }), checkedAt: this.checkedAt };
+    return { installed: installed, requirements: requirements, updates: installed.filter(function (r) { return r.repositoryEnabled && (r.updateState === 'available' || r.needsDownload || r.version && r.pending && root.FilmPluginSchema.compare(r.pending, r.version) > 0); }), newSites: available.filter(function (row) { return row.packageType === 'site'; }), checkedAt: this.checkedAt };
   };
   Manager.prototype.busy = function () { return !!(root.ChainApp&&root.ChainApp.updateWorkflow&&root.ChainApp.updateWorkflow.running || this.batch && this.batch.running || this.checking || this.plugins && this.plugins.busy || this.core && this.core.busy); };
   Manager.prototype.runBatch = function (action, keys, notify) { return root.FilmPluginBatch.start(this, action, keys, notify); };

@@ -12,10 +12,26 @@
     var tasks = [], platform = options.platformText ? root.ChainNetwork.createClient({ platformText: true, destination: 'downloads' }) : null;
     function request(url, ref, headers, body, policy) {
       policy = policy || {};
+      if (options.userAgent) {
+        var copied = {}, hasAgent = false;
+        Object.keys(headers || {}).forEach(function (name) { copied[name] = headers[name]; if (/^user-agent$/i.test(name)) hasAgent = true; });
+        if (!hasAgent) copied['User-Agent'] = options.userAgent;
+        headers = copied;
+      }
       try {
         assert(key, url); assert(key, ref);
         Object.keys(headers || {}).forEach(function (name) { if (/^origin$/i.test(name)) assert(key, headers[name]); });
       } catch (e) { return Promise.reject(e); }
+      if (!platform && root.PackageFetchTransport && root.PackageFetchTransport.supported()) {
+        var fetchTask = root.PackageFetchTransport.request(url, {
+          packageKey: key, referer: ref || '', method: body === undefined ? 'GET' : 'POST',
+          body: body, headers: headers || {}, timeoutMs: policy.timeoutMs || 30000,
+          deadline: policy.deadline, byteLimit: policy.byteLimit || 2097152
+        });
+        tasks.push(fetchTask);
+        var fetched = function () { var index = tasks.indexOf(fetchTask); if (index >= 0) tasks.splice(index, 1); };
+        return fetchTask.promise.then(function (response) { fetched(); return response; }, function (e) { fetched(); throw e; });
+      }
       if (platform) {
         return (body === undefined ? platform.get(url, ref, headers, policy) : platform.post(url, body, headers, policy)).then(function (response) { assert(key, response.url || url); return response; });
       }

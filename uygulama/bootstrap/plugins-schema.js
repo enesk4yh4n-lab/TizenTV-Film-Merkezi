@@ -2,6 +2,7 @@
 (function (root) {
   'use strict';
   var V = root.FilmUpdateVerify;
+  var MAX_PACKAGES = 512, INDEX_BYTES = 1048576;
   function id(s) { return typeof s === 'string' && /^[a-z][a-z0-9-]{0,63}$/.test(s); }
   function version(s) { return typeof s === 'string' && /^\d{1,4}\.\d{1,4}\.\d{1,4}$/.test(s); }
   function compare(a, b) { var x = a.split('.'), y = b.split('.'), i; for (i = 0; i < 3; i++) if (+x[i] !== +y[i]) return +x[i] > +y[i] ? 1 : -1; return 0; }
@@ -14,29 +15,46 @@
     if (u.hostname === 'github.com') {
       var parts = u.pathname.split('/').filter(Boolean);
       if (parts.length >= 5 && (parts[2] === 'blob' || parts[2] === 'tree')) value = 'https://raw.githubusercontent.com/' + parts.slice(0, 2).concat(parts.slice(3)).join('/');
-      else if (parts.length === 2) value = 'https://raw.githubusercontent.com/' + parts.join('/') + '/main/filmmerkezi201-repository.json';
+      else if (parts.length === 2) value = 'https://raw.githubusercontent.com/' + parts.join('/') + '/main/filmmerkezi-repository.json';
       u = new root.URL(value);
     }
     V.networkPolicy('FILM-MERKEZI-ORIGINS-1\nhttps://' + u.hostname + '\n');
     if (u.protocol !== 'https:' || u.username || u.password || u.port || u.search || u.hash || /(?:^|\/)\.\.?\//.test(value)) throw new Error('Depo adresi HTTPS olmalı; parola, port veya sorgu içermemeli.');
-    if (u.pathname.slice(-1) === '/') u.pathname += 'filmmerkezi201-repository.json';
-    if (!/\/filmmerkezi201-repository\.json$/.test(u.pathname) || !/^[a-zA-Z0-9_./-]+$/.test(u.pathname)) throw new Error('Adres filmmerkezi201-repository.json dosyasını göstermeli.');
+    if (u.pathname.slice(-1) === '/') u.pathname += 'filmmerkezi-repository.json';
+    if (!/\/filmmerkezi-repository\.json$/.test(u.pathname) || !/^[a-zA-Z0-9_./-]+$/.test(u.pathname)) throw new Error('Adres filmmerkezi-repository.json dosyasını göstermeli.');
     return u.href;
   }
   function repositoryRoot(value) { if(typeof value!=='string'||!/\/filmmerkezi(?:201)?-repository\.json$/.test(value))throw new Error('Invalid stored repository address');return value.replace(/filmmerkezi(?:201)?-repository\.json$/,''); }
   function signatureAddress(value) { repositoryRoot(value);return value.slice(0,-5)+'.sig'; }
   function repository(raw) {
-    if (typeof raw !== 'string' || V.bytes(raw).length > 65536) throw new Error('Depo listesi boyutu geçersiz.');
+    if (typeof raw !== 'string' || V.bytes(raw).length > INDEX_BYTES) throw new Error('Depo listesi boyutu geçersiz.');
     var r = JSON.parse(raw), seen = {};
-    if (!r || r.schemaVersion !== 2 || !id(r.id) || !text(r.name, 120) || typeof r.publicKey !== 'string' || !/^[A-Za-z0-9+/=]{300,800}$/.test(r.publicKey) || typeof r.revision !== 'number' || r.revision < 1 || r.revision % 1 || r.revision > 2147483647 || !Array.isArray(r.plugins) || r.plugins.length > 128) throw new Error('Eklenti deposunun biçimi geçersiz.');
-    r.plugins.forEach(function (p) { if (!p || !id(p.id) || seen[p.id] || !version(p.version) || ['site', 'resolver'].indexOf(p.type) < 0 || !text(p.name, 120) || p.description && !text(p.description, 800) || p.manifest !== 'packages/' + p.id + '/' + p.version + '/manifest.json' || !/^[a-f0-9]{64}$/.test(p.manifestSha256)) throw new Error('Depodaki eklenti kaydı geçersiz.'); seen[p.id] = true; });
+    if (!r || r.schemaVersion !== 2 || !id(r.id) || !text(r.name, 120) || typeof r.publicKey !== 'string' || !/^[A-Za-z0-9+/=]{300,800}$/.test(r.publicKey) || typeof r.revision !== 'number' || r.revision < 1 || r.revision % 1 || r.revision > 2147483647 || !Array.isArray(r.plugins) || r.plugins.length > MAX_PACKAGES) throw new Error('Eklenti deposunun biçimi geçersiz.');
+    function entry(p) {
+      if (!p || !id(p.id) || !version(p.version) || ['site', 'resolver'].indexOf(p.type) < 0 || !text(p.name, 120) || p.description && !text(p.description, 800) || p.manifest !== 'packages/' + p.id + '/' + p.version + '/manifest.json' || !/^[a-f0-9]{64}$/.test(p.manifestSha256) || p.minAppVersion !== undefined && !version(p.minAppVersion) || p.minCoreVersion !== undefined && !version(p.minCoreVersion) || !V.requirements(p.requires)) throw new Error('Depodaki eklenti kaydı geçersiz.');
+    }
+    r.plugins.forEach(function (p) { entry(p); if (seen['p/' + p.id]) throw new Error('Duplicate plugin'); seen['p/' + p.id] = p; seen[p.manifest] = true; });
+    if (r.alternatives !== undefined) {
+      if (!Array.isArray(r.alternatives) || r.alternatives.length > 128) throw new Error('Invalid plugin alternatives');
+      r.alternatives.forEach(function (p) { entry(p); var latest = seen['p/' + p.id]; if (!latest || latest.type !== p.type || compare(p.version, latest.version) >= 0 || seen[p.manifest] || !p.minAppVersion || !p.minCoreVersion) throw new Error('Invalid plugin alternative'); seen[p.manifest] = true; });
+    }
     return r;
+  }
+  function choices(index, pluginId) { return index.plugins.concat(index.alternatives || []).filter(function (item) { return item.id === pluginId; }).sort(function (a, b) { return compare(b.version, a.version); }); }
+  function compatibility(item, config, core) {
+    if (!config || !config.appVersion) return null;
+    if (item.minAppVersion && compare(config.appVersion, item.minAppVersion) < 0 || !V.meets(item.requires, config.capabilities)) {
+      var minimum = item.minAppVersion && compare(config.appVersion, item.minAppVersion) < 0 ? item.minAppVersion : '';
+      return { kind: 'app', version: minimum, message: minimum ? 'Bu güncelleme için Film Merkezi ' + minimum + ' veya üzeri gerekiyor.' : 'Bu güncelleme için daha yeni bir Film Merkezi kurulumu gerekiyor.' };
+    }
+    if (item.minCoreVersion && core && compare(core, item.minCoreVersion) < 0) return { kind: 'core', version: item.minCoreVersion, message: 'Önce çekirdeği ' + item.minCoreVersion + ' veya üzeri bir sürüme güncelleyin.' };
+    return null;
   }
   function manifest(raw, app) {
     if (typeof raw !== 'string' || V.bytes(raw).length > 16384) throw new Error('Eklenti manifesti çok büyük.');
     var m = JSON.parse(raw), seen = {}, total = 0;
     if (!m || m.schemaVersion !== 2 || m.apiVersion !== 2) throw new Error('New plugin version required / Yeni eklenti surumu gerekiyor');
-    if (!id(m.id) || ['site', 'resolver'].indexOf(m.type) < 0 || !version(m.version) || !version(m.minAppVersion) || compare(app, m.minAppVersion) < 0 || !version(m.minCoreVersion) || !text(m.name, 120) || !Array.isArray(m.dependencies) || m.dependencies.length > 16 || !Array.isArray(m.files) || !m.files.length || m.files.length > 40 || !Array.isArray(m.modules) || !m.modules.length || m.modules.length > 20) throw new Error('Invalid package API v2 manifest');
+    if (!id(m.id) || ['site', 'resolver'].indexOf(m.type) < 0 || !version(m.version) || !version(m.minAppVersion) || app && compare(app, m.minAppVersion) < 0 || !version(m.minCoreVersion) || !V.requirements(m.requires) || !text(m.name, 120) || !Array.isArray(m.dependencies) || m.dependencies.length > 16 || !Array.isArray(m.files) || !m.files.length || m.files.length > 40 || !Array.isArray(m.modules) || !m.modules.length || m.modules.length > 20) throw new Error('Invalid package API v2 manifest');
     if (m.type === 'site') {
       if (!m.site || !id(m.site.id) || m.site.prefix !== m.site.id + ':' || !text(m.site.name, 120)) throw new Error('Invalid site identity');
       V.networkPolicy('FILM-MERKEZI-ORIGINS-1\n' + new root.URL(m.site.base).origin + '\n');
@@ -55,5 +73,5 @@
     return m;
   }
   function fingerprint(publicKey) { var s = root.atob(publicKey), a = new Uint8Array(s.length), i; for (i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return root.crypto.subtle.digest({ name: 'SHA-256' }, a).then(function (b) { return Array.prototype.map.call(new Uint8Array(b), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); }); }
-  root.FilmPluginSchema = { id: id, version: version, compare: compare, address: address, repository: repository, repositoryRoot:repositoryRoot, signatureAddress:signatureAddress, manifest: manifest, fingerprint: fingerprint, file: file };
+  root.FilmPluginSchema = { id: id, version: version, compare: compare, address: address, repository: repository, choices: choices, compatibility: compatibility, repositoryRoot:repositoryRoot, signatureAddress:signatureAddress, manifest: manifest, fingerprint: fingerprint, file: file, maxPackages: MAX_PACKAGES, indexByteLimit: INDEX_BYTES };
 })(window);

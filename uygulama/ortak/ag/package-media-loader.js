@@ -25,6 +25,7 @@
       var p = root.FilmPlugins.loaded[source.packageKey], copy = {};
       Object.keys(options).forEach(function (k) { copy[k] = options[k]; });
       copy.packageKey = source.packageKey; copy.repositoryId = p.repo.id; copy.pluginId = p.manifest.id;
+      copy.requiredHeaders = (source.playbackRequirements && source.playbackRequirements.requiredHeaders || []).slice();
       return root.MediaNetwork.request(url, copy);
     }
     return {

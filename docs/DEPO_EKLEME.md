@@ -8,7 +8,7 @@ Depo, kurulabilecek site ve çözümleyici paketlerinin listesidir. Eklemek büt
 
 İlk kurulumdaki **Depolar** ekranından veya boş ana sayfadaki **Depo ekle** düğmesinden başlayabilirsiniz. Sonradan erişmek için:
 
-**Seçenekler → Güncelleme Merkezi → Eklenti depoları ve yeni paketler**
+**Seçenekler → Güncelleme Merkezi → Depo ekle**
 
 ![Güncelleme Merkezi](gorseller/guncelleme-merkezi.png)
 
@@ -18,7 +18,7 @@ Depo, kurulabilecek site ve çözümleyici paketlerinin listesidir. Eklemek büt
 
 ![GitHub depo arama formu](gorseller/depo-arama.png)
 
-**TizenTV-Film-Merkezi** adıyla ana depoyu arayıp yalnız Puhutv için **P002** site paketini kurabilirsiniz; **R002** çözümleyicisi bağımlılık olarak birlikte sunulur. **Film-Merkezi-Eklentiler** deposu da aynı Puhutv paketlerini sunar. Birinden kurmanız yeterlidir; ikinci depodan aynı paketi tekrar kurmayın. Yeni depoların GitHub aramasında görünmesi gecikebilir. Bu form görüntüsü, depoların yayımlandığı veya aramada bulunduğu anlamına gelmez.
+**TizenTV-Film-Merkezi** ana deposu P002/R002 çiftini sunar. **Film-Merkezi-Eklentiler** deposu aynı çifti de içerir. Bir depodan kurduysanız paketi ikinci kez kurmanız gerekmez.
 
 Sonuçtan depoyu seçin. Gösterilen ad/adresi kontrol edip güveniyorsanız **Ekle** deyin. Teknik ayrıntıları açmak zorunlu değildir. Arama sonucu bir içerik/yayıncı onayı değildir.
 
@@ -28,7 +28,7 @@ Sonuçtan depoyu seçin. Gösterilen ad/adresi kontrol edip güveniyorsanız **E
 
 ![Adresle depo ekleme](gorseller/depo-adres.png)
 
-WGT **2.0.1** için indeks adı **`filmmerkezi201-repository.json`** olur. WGT **2.0.0** kullananlar mevcut **`filmmerkezi-repository.json`** listesinde kalır. Yayıncıdan aldığınız sürümünüze uygun adresi kullanın. İmza veya HTTPS doğrulaması başarısızsa depo eklenmez.
+WGT **2.0.3** ile güncel indeks adı **`filmmerkezi-repository.json`**. Eski `filmmerkezi201-repository.json` adresi kayıtlıysa önce WGT 2.0.3’e geçin. **Depo adresini düzenle** ile aynı yayıncının yeni adresini girin. Uygulama, yayıncı anahtarı ve depo kimliği eşleştiğinde mevcut paket kayıtlarını korur.
 
 ## 4. Paketi kurun
 

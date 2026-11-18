@@ -4,13 +4,13 @@ Samsung Tizen TV’ler için ücretsiz ve açık kaynaklı bir **medya merkezi**
 
 **2.x yapısı:** Site ve çözümleyiciler kullanıcının seçtiği depolardan ayrı paketler olarak kurulur. WGT hazır site veya önceden seçili depo içermez.
 
-## Son güncelleme · Çekirdek 2.1.9
+## Son güncelleme · Film Merkezi TV 2.0.3
 
-- Daha sade Güncelleme Merkezi, kolay ilk kurulum ve tutarlı yükleme ilerlemesi.
-- Kumanda odağı/kaydırma, eklenti işlemleri ve kapasite hesabında düzeltmeler.
-- Dizi bölüm eşleştirmesi, film/dizi filtreleri ve içerik kimliğinde iyileştirmeler.
+- Yeni Tizen sürümlerinde video bağlantısı uyumluluğu genişletildi.
+- Yarım kalan eklenti indirmelerine devam edilebilir. Yeni TV paketi gerektiğinde Güncelleme Merkezi bilgi verir.
+- Çekirdek indirmesinde ilerleme gösterilir. Güncelleme hazır olduğunda sürüm notlarından uygulamayı yeniden başlatabilirsiniz.
 
-WGT **2.0.1** değişmedi; güncellemeyi uygulama içinden alın. WGT 2.0.0 mevcut uyumlu kanalında kalır. Ayrıntılar: [Sürüm notları](CHANGELOG.md).
+[WGT 2.0.3 ve ayrıntılı sürüm notları](https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/releases/tag/v2.0.3)
 
 ## Özellikler
 
@@ -36,16 +36,15 @@ WGT **2.0.1** değişmedi; güncellemeyi uygulama içinden alın. WGT 2.0.0 mevc
 - [Ekran görüntülü TV’ye kurulum kılavuzu](docs/KURULUM.md)
 - [Ekran görüntülü depo ve eklenti kurulum kılavuzu](docs/DEPO_EKLEME.md)
 
-İlk kurulumda dil, kullanım bilgilendirmesi, depo, birleştirme ve arama tercihleri adım adım sunulur. Hazır site veya önceden seçili depo gelmez; depo eklemeden devam edebilirsiniz. [Eklenti SDK 2.0.1](https://github.com/enesk4yh4n-lab/Film-Merkezi-Eklentiler/blob/main/SDK/README.md) kullanılabilir; ayrı grafik arayüz henüz yayımlanmamıştır.
+İlk kurulumda dil, kullanım bilgilendirmesi, depo, birleştirme ve arama tercihleri adım adım sunulur. Hazır site veya önceden seçili depo gelmez; depo eklemeden devam edebilirsiniz. [Eklenti SDK 2.0.2](https://github.com/enesk4yh4n-lab/Film-Merkezi-Eklentiler/blob/main/SDK/README.md) kullanılabilir; ayrı grafik arayüz henüz yayımlanmamıştır.
 
 ## Depo bulma
 
 **Güncelleme Merkezi → Depolar → GitHub’da depo ara** açıldığında uyumlu depolar listelenir. Depo adı veya GitHub kullanıcı adıyla ayrıca arayabilirsiniz. Seçtiğiniz depo doğrulandıktan sonra **Ekle** deyin. Doğrudan HTTPS adresi ekleme de kullanılabilir.
 
-**WGT 2.0.1:** Depo dosyasının adı **filmmerkezi201-repository.json** olur. WGT 2.0.0, mevcut **filmmerkezi-repository.json** listesini ve uyumlu çekirdek kanalını kullanmaya devam eder. SDK, GitHub aramasında bulunabilmesi için README açıklamasını ve dosya yolunu hazırlar. Arama sonucunda görünmek bir güvenilirlik veya içerik onayı değildir.
+WGT 2.0.3 için depo dosyasının adı [filmmerkezi-repository.json](filmmerkezi-repository.json). Daha eski bir depo adresine kayıtlıysanız [depo kılavuzundaki geçiş adımını](docs/DEPO_EKLEME.md#3-aramayla-bulamazsanız-adres-kullanın) izleyin.
 
 <!-- film-merkezi-repository: filmmerkezi-repository.json -->
-<!-- film-merkezi201-repository: filmmerkezi201-repository.json -->
 
 Uygulamadaki GitHub depo aramasında **Film-Merkezi** aratarak bulunan depoları ekleyebilirsiniz.
 

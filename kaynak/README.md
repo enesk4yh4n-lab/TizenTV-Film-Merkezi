@@ -1,9 +1,7 @@
 # Üretim kaynakları
 
-`ortak/ag/native/`: WGT içindeki üç native ikili için C++, başlıklar, Mozilla CA girdisi ve dosya özetleri.
+- **ortak/ag/native/**, üç NaCl ikilisi için C++ kodu, başlıklar, Mozilla CA girdisi ve derleme özetlerini içerir.
+- **ortak/ag/wasm/**, yeni Tizen sürümlerindeki HTTPS Worker için C++ ve JavaScript girdileri ile lisansları içerir.
+- **uretim/**, imzasız WGT paketleme ve HTTPS bileşenlerinin üretim adımlarını içerir.
 
-`uretim/`: native üretim komutları ve imzasız WGT paketleme aracı. Native SDK ayrıca sağlanmalıdır; ayrıntılar native README içindedir.
-
-`saglayicilar/p002/` ve `cozumleyiciler/r002/`: yalnız isteğe bağlı Puhutv paketlerinin kaynakları.
-
-Çalışma zamanı kaynakları `../uygulama/`, bağımsız eklenti SDK’sı `../SDK/` altındadır. Anahtar veya sertifika dahil değildir.
+Çalışma zamanı dosyaları **uygulama/** klasöründedir. İsteğe bağlı eklenti kaynakları için [Film Merkezi Eklentiler](https://github.com/enesk4yh4n-lab/Film-Merkezi-Eklentiler) deposuna bakın.

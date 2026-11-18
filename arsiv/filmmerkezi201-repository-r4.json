@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "id": "film-merkezi-puhutv",
+  "name": "Film Merkezi",
+  "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5asyOWYkiWXZNeUMmYocbH2+VxPU+BkA/Yk22PhuRpWMo/h1nw/LfWL7ZrPcxo8loJ2VPwbeo05KAtE1H1LUieNRHgMMBMwJaeuV2JvyS8+JNMqrGDhkywDMNNZT4H32uOpQlfZmkNf+tE5EKfFKBNuj5dwlPN0E5/y1B0230WlcIb6JsE40ZmZqzfSuGtprwrNSc0Mx4MQhD56NBmQZUyfrUCYuh27x0ozzUjNLx3JJKpXeS2xWuZv69gFjO+R/Pkl1su0B/cgF2vPqMPKqMWTDUU0SHkUk320Xdv7YbMbAyKkuOYPAi7wZzCVZggU6NBr9nMwhcjWZeUWyFyy/2wIDAQAB",
+  "revision": 4,
+  "plugins": [
+    {
+      "id": "p002",
+      "type": "site",
+      "name": "P002",
+      "version": "2.0.2",
+      "description": "P002 public catalog adapter",
+      "manifest": "packages/p002/2.0.2/manifest.json",
+      "manifestSha256": "c421686ef2170bf95e460d1b49bc3656d024352d9d0cdfd7beef5c6b909c9d84"
+    },
+    {
+      "id": "r002",
+      "type": "resolver",
+      "name": "R002",
+      "version": "1.0.5",
+      "description": "Public watch-asset resolver for P002",
+      "manifest": "packages/r002/1.0.5/manifest.json",
+      "manifestSha256": "38c4d20c247d6811b5f79218f050514662301c614bcc9e8d02757340b86eb8b6"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+/* Read-only signed index summaries. No publisher trust, package install or durable record. */
+(function(root){
+ 'use strict';
+ var cache=Object.create(null),nextId=0;
+ function Service(){this.generation=0;this.reader=null;this.task=null;}
+ Service.prototype.cancel=function(){this.generation++;if(this.reader)this.reader.cancel();if(this.task)this.task.cancel();this.reader=this.task=null;};
+ Service.prototype.read=function(item,token,deadline){var self=this,key=item.fullName+'|'+item.branch,cached=cache[key],transport=root.FilmNativeTLS,id='count-'+Date.now().toString(36)+'-'+(++nextId),registered=false,expired=false,timer,url,raw,index;
+  if(cached&&Date.now()-cached.at<300000)return Promise.resolve(cached.value);
+  function check(){if(token!==self.generation||expired||Date.now()>=deadline)throw Error('Repository count cancelled');}
+  function readText(address,limit){check();var request=transport.request(address,'',{timeoutMs:Math.max(1,Math.min(7000,deadline-Date.now())),byteLimit:limit});self.task=request;return request.promise.then(function(r){if(self.task===request)self.task=null;check();if(!r||(r.status||r.statusCode)!==200||typeof r.body!=='string'||root.FilmUpdateVerify.bytes(r.body).length>limit)throw Error('Repository summary response invalid');return r.body;});}
+  function cleanup(){clearTimeout(timer);if(registered)return transport.removeRepository(id);return Promise.resolve();}
+  return Promise.resolve().then(function(){check();if(!transport||!transport.supported())throw Error('Repository count transport unavailable');var reader=new root.FilmRepositorySearch();self.reader=reader;timer=root.setTimeout(function(){expired=true;reader.cancel();if(self.task)self.task.cancel();},Math.max(1,Math.min(10000,deadline-Date.now())));return reader.address(item);}).then(function(address){url=address;check();return transport.registerRepository(id,url,'');}).then(function(){registered=true;check();return readText(url,65536);}).then(function(text){raw=text;index=root.FilmPluginSchema.repository(text);return readText(root.FilmPluginSchema.signatureAddress(url),1024);}).then(function(signature){check();var trust=new root.FilmUpdateVerify.Trust(index.publicKey);return trust.key.then(function(k){if(k.algorithm.modulusLength!==2048)throw Error('Invalid publisher key');return trust.verify(raw,signature);});}).then(function(){check();return {count:index.plugins.filter(function(p){return p.type==='site';}).length,revision:index.revision};}).then(function(value){return cleanup().then(function(){check();cache[key]={at:Date.now(),value:value};var keys=Object.keys(cache);if(keys.length>40)delete cache[keys[0]];return value;});},function(error){return cleanup().then(function(){throw error;},function(){throw error;});});
+ };
+ Service.prototype.load=function(items,notify){this.cancel();var self=this,token=this.generation,deadline=Date.now()+30000,sequence=Promise.resolve();items.slice(0,10).forEach(function(item){sequence=sequence.then(function(){if(token!==self.generation)return;return self.read(item,token,deadline).then(function(value){if(token===self.generation)notify(item,value);},function(){if(token===self.generation)notify(item,null);});});});return sequence;};
+ root.FilmRepositoryCounts=Service;
+})(window);

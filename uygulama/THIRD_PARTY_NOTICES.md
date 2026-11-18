@@ -116,3 +116,7 @@ The application and update loader are in `uygulama/`; native build inputs and de
 
 
 This WGT includes no site providers. The signed provider repository is optional and initially empty. Site-specific helpers and permissions belong to the corresponding plugin rather than the WGT.
+
+## WebAssembly TLS transport
+
+The Tizen 10 transport is compiled with Samsung Emscripten SDK 1.39.4.7 and Mbed TLS 3.6.7. It includes Emscripten, musl, libc++ and libc++abi runtime portions. Full upstream license and copyright notices are included under `ortak/ag/native/notices/` (Emscripten-SDK-LICENSE, Musl-COPYRIGHT and libc++/libc++abi notices). Corresponding application transport sources and pinned build instructions are provided in the source archive. Mozilla CA data remains subject to MPL-2.0 as described above.

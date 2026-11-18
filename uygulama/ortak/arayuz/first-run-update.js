@@ -2,15 +2,35 @@
 (function (root) {
   'use strict';
   var KEY = 'filmmerkezi.first-run-core-handoff.v1';
+  var GITHUB = 'https://github.com/enesk4yh4n-lab/TizenTV-Film-Merkezi';
+  function notes(manifest) {
+    var value = manifest && manifest.releaseNotes, valid = value && value.version === manifest.version;
+    ['tr', 'en'].forEach(function (lang) { var lines = value && value[lang]; if (!Array.isArray(lines) || !lines.length || lines.length > 5 || !lines.every(function (line) { return typeof line === 'string' && line.length > 0 && line.length <= 180 && !/[\x00-\x1f]/.test(line); })) valid = false; });
+    return { version: manifest && manifest.version || '', github: GITHUB, tr: valid ? value.tr.slice() : ['Bu sürümün ayrıntılarını GitHub sayfamızda bulabilirsiniz.'], en: valid ? value.en.slice() : ['You can find details about this version on our GitHub page.'] };
+  }
+  function readNotes(core, hash) {
+    var record = core && core.state && core.state.pending;
+    if (!record) return Promise.resolve(notes(null));
+    return core.record(record).then(function (manifest) { return root.FilmUpdateVerify.sha(record.text).then(function (actual) { if (hash && hash !== actual) throw Error('Core notes digest changed'); return notes(manifest); }); });
+  }
+  function renderNotes(box, value, english) {
+    var section = document.createElement('section'), title = document.createElement('h3'), list = document.createElement('ul');
+    value = value || notes(null); section.className = 'fm-core-release-notes'; title.textContent = (english ? "What's new" : 'Neler değişti?') + (value.version ? ' · ' + value.version : '');
+    section.appendChild(title); section.appendChild(list); list.style.cssText = 'padding-left:24px;margin:12px 0;line-height:1.5';
+    (english ? value.en : value.tr).forEach(function (text) { var item = document.createElement('li'); item.textContent = text; list.appendChild(item); });
+    box.appendChild(section); return section;
+  }
+  root.FilmCoreReleaseNotes = { parse: notes, read: readNotes, render: renderNotes, github: GITHUB };
   function Service(options) {
     options = options || {};
     this.core = options.core; this.storage = options.storage;
     this.notify = options.notify || function () {};
     this.task = null; this.waiter = null;
+    this.restartWaiter = null; this.manualRestart = false;
     this.state = { phase: 'idle', actions: [] };
   }
   Service.prototype.emit = function (phase, error, detail) {
-    this.state = { phase: phase, error: error && error.message || '', detail: detail || '', actions: phase === 'choice' ? ['retry', 'continue'] : [] };
+    this.state = { phase: phase, error: error && error.message || '', detail: detail || '', actions: phase === 'choice' ? ['retry', 'continue'] : phase === 'restart' ? ['restart', 'github'] : phase === 'requirement' ? ['continue', 'github'] : [] };
     try { this.notify(this.state); } catch (ignore) {}
   };
   Service.prototype.start = function (options) {
@@ -18,6 +38,9 @@
     var self = this;
     /* Caller must explicitly opt in AND identify an incomplete first installation. */
     if (!options || options.enabled !== true || options.firstInstall !== true) return Promise.resolve({ action: 'continue', reason: 'inactive' });
+    /* Older WGT adapters cannot render a restart choice. New adapters opt in. */
+    this.manualRestart = options.manualRestart === true;
+    this.showRequirement = options.showRequirement === true;
     this.task = this.resume().then(function (result) { return result || self.attempt(); });
     return this.task;
   };
@@ -46,11 +69,14 @@
     return Promise.resolve().then(function () {
       idle(); self.emit('checking'); return core.check();
     }).then(function (status) {
+      if (!status.available && self.showRequirement && status.requirement && status.requirement.kind === 'app') {
+        return new Promise(function (resolve) { self.waiter = resolve; self.emit('requirement', null, status.requirement); });
+      }
       if (!status.available) { self.emit('ready'); return { action: 'continue', reason: 'current' }; }
       pointer = core.found;
       if (!pointer || !/^[a-f0-9]{64}$/.test(pointer.manifestSha256)) throw Error('Startup update pointer invalid');
       self.emit('downloading', null, status.available);
-      return core.download().then(function () {
+      return core.download({ onprogress: function (value) { self.emit('downloading', null, value); } }).then(function () {
         pointer = core.found || pointer;
         /* download() verifies the manifest, signatures and every file before pending. */
         var pending = core.state && core.state.pending;
@@ -58,11 +84,17 @@
         self.emit('verifying');
         return root.FilmUpdateVerify.sha(pending.text).then(function (hash) {
           if (hash !== pointer.manifestSha256) throw Error('Pending core hash mismatch');
+          return (self.manualRestart ? readNotes(core, hash).then(function (value) { return new Promise(function (resolve) { self.restartWaiter = resolve; self.emit('restart', null, value); }); }) : Promise.resolve()).then(function () {
+          if (core.state.pending !== pending) throw Error('Pending core changed before restart');
+          return root.FilmUpdateVerify.sha(pending.text).then(function (currentHash) {
+          if (currentHash !== hash) throw Error('Pending core changed before restart');
           var marker = JSON.stringify({ schemaVersion: 1, version: status.available, hash: hash });
           self.storage.setItem(KEY, marker);
           markerWritten = true;
           if (self.storage.getItem(KEY) !== marker) throw Error('Startup transition record not saved');
           self.emit('applying'); return core.apply();
+          });
+          });
         });
       }).then(function () {
         self.emit('reload'); return { action: 'reload', reason: 'updated', version: status.available };
@@ -85,6 +117,7 @@
     var self = this;
     return new Promise(function (resolve) { self.waiter = resolve; self.emit('choice', error); });
   };
+  Service.prototype.restart = function () { if (!this.restartWaiter) return false; var done = this.restartWaiter; this.restartWaiter = null; done(); return true; };
   Service.prototype.retry = function () {
     if (!this.waiter) return false;
     var done = this.waiter; this.waiter = null;

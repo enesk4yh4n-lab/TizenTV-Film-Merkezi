@@ -164,7 +164,12 @@
     if (options.packageKey) {
       var owned = root.FilmPlugins.loaded[options.packageKey];
       try { root.PackageNetwork.assert(options.packageKey, url); root.PackageNetwork.assert(options.packageKey, options.referer); } catch (e) { return { promise: Promise.reject(e), cancel: function () {} }; }
-      if (!owned || !root.FilmNativeTLS.supported()) return { promise: Promise.reject(new Error('Signed package media transport unavailable')), cancel: function () {} };
+      if (!owned) return { promise: Promise.reject(new Error('Signed package media owner unavailable')), cancel: function () {} };
+      if (root.PackageFetchTransport && root.PackageFetchTransport.supported()) {
+        var fetchTask = root.PackageFetchTransport.request(url, options);
+        return { promise: fetchTask.promise.then(function (response) { if (options.binary && htmlResponse(response, options.kind)) throw error('Media URL returned HTML'); return response; }), cancel: fetchTask.cancel };
+      }
+      if (!root.FilmNativeTLS.supported()) return { promise: Promise.reject(new Error('Signed package media transport unavailable')), cancel: function () {} };
       var nativeOptions = {}; Object.keys(options).forEach(function (k) { nativeOptions[k] = options[k]; });
       nativeOptions.repositoryId = owned.repo.id; nativeOptions.pluginId = owned.manifest.id;
       nativeOptions.deadline = typeof options.deadline === 'function' ? options.deadline() : options.deadline;

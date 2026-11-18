@@ -56,7 +56,7 @@ for arch, toolchain, prefix in targets:
         print(log.read_text()[-6500:], flush=True)
         raise RuntimeError('Mbed TLS build failed: ' + arch)
     print('Mbed TLS ' + arch + ' built', flush=True)
-vendor = root / 'uygulama/ortak/ag/native/notices'
+vendor = root / 'deneme/ortak/ag/native/notices'
 vendor.mkdir(exist_ok=True)
 shutil.copy2(mbed / 'LICENSE', vendor / 'MbedTLS-LICENSE.txt')
 shutil.copy2(sdk / 'LICENSE', vendor / 'Chromium-LICENSE.txt')

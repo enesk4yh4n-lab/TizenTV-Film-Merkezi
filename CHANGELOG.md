@@ -1,3 +1,17 @@
+## Film Merkezi TV 2.0.3 / Çekirdek 2.1.14 — 18 Kasım 2026
+
+### TV uyumluluğu ve daha kolay güncelleme
+
+- Tizen **7, 8, 9 ve 10** için video kaynaklarına güvenli bağlantı desteği genişletildi.
+- İlk açılışta çekirdek indirmesinin ilerlemesi gösteriliyor. Güncelleme hazır olduğunda yenilikleri okuyup **Yeniden başlat** düğmesiyle devam edebilirsiniz.
+- Eklenti indirmesi yarıda kalırsa, **Yalnız kalanları tekrar dene** ile doğrulanmış dosyaları tekrar indirmeden devam edebilirsiniz.
+- Depolar daha hızlı listeleniyor. Eklenti sayıları doğrulandıkça görünüyor. Kurulumdan önce boş alan ve sürüm uyumluluğu kontrol ediliyor. Gerekirse hangi TV paketini kurmanız gerektiği gösteriliyor.
+- Büyük video parçaları için varsayılan sınır **16 MiB** oldu. Gereken kaynaklar **32 MiB**’a kadar izin isteyebiliyor.
+
+**Kurulum:** Release’teki **Film-Merkezi-TV-2.0.3-public.wgt** dosyasını kullanın. Gerçek Tizen 3 TV’de kurulum, menü geçişi ve kısa oynatma kontrolü yapıldı.
+
+[TV’ye kurulum](docs/KURULUM.md) · [Depo ve eklenti ekleme](docs/DEPO_EKLEME.md)
+
 ## Çekirdek 2.1.9 — 16 Kasım 2026
 
 WGT **2.0.1** değişmedi. Güncelleme uygulama içinden alınır; yerel ara denemeler tek genel sürümde toplandı.

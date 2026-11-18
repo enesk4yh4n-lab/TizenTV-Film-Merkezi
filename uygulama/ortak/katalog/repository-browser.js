@@ -2,27 +2,41 @@
 /* Public GitHub repository discovery. Never trusts or installs a search result. */
 (function (root) {
   'use strict';
-  var NAME = 'filmmerkezi201-repository.json', API = 'https://api.github.com';
+  var NAME = 'filmmerkezi-repository.json', API = 'https://api.github.com';
   function message(tr, en) { return root.FilmI18n && root.FilmI18n.language() === 'en' ? en : tr; }
+  function httpsText(url, timeout, limit) {
+    var xhr = new root.XMLHttpRequest(), abort;
+    var promise = new Promise(function (resolve, reject) {
+      var done = false;
+      function finish(error, value) {
+        if (done) return;
+        done = true;
+        xhr.onload = xhr.onerror = xhr.ontimeout = xhr.onprogress = xhr.onabort = null;
+        if (error) reject(error); else resolve(value);
+      }
+      abort = function () { finish(new Error(message('Arama iptal edildi.', 'Search cancelled.'))); xhr.abort(); };
+      xhr.open('GET', url, true);
+      xhr.timeout = timeout;
+      xhr.onload = function () { finish(null, { status: xhr.status, body: xhr.responseText }); };
+      xhr.onerror = xhr.ontimeout = function () { finish(new Error(message('GitHub bağlantısı kurulamadı.', 'Could not connect to GitHub.'))); };
+      xhr.onabort = abort;
+      xhr.onprogress = function (e) { if (e.loaded > limit) abort(); };
+      xhr.send();
+    });
+    return { promise: promise, cancel: function () { if (abort) abort(); } };
+  }
+  function indexAddress(repo, path) {
+    if (!repo || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo.fullName) || !/^[A-Za-z0-9_./-]{1,100}$/.test(repo.branch) || repo.branch.indexOf('..') >= 0) throw new Error('Invalid repository');
+    return root.FilmPluginSchema.address('https://raw.githubusercontent.com/' + repo.fullName + '/' + repo.branch + '/' + (path || NAME));
+  }
   function Search() { this.task = null; this.generation = 0; this.cache = {}; }
+  Search.httpsText = httpsText;
+  Search.indexAddress = indexAddress;
   Search.prototype.cancel = function () { this.generation++; if (this.task) this.task.cancel(); this.task = null; };
   Search.prototype.read = function (url, token) {
     var self = this, task;
     if (root.FilmNativeTLS && root.FilmNativeTLS.supported()) task = root.FilmNativeTLS.request(url, '', { timeoutMs: 15000, byteLimit: 262144 });
-    else {
-      var xhr = new root.XMLHttpRequest(), abort;
-      task = { promise: new Promise(function (resolve, reject) {
-        var done = false;
-        function finish(error, value) { if (done) return; done = true; xhr.onload = xhr.onerror = xhr.ontimeout = xhr.onprogress = xhr.onabort = null; if (error) reject(error); else resolve(value); }
-        abort = function () { finish(new Error(message('Arama iptal edildi.', 'Search cancelled.'))); xhr.abort(); };
-        xhr.open('GET', url, true); xhr.timeout = 15000;
-        xhr.onload = function () { finish(null, { status: xhr.status, body: xhr.responseText }); };
-        xhr.onerror = xhr.ontimeout = function () { finish(new Error(message('GitHub bağlantısı kurulamadı.', 'Could not connect to GitHub.'))); };
-        xhr.onabort = function () { finish(new Error(message('Arama iptal edildi.', 'Search cancelled.'))); };
-        xhr.onprogress = function (e) { if (e.loaded > 262144) abort(); };
-        xhr.send();
-      }), cancel: function () { if (abort) abort(); } };
-    }
+    else task = httpsText(url, 15000, 262144);
     this.task = task;
     return task.promise.then(function (r) {
       if (token !== self.generation) throw new Error(message('Arama iptal edildi.', 'Search cancelled.'));
@@ -48,14 +62,14 @@
   Search.prototype.address = function (repo) {
     this.cancel();
     var token = this.generation;
-    if (!repo || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo.fullName) || !/^[A-Za-z0-9_./-]{1,100}$/.test(repo.branch) || repo.branch.indexOf('..') >= 0) return Promise.reject(new Error('Invalid repository'));
+    try { indexAddress(repo); } catch (error) { return Promise.reject(error); }
     return this.read(API + '/repos/' + repo.fullName + '/readme?ref=' + encodeURIComponent(repo.branch), token).then(function (data) {
       var text = '', path = NAME, marker;
       if (data && data.encoding === 'base64' && typeof data.content === 'string' && data.content.length < 180000) text = root.atob(data.content.replace(/\s/g, ''));
-      marker = /<!--\s*film-merkezi201-repository:\s*([A-Za-z0-9_./-]+)\s*-->/.exec(text);
+      marker = /<!--\s*film-merkezi-repository:\s*([A-Za-z0-9_./-]+)\s*-->/.exec(text);
       if (marker) path = marker[1];
-      if (path.indexOf('..') >= 0 || path.charAt(0) === '/' || !/(^|\/)filmmerkezi201-repository\.json$/.test(path)) throw new Error(message('README depo adresi geçersiz.', 'Invalid repository address in README.'));
-      return root.FilmPluginSchema.address('https://raw.githubusercontent.com/' + repo.fullName + '/' + repo.branch + '/' + path);
+      if (path.indexOf('..') >= 0 || path.charAt(0) === '/' || !/(^|\/)filmmerkezi-repository\.json$/.test(path)) throw new Error(message('README depo adresi geçersiz.', 'Invalid repository address in README.'));
+      return indexAddress(repo, path);
     });
   };
   root.FilmRepositorySearch = Search;
@@ -83,7 +97,7 @@
     if (panel.working || manager.busy) { line(t('İşlem sürüyor…', 'Working…')); button(t('İndirmeyi iptal et', 'Cancel transfer'), 'plugins-cancel-work', function () { manager.cancel(); }); return; }
     if (manager.blocked) { line(t('Eklenti kaydı korunuyor; bu oturumda değiştirilemez.', 'Plugin records are preserved and read-only in this session.')); if (panel.onboarding) button(t('Şimdilik atla', 'Skip for now'), 'plugins-setup-done', function () { root.FilmRepositorySetup.complete(catalog); }); return; }
     if (view === 'address') {
-      line(t('filmmerkezi201-repository.json adresi', 'filmmerkezi201-repository.json address'));
+      line(t('filmmerkezi-repository.json adresi', 'filmmerkezi-repository.json address'));
       var input = document.createElement('input'); input.type = 'url'; input.id = 'plugins-url'; input.maxLength = 2048; input.value = panel.url || ''; input.readOnly = true; input.tabIndex = -1; input.style.cssText = 'box-sizing:border-box;width:100%;font-size:25px;padding:14px;background:#101d30;color:white;border:2px solid #576781'; input.oninput = function () { panel.url = input.value; if(panel.settingsParent&&panel.settingsParent.wizard)root.FilmRepositorySetup.checkpoint(3,{url:input.value}); }; box.appendChild(input);
       button(t('Adresi düzenle · OK ile klavye', 'Edit address · OK opens keyboard'), 'plugins-url-edit', function () { panel.inputEditing = true; input.readOnly = false; input.focus(); });
       button(t('Devam et', 'Continue'), 'plugins-probe', function () { panel.url = input.value; panel.technical = false; work(function () { return manager.probe(panel.url).then(function(){return manager.approve(panel.replaceId);}).then(function(id){panel.repoId=id;}); }, 'repository', 'plugins-browse'); });

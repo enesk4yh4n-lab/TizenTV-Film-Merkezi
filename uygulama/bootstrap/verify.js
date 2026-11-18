@@ -17,16 +17,40 @@
   function version(v) { return typeof v === 'string' && /^\d{1,4}\.\d{1,4}\.\d{1,4}$/.test(v); }
   function compatible(min, actual) { var a = min.split('.'), b = actual.split('.'), i; for (i = 0; i < 3; i++) { if (+b[i] > +a[i]) return true; if (+b[i] < +a[i]) return false; } return true; }
   function path(value) { return typeof value === 'string' && value.length < 220 && /^[a-zA-Z0-9][a-zA-Z0-9_./-]*$/.test(value) && value.split('/').every(function (s) { return s && s !== '.' && s !== '..'; }) && (value === 'LICENSE' || /\.(?:js|css|html|json|md|txt)$/.test(value)) && !/^(?:config\.xml|update-|bootstrap\/|ortak\/ag\/native\/|tools\/)/.test(value); }
-  function pointer(text, app) {
-    var p = JSON.parse(text);
-    if (!p || p.schemaVersion !== 1 || p.channel !== 'stable' || !version(p.updateVersion) || !version(p.minAppVersion) || !compatible(p.minAppVersion, app) || typeof p.revision !== 'number' || p.revision < 1 || p.revision % 1 || p.revision > 2147483647 || p.manifest !== 'versions/' + p.updateVersion + '/manifest.json' || !/^[a-f0-9]{64}$/.test(p.manifestSha256)) throw new Error('Güncelleme bu uygulamayla uyumlu değil.');
+  function requirements(value) {
+    return value === undefined || Array.isArray(value) && value.length <= 8 && value.every(function (name, i) { return typeof name === 'string' && /^[a-z][a-z0-9-]{0,39}$/.test(name) && value.indexOf(name) === i; });
+  }
+  function validBudget(value, maximum) {
+    return value === undefined || typeof value === 'number' && value >= 1 && value <= maximum && value % 1 === 0;
+  }
+  function meets(value, capabilities) {
+    return (value || []).every(function (name) { return (capabilities || []).indexOf(name) >= 0; });
+  }
+  function sameRequirements(a, b) { return (a || []).slice().sort().join(',') === (b || []).slice().sort().join(','); }
+  function coreEntry(p) {
+    return p && version(p.updateVersion) && version(p.minAppVersion) && requirements(p.requires) && p.manifest === 'versions/' + p.updateVersion + '/manifest.json' && /^[a-f0-9]{64}$/.test(p.manifestSha256);
+  }
+  function feed(text) {
+    var p = JSON.parse(text), seen = {};
+    if (!coreEntry(p) || p.schemaVersion !== 1 || p.channel !== 'stable' || typeof p.revision !== 'number' || p.revision < 1 || p.revision % 1 || p.revision > 2147483647) throw new Error('Güncelleme bildirimi geçersiz.');
+    seen[p.updateVersion] = true;
+    if (p.alternatives !== undefined && (!Array.isArray(p.alternatives) || p.alternatives.length > 8 || !p.alternatives.every(function (entry) { if (!coreEntry(entry) || seen[entry.updateVersion]) return false; seen[entry.updateVersion] = true; return true; }))) throw new Error('Çekirdek sürüm listesi geçersiz.');
     return p;
+  }
+  function pointer(text, app, capabilities) {
+    var p = feed(text), choices = [p].concat(p.alternatives || []).sort(function (a, b) { return compatible(a.updateVersion, b.updateVersion) ? 1 : -1; });
+    var selected = choices.filter(function (entry) { return compatible(entry.minAppVersion, app) && meets(entry.requires, capabilities); })[0];
+    if (selected) return { updateVersion: selected.updateVersion, minAppVersion: selected.minAppVersion, requires: selected.requires, manifest: selected.manifest, manifestSha256: selected.manifestSha256, revision: p.revision, migration: p.migration, latest: choices[0] };
+    return { revision: p.revision, latest: choices[0] };
   }
   function manifest(text, app) {
     var m = JSON.parse(text), seen = {}, total = 0;
     if (!m || m.schemaVersion !== 1 || m.loaderVersion !== 1 || !version(m.version) || !version(m.minAppVersion) || !compatible(m.minAppVersion, app) || !Array.isArray(m.files) || !m.files.length || m.files.length > 256 || !Array.isArray(m.scripts) || !Array.isArray(m.styles)) throw new Error('Bileşen manifesti geçersiz.');
+    if (!requirements(m.requires)) throw new Error('Bileşen yetenek gereksinimi geçersiz.');
     m.files.forEach(function (f) { if (!f || !path(f.path) || seen[f.path] || !/^[a-f0-9]{64}$/.test(f.sha256) || typeof f.size !== 'number' || f.size < 0 || f.size % 1 || f.size > 2097152) throw new Error('Bileşen dosyası geçersiz.'); seen[f.path] = f; total += f.size; });
     if (total > 8388608 || !seen[m.shell] || !/\.html$/.test(m.shell) || !seen[m.sites]) throw new Error('Bileşen boyutu veya girişleri geçersiz.');
+    if (m.networkOriginBudget !== undefined && (typeof m.networkOriginBudget !== 'number' || m.networkOriginBudget < 1 || m.networkOriginBudget > 2048 || m.networkOriginBudget % 1)) throw new Error('Invalid signed network origin budget');
+    if (!validBudget(m.pluginPackageBudget, 512) || !validBudget(m.pluginStorageBudget, 67108864)) throw new Error('Invalid signed plugin budget');
     if (m.legacyTextOrigins !== undefined) {
       if (!Array.isArray(m.legacyTextOrigins) || m.legacyTextOrigins.length > 128) throw new Error('Metin taşıma tercihi geçersiz.');
       m.legacyTextOrigins.forEach(function (origin) { var u = new root.URL(origin); if (u.origin !== origin || !policyHost(u.hostname) || origin.indexOf('{n}') >= 0) throw new Error('Metin taşıma kökeni geçersiz.'); networkPolicy('FILM-MERKEZI-ORIGINS-1\n' + origin + '\n'); });
@@ -82,5 +106,5 @@
     rows.forEach(function (origin) { var host = origin.replace(/^https:\/\/(?:\*\.)?/, ''); if (origin.indexOf('https://') !== 0 || !policyHost(host) || seen[origin]) throw new Error('TLS origin izni geçersiz.'); seen[origin] = true; });
     return rows;
   }
-  root.FilmUpdateVerify = { Trust: Trust, compatible: compatible, fingerprint: function (key) { return root.crypto.subtle.digest({ name: 'SHA-256' }, binary(key)).then(hex); }, bytes: bytes, sha: sha, pointer: pointer, manifest: manifest, sites: sites, networkPolicy: networkPolicy, policyMatch: policyMatch };
+  root.FilmUpdateVerify = { Trust: Trust, compatible: compatible, requirements: requirements, meets: meets, sameRequirements: sameRequirements, fingerprint: function (key) { return root.crypto.subtle.digest({ name: 'SHA-256' }, binary(key)).then(hex); }, bytes: bytes, sha: sha, pointer: pointer, manifest: manifest, sites: sites, networkPolicy: networkPolicy, policyMatch: policyMatch };
 })(window);

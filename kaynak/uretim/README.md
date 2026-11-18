@@ -1,11 +1,6 @@
 # Build and package
 
-From the repository root, with Python 3:
+From this source tree's root, run `python3 kaynak/uretim/package.py` to create an unsigned WGT from the explicit file list. Bundled component signatures are already supplied. If you change core files, use a new component version and sign it with your own distribution key.
 
-```text
-python kaynak/uretim/package.py
-```
-
-This packages only the explicit file list and creates an unsigned public WGT. Do not include local developer signatures. Bundled component signatures are already supplied; changing core files requires a new component version signed with your own distribution key.
-
-For native TLS builds see `../ortak/ag/native/README.md`. The external Samsung Pepper 47 SDK is required. No SDK installation, compiler, private key or signing certificate is distributed here.
+- [Native HTTPS build](../ortak/ag/native/README.md) uses Samsung Pepper 47 and the pinned Mbed TLS 3.6.7 source.
+- [WebAssembly HTTPS build](wasm/README.md) uses Samsung Emscripten 1.39.4.7 and the same Mbed TLS source.

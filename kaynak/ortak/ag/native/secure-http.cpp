@@ -19,6 +19,7 @@
 #include "ppapi/cpp/var_dictionary.h"
 #include "ppapi/utility/completion_callback_factory.h"
 #include "http-response.h"
+#include "http-completion.h"
 #include "ca-bundle.h"
 #include "network-policy.h"
 #include "repository-policy.h"
@@ -64,7 +65,7 @@ class Job {
   void Timeout(int32_t);
   void Fail(const std::string& stage, int32_t code);
   void Finish();
-  bool binary_; size_t limit_; size_t progress_;
+  bool binary_; size_t limit_; size_t progress_; film_http_completion::Completion completion_;
   Instance* owner_; int id_; std::string host_, request_, raw_; size_t written_;
   char buffer_[16384]; unsigned char plain_[16384];
   int tls_state_, transport_error_; bool write_pending_, write_ready_, read_pending_, eof_;
@@ -79,7 +80,7 @@ class Instance : public pp::Instance {
   ~Instance() { while (!jobs_.empty()) Cancel(jobs_.begin()->first); }
   bool Init(uint32_t, const char*[], const char*[]) {
     pp::VarDictionary message; message.Set("kind", "ready"); message.Set("protocol", 1);
-    message.Set("tls", pp::TCPSocketPrivate::IsAvailable()); message.Set("policy", 1); message.Set("binary", true); message.Set("repositoryTrust", 1); message.Set("originPatterns", 1);
+    message.Set("tls", pp::TCPSocketPrivate::IsAvailable()); message.Set("policy", 1); message.Set("binary", true); message.Set("repositoryTrust", 1); message.Set("originPatterns", 1); message.Set("maxOrigins", static_cast<int>(film_repositories::kMaxOrigins));
     message.Set("tlsEngine", "MbedTLS 3.6.7");
     message.Set("ipv4", pp::HostResolverPrivate::IsAvailable()); PostMessage(message); return true;
   }
@@ -107,10 +108,10 @@ class Instance : public pp::Instance {
     if(scoped&&!referer.empty()){std::string sh,st;if(!Url(referer,&sh,&st)||!repositories_.Scoped(scopedRepo.AsString(),scopedPlugin.AsString(),sh)){Reply(id,"validation",-1,NULL);return;}}
     if(!referer.empty()&&(!Url(referer,&rh,&rt)||(!film_policy::Allowed(rh,origins_)&&!repositories_.Allowed(rh)&&!repositories_.Request(rh,rt)))){Reply(id,"validation",-1,NULL);return;}
     pp::Var binaryVar=message.Get("binary"),limitVar=message.Get("byteLimit"),methodVar=message.Get("method"),bodyVar=message.Get("body");bool binary=binaryVar.is_bool()&&binaryVar.AsBool();size_t limit=limitVar.is_int()&&limitVar.AsInt()>0?static_cast<size_t>(limitVar.AsInt()):(binary?8*1024*1024:2*1024*1024);
-    if(limit>(binary?24*1024*1024:2*1024*1024)){Reply(id,"validation",-1,NULL);return;}std::string method=methodVar.is_string()?methodVar.AsString():"GET",body=bodyVar.is_string()?bodyVar.AsString():"";
+    if(limit>(binary?film_http::kBinaryBodyLimit:film_http::kBodyLimit)){Reply(id,"validation",-1,NULL);return;}std::string method=methodVar.is_string()?methodVar.AsString():"GET",body=bodyVar.is_string()?bodyVar.AsString():"";
     if((method!="GET"&&method!="POST")||body.size()>262144||(method=="GET"&&!body.empty())){Reply(id,"validation",-1,NULL);return;}
     if(discovery && (method!="GET" || binary || limit>262144)){Reply(id,"validation",-1,NULL);return;}
-    std::string extra;const char* headerNames[]={"Range","Origin","Content-Type","X-Requested-With"};pp::Var hv=message.Get("headers");if(hv.is_dictionary()){pp::VarDictionary headers(hv);for(size_t i=0;i<4;i++){pp::Var v=headers.Get(headerNames[i]);if(!v.is_undefined()){if(!v.is_string()){Reply(id,"validation",-1,NULL);return;}std::string value=v.AsString();if(value.size()>2048||value.find_first_of("\r\n")!=std::string::npos){Reply(id,"validation",-1,NULL);return;}if(i==1){std::string h;if(!film_policy::Origin(value,&h)||(!film_policy::Allowed(h,origins_)&&!repositories_.Allowed(h))){Reply(id,"validation",-1,NULL);return;}}if(i==1&&scoped){std::string h;if(!film_policy::Origin(value,&h)||!repositories_.Scoped(scopedRepo.AsString(),scopedPlugin.AsString(),h)){Reply(id,"validation",-1,NULL);return;}}extra+=std::string(headerNames[i])+": "+value+"\r\n";}}}
+    std::string extra;const char* headerNames[]={"Range","Origin","Content-Type","X-Requested-With","User-Agent"};pp::Var hv=message.Get("headers");if(hv.is_dictionary()){pp::VarDictionary headers(hv);for(size_t i=0;i<5;i++){pp::Var v=headers.Get(headerNames[i]);if(!v.is_undefined()){if(!v.is_string()){Reply(id,"validation",-1,NULL);return;}std::string value=v.AsString();if(value.size()>2048||value.find_first_of("\r\n")!=std::string::npos||value.find('\0')!=std::string::npos){Reply(id,"validation",-1,NULL);return;}if(i==1){std::string h;if(!film_policy::Origin(value,&h)||(!film_policy::Allowed(h,origins_)&&!repositories_.Allowed(h))){Reply(id,"validation",-1,NULL);return;}}if(i==1&&scoped){std::string h;if(!film_policy::Origin(value,&h)||!repositories_.Scoped(scopedRepo.AsString(),scopedPlugin.AsString(),h)){Reply(id,"validation",-1,NULL);return;}}if(i!=4||!value.empty())extra+=std::string(headerNames[i])+": "+value+"\r\n";}}}
     if(!pp::TCPSocketPrivate::IsAvailable()||jobs_.size()>=2){Reply(id,"unavailable",PP_ERROR_NOINTERFACE,NULL);return;}
     jobs_[id]=new Job(this,id,host,target,referer,binary,limit,extra,method,body);jobs_[id]->Start();
   }
@@ -129,9 +130,11 @@ class Instance : public pp::Instance {
   std::set<std::string> origins_; bool configured_; film_repositories::Registry repositories_;
 };
 Job::Job(Instance* owner, int id, const std::string& host, const std::string& target, const std::string& referer, bool binary, size_t limit, const std::string& extra, const std::string& method, const std::string& body)
-    : binary_(binary), limit_(limit), progress_(0), owner_(owner), id_(id), host_(host), written_(0), tls_state_(0), transport_error_(0), write_pending_(false), write_ready_(false), read_pending_(false), eof_(false), outgoing_at_(0), incoming_at_(0), socket_(owner), resolver_(owner), callbacks_(this) {
+    : binary_(binary), limit_(limit), progress_(0), completion_(limit), owner_(owner), id_(id), host_(host), written_(0), tls_state_(0), transport_error_(0), write_pending_(false), write_ready_(false), read_pending_(false), eof_(false), outgoing_at_(0), incoming_at_(0), socket_(owner), resolver_(owner), callbacks_(this) {
   mbedtls_ssl_init(&ssl_); mbedtls_ssl_config_init(&config_); mbedtls_x509_crt_init(&ca_);
-  request_ = method + " " + target + " HTTP/1.1\r\nHost: " + host + "\r\nUser-Agent: Mozilla/5.0\r\nAccept: */*\r\nAccept-Encoding: identity\r\nConnection: close\r\n";
+  request_ = method + " " + target + " HTTP/1.1\r\nHost: " + host + "\r\n";
+  if(extra.find("User-Agent: ")==std::string::npos)request_ += "User-Agent: Mozilla/5.0\r\n";
+  request_ += "Accept: */*\r\nAccept-Encoding: identity\r\nConnection: close\r\n";
   if (!referer.empty()) request_ += "Referer: " + referer + "\r\n";
   request_ += extra; if(method=="POST"){char length[32];std::sprintf(length,"%u",static_cast<unsigned>(body.size()));request_ += std::string("Content-Length: ")+length+"\r\n";} request_ += "\r\n"+body;
 }
@@ -240,14 +243,17 @@ void Job::Pump(int32_t) {
     if (result == MBEDTLS_ERR_SSL_WANT_READ || result == MBEDTLS_ERR_SSL_WANT_WRITE) return;
     if (!result || result == MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY) { Finish(); return; }
     if (result < 0) { Fail("read", result); return; }
-    if (raw_.size() + result > limit_ + 65536) { Fail("size", PP_ERROR_NOMEMORY); return; }
-    raw_.append(reinterpret_cast<const char*>(plain_), result);
+    if (raw_.size() + result > limit_ + film_http::kWireOverheadLimit) { Fail("size", PP_ERROR_NOMEMORY); return; }
+    film_http::AppendWire(raw_, reinterpret_cast<const char*>(plain_), result, limit_);
+    film_http_completion::Completion::State framed=completion_.Inspect(raw_,false);
+    if(framed==film_http_completion::Completion::invalid){Fail(completion_.tooLarge()?"size":"parse",completion_.tooLarge()?PP_ERROR_NOMEMORY:-1);return;}
+    if(framed==film_http_completion::Completion::complete){Finish();return;}
     size_t split=raw_.find("\r\n\r\n");if(split!=std::string::npos){size_t loaded=raw_.size()-split-4;if(loaded&&(!progress_||loaded-progress_>=131072)){progress_=loaded;owner_->Progress(id_,loaded);}}
   }
 }
 void Job::Timeout(int32_t) { Fail("timeout", PP_ERROR_TIMEDOUT); }
 void Job::Fail(const std::string& stage, int32_t code) { owner_->Reply(id_, stage, code, NULL); }
-void Job::Finish() { film_http::Response response = film_http::Parse(raw_,limit_,&raw_); std::string().swap(raw_); owner_->Reply(id_, response.tooLarge ? "size" : response.error.empty() ? "http" : "parse", response.error.empty() ? 0 : -1, &response); }
+void Job::Finish() { if(completion_.Inspect(raw_,true)!=film_http_completion::Completion::complete){Fail(completion_.tooLarge()?"size":"parse",completion_.tooLarge()?PP_ERROR_NOMEMORY:-1);return;} film_http::Response response; completion_.ParseComplete(&raw_,response); owner_->Reply(id_, response.tooLarge ? "size" : response.error.empty() ? "http" : "parse", response.error.empty() ? 0 : -1, &response); }
 class Module : public pp::Module { public: pp::Instance* CreateInstance(PP_Instance id) { return new Instance(id); } };
 }  // namespace
 namespace pp { Module* CreateModule() { return new ::Module(); } }

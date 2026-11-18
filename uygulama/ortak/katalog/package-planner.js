@@ -11,7 +11,7 @@
     roots.forEach(function (key) { var c = candidates.filter(function (v) { return v.key === key; })[0]; if (!c) throw new Error('Package not found: ' + key); var id = identity(c.publisher,c.manifest.id); if (forced[id] && forced[id].manifest.version !== c.manifest.version) throw new Error('Conflicting root package'); forced[id] = c; });
     Object.keys(by).forEach(function (id) { by[id].sort(function (a,b) { var ae=installed.some(function(p){return p.key===a.key&&p.manifest.version===a.manifest.version;}),be=installed.some(function(p){return p.key===b.key&&p.manifest.version===b.manifest.version;});return Number(be)-Number(ae)||S.compare(b.manifest.version,a.manifest.version)||(a.key<b.key?-1:1); }); });
     function solve(pending, selected) {
-      if (++steps > 512) throw new Error('Dependency planning limit exceeded');
+      if (++steps > 8192) throw new Error('Dependency planning limit exceeded');
       if (!pending.length) {
         var ok = installed.every(function (p) { return selected[identity(p.publisher,p.manifest.id)] || (p.manifest.dependencies||[]).every(function(d){var c=selected[identity(d.publisher,d.id)];return !c||range(c.manifest.version,d);}); });
         return ok ? selected : null;

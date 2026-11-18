@@ -1,0 +1,11 @@
+{
+  "name": "film-merkezi-wasm-build-tools",
+  "private": true,
+  "description": "Build-time ES5 transformation only; excluded from WGT",
+  "devDependencies": {
+    "@babel/core": "^7.29.13",
+    "@babel/plugin-transform-arrow-functions": "^7.29.7",
+    "@babel/plugin-transform-block-scoping": "^7.29.13",
+    "@babel/plugin-transform-for-of": "^7.29.13"
+  }
+}

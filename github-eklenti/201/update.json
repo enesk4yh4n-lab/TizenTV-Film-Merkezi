@@ -1,9 +1,50 @@
 {
   "schemaVersion": 1,
   "channel": "stable",
-  "revision": 99,
-  "updateVersion": "2.1.9",
+  "revision": 111,
+  "updateVersion": "2.1.10",
   "minAppVersion": "2.0.1",
-  "manifest": "versions/2.1.9/manifest.json",
-  "manifestSha256": "01da21dfc146d4567c8c5026bf04b86216c61da4edc83c82ce142a2e16efe76e"
+  "manifest": "versions/2.1.10/manifest.json",
+  "manifestSha256": "d543c307c431a8548c7889b018eb911d4d6a3e4528b9bb94d75a0a9001f25386",
+  "alternatives": [
+    {
+      "updateVersion": "2.1.11",
+      "minAppVersion": "2.0.3",
+      "requires": [
+        "unified-repository-v1"
+      ],
+      "manifest": "versions/2.1.11/manifest.json",
+      "manifestSha256": "0b16744d7eb21df41d9895c09463fd00bb829985cfa1f23fb76aaf9720ca5ee1"
+    },
+    {
+      "updateVersion": "2.1.12",
+      "minAppVersion": "2.0.3",
+      "requires": [
+        "unified-repository-v1"
+      ],
+      "manifest": "versions/2.1.12/manifest.json",
+      "manifestSha256": "4fc3227536d4d0014f2a8121cad872767756d79696e2e5c370b7cfd82e1301ca"
+    },
+    {
+      "updateVersion": "2.1.13",
+      "minAppVersion": "2.0.3",
+      "requires": [
+        "unified-repository-v1",
+        "media-fragment-32-mib"
+      ],
+      "manifest": "versions/2.1.13/manifest.json",
+      "manifestSha256": "fc54dda79abb5957b078167b605c8a28116b571317b17c867120678fbfe7e55b"
+    },
+    {
+      "updateVersion": "2.1.14",
+      "minAppVersion": "2.0.3",
+      "requires": [
+        "unified-repository-v1",
+        "media-fragment-32-mib",
+        "managed-plugin-budgets-v1"
+      ],
+      "manifest": "versions/2.1.14/manifest.json",
+      "manifestSha256": "65de36086b90ce81a8e0a8c3f4492096cc3b2e84d6507a0c2a8114b3194f3055"
+    }
+  ]
 }
