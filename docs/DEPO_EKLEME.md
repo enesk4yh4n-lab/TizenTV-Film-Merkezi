@@ -28,7 +28,10 @@ Sonuçtan depoyu seçin. Gösterilen ad/adresi kontrol edip güveniyorsanız **E
 
 ![Adresle depo ekleme](gorseller/depo-adres.png)
 
-WGT **2.0.3** ile güncel indeks adı **`filmmerkezi-repository.json`**. Eski `filmmerkezi201-repository.json` adresi kayıtlıysa önce WGT 2.0.3’e geçin. **Depo adresini düzenle** ile aynı yayıncının yeni adresini girin. Uygulama, yayıncı anahtarı ve depo kimliği eşleştiğinde mevcut paket kayıtlarını korur.
+WGT **2.0.3** ile güncel indeks adı **`filmmerkezi-repository.json`**. Eski `filmmerkezi201-repository.json` adresi kayıtlıysa önce WGT 2.0.3’e geçin. **Güncelleme Merkezi → Depolarım → Adresini değiştir** yolundan aynı deponun yeni HTTPS adresini girin. Uygulama, yayıncı anahtarı ve depo kimliği eşleştiğinde mevcut paket kayıtlarını korur.
+
+- [Ana deponun HTTPS indeks adresi](https://raw.githubusercontent.com/enesk4yh4n-lab/TizenTV-Film-Merkezi/main/filmmerkezi-repository.json)
+- [Eklentiler deposunun HTTPS indeks adresi](https://raw.githubusercontent.com/enesk4yh4n-lab/Film-Merkezi-Eklentiler/main/filmmerkezi-repository.json)
 
 ## 4. Paketi kurun
 
