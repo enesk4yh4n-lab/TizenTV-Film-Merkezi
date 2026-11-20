@@ -90,6 +90,7 @@
         var siteOwners = {};
         Object.keys(self.state.plugins).forEach(function (key) { var p = self.state.plugins[key]; if (p.enabled && p.siteId && !rows.some(function (c) { return c.key === key; })) siteOwners[p.siteId] = key; });
         rows.forEach(function (c) { if (c.manifest.type !== 'site') return; var id = c.manifest.site.id; if (siteOwners[id] && siteOwners[id] !== c.key) throw new Error('Site identity already installed: ' + id); siteOwners[id] = c.key; });
+        if(options.onPlan)options.onPlan(rows);
         plan = rows;progress.packages=rows.map(function(c){var size=c.manifest.files.reduce(function(n,f){return n+f.size;},0),units=1;progress.total+=size;progress.installTotal+=units;return {key:c.key,id:c.manifest.id,stage:'waiting',bytes:0,total:size,installed:0,installTotal:units};});emit('planning');self.lastPlan = rows.map(function (c) { return { key: c.key, type: c.manifest.type, name: c.manifest.name, version: c.manifest.version }; });
         if (self.checkPackageLimit) self.checkPackageLimit(rows);
         else if (Object.keys(self.state.plugins).concat(rows.map(function (c) { return c.key; })).filter(function (key, i, a) { return a.indexOf(key) === i; }).length > 64) throw new Error('64 package limit');

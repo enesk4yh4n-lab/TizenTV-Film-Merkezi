@@ -1,3 +1,12 @@
+## Çekirdek 2.1.15 — 20 Kasım 2026
+
+- İlk kurulumda **Tümünü yükle** seçilince eklentiler toplu ön taramayı beklemeden sırayla işleniyor. Hazır eklentilerle devam edebilir ve kalanları daha sonra deneyebilirsiniz.
+- Tizen 6.5’te imzalı eklentilerin ağ bağlantısı iyileştirildi.
+- HTML5 oynatıcı ilk kare hazır olana kadar bekliyor. Video açıldıktan sonra ağdaki bekleme, bazı ileri ve geri sarma işlemlerini erken kesmiyor.
+- Tizen 7’de bazı yayınlarda görüntü ve ayrı ses izleri eşzamanlı oynatılıyor.
+
+**WGT 2.0.3** ile önce uygulama içinden çekirdeği, ardından eklentileri güncelleyin. [Eklenti sürüm notları](https://github.com/enesk4yh4n-lab/Film-Merkezi-Eklentiler/blob/main/CHANGELOG.md).
+
 ## Film Merkezi TV 2.0.3 / Çekirdek 2.1.14 — 18 Kasım 2026
 
 ### TV uyumluluğu ve daha kolay güncelleme

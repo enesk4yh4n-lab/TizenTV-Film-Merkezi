@@ -3,11 +3,13 @@
  'use strict';
  var KEY='filmmerkezi.update.intent.v1',S=root.FilmPluginSchema,MAX_PACKAGES=S.maxPackages||64;
  function copy(v){return JSON.parse(JSON.stringify(v));}
+ function validPins(pins){return Array.isArray(pins)&&pins.length<=MAX_PACKAGES&&pins.every(function(p){return p&&typeof p.repoId==='string'&&p.key===p.repoId+'/'+p.id&&/^[pr]\d{3}$/.test(p.id)&&/^[a-f0-9]{64}$/.test(p.publisher)&&/^[a-f0-9]{64}$/.test(p.hash)&&/^\d+\.\d+\.\d+$/.test(p.version);});}
  function validJob(v){
-  if(!v||v.version!==1||!Array.isArray(v.items)||v.items.length>MAX_PACKAGES||!Array.isArray(v.pins)||v.pins.length>MAX_PACKAGES||['core','core-restart','items','interrupted','failed','site-restart'].indexOf(v.phase)<0)return false;
+  if(!v||v.version!==1||!Array.isArray(v.items)||v.items.length>MAX_PACKAGES||!validPins(v.pins)||['core','core-restart','items','interrupted','failed','site-restart'].indexOf(v.phase)<0)return false;
+  if(v.setupAll!==undefined&&typeof v.setupAll!=='boolean')return false;
   if(v.capacitySkipped&&(!Array.isArray(v.capacitySkipped)||v.capacitySkipped.length>MAX_PACKAGES||!v.capacitySkipped.every(function(key){return typeof key==='string'&&key.length<512;})))return false;
   if(typeof v.core!=='string'||typeof v.coreHash!=='string'||(v.core&&!/^\d+\.\d+\.\d+$/.test(v.core))||(v.core&&!/^[a-f0-9]{64}$/.test(v.coreHash)))return false;
-  var seen={};return v.items.every(function(i){if(!i||typeof i.repoId!=='string'||!i.repoId||!/^([pr])\d{3}$/.test(i.id)||i.key!==i.repoId+'/'+i.id||seen[i.key]||['queued','running','ready','failed'].indexOf(i.status)<0)return false;seen[i.key]=true;return true;})&&v.pins.every(function(p){return p&&typeof p.repoId==='string'&&p.key===p.repoId+'/'+p.id&&/^[pr]\d{3}$/.test(p.id)&&/^[a-f0-9]{64}$/.test(p.publisher)&&/^[a-f0-9]{64}$/.test(p.hash)&&/^\d+\.\d+\.\d+$/.test(p.version);});
+  var seen={};return v.items.every(function(i){if(!i||typeof i.repoId!=='string'||!i.repoId||!/^([pr])\d{3}$/.test(i.id)||i.key!==i.repoId+'/'+i.id||seen[i.key]||['queued','running','ready','failed'].indexOf(i.status)<0||i.pins!==undefined&&(!v.setupAll||!validPins(i.pins)))return false;seen[i.key]=true;return true;});
  }
  function t(a,b){return root.FilmI18n&&root.FilmI18n.language()==='en'?b:a;}
  function limitNotice(error){
@@ -43,32 +45,20 @@
   var known={},fresh=[];groups.newSites.forEach(function(r){var repo=repos[r.repoId],id=repo.fingerprint+'/'+r.pluginId;if(known[id]||all.some(function(p){return p.pluginId===r.pluginId&&repos[p.repoId]&&repos[p.repoId].fingerprint===repo.fingerprint;}))return;known[id]=true;fresh.push({key:r.key,name:r.name,repoId:r.repoId,pluginId:r.pluginId,version:r.available,members:[r.key],updateKeys:[r.key],row:r});});
   return {installed:installed,requirements:groups.requirements||[],updates:installed.filter(function(r){return r.updateKeys.length;}),newSites:fresh,checkedAt:groups.checkedAt};
  };
- Workflow.prototype.fitCapacity=function(rows,isCurrent,notify){
-  var self=this;
-  if(!this.plugins.previewCapacity)return Promise.reject(Error(t('Kapasite hesaplanamadı.','Capacity could not be calculated.')));
-  var task=this.plugins.previewCapacity(rows,isCurrent,notify),result=task.then(function(view){
-   var keys=[],skipped=[];
-   rows.slice().sort(function(a,b){var x=String(a.pluginId||a.key),y=String(b.pluginId||b.key);return x<y?-1:x>y?1:0;}).forEach(function(row){
-    self.check();if(isCurrent&&!isCurrent()){var error=Error('Selection cancelled');error.cancelled=true;throw error;}
-    // Metadata, signature and dependency errors are real failures, never capacity skips.
-    if(view.evaluate(keys.concat([row.key])).remaining<0)skipped.push(row.key);else keys.push(row.key);
-   });
-   return {keys:keys,skipped:skipped,view:view};
-  });result.cancel=function(){if(task.cancel)task.cancel();};return result;
- };
+ Workflow.prototype.pins=function(plan){var records=this.plugins.state.plugins;return plan.map(function(c){var record=records[c.key];return {key:c.key,publisher:c.publisher,repoId:c.repo.id,id:c.manifest.id,version:c.manifest.version,hash:c.item?c.item.manifestSha256:(record.pending||record.active).hash};});};
  Workflow.prototype.prepare=function(keys,includeCore,install){
   var self=this;if(this.running||this.plugins.busy||this.core.busy||this.app.controller.content)return Promise.reject(Error(t('Önce mevcut işlemi tamamlayın.','Finish the current operation first.')));
   if(this.readOnly)return Promise.reject(Error(t('Toplu işlem kaydı kullanılamıyor.','Batch storage unavailable.')));
-  var groups=this.groups(),rows=install==='mixed'?groups.updates.concat(groups.newSites):install?groups.newSites:groups.updates,requested=[],seen={},repos=this.plugins.state.repositories;
+  var setupAll=install==='setup-all',groups=this.groups(),rows=setupAll||install==='mixed'?groups.updates.concat(groups.newSites):install?groups.newSites:groups.updates,requested=[],seen={},repos=this.plugins.state.repositories;
   keys.forEach(function(key){var group=rows.filter(function(r){return r.key===key;})[0];if(!group)throw Error('Package selection changed');group.updateKeys.forEach(function(k){if(seen[k])return;seen[k]=true;var slash=k.lastIndexOf('/'),repoId=k.slice(0,slash),id=k.slice(slash+1),repo=repos[repoId];if(!repo||!repo.enabled)throw Error('Repository disabled');requested.push({key:k,repoId:repoId,id:id,name:group.name});});});
   var found=includeCore&&this.core.found,target=found&&found.updateVersion||'',old=this.job,unplanned={};
   if(!requested.length&&!target)return Promise.reject(Error(t('Güncelleme bulunmadı.','No updates available.')));
   this.progress=null;this.running=true;this.cancelled=false;this.draw();
-  return Promise.resolve().then(function(){self.check();return requested.length?self.plugins.installationPlan(requested[0].repoId,requested[0].id,function(){self.check();},{requests:requested,coreVersion:target||self.core.status().current}):[];}).catch(function(error){self.check();if(self.plugins.selectInstallation)throw error;var chain=Promise.resolve(),plans=[];requested.forEach(function(item){chain=chain.then(function(){return self.plugins.installationPlan(item.repoId,item.id,function(){self.check();},{coreVersion:target||self.core.status().current}).then(function(rows){rows.forEach(function(c){if(!plans.some(function(v){return v.key===c.key&&v.manifest.version===c.manifest.version;}))plans.push(c);});},function(e){self.check();unplanned[item.key]=e.message;});});});return chain.then(function(){return plans;});}).then(function(plan){
-   self.check();var panel=self.app.catalog.panel;if(panel&&panel.capacity&&panel.capacity.evaluate(keys).remaining<0)throw Error('Network origin budget exceeded');if(self.plugins.checkPackageLimit)self.plugins.checkPackageLimit(plan);var pins=plan.map(function(c){var record=self.plugins.state.plugins[c.key];return {key:c.key,publisher:c.publisher,repoId:c.repo.id,id:c.manifest.id,version:c.manifest.version,hash:c.item?c.item.manifestSha256:(record.pending||record.active).hash};});
+  return Promise.resolve().then(function(){self.check();return requested.length&&!setupAll?self.plugins.installationPlan(requested[0].repoId,requested[0].id,function(){self.check();},{requests:requested,coreVersion:target||self.core.status().current}):[];}).catch(function(error){self.check();if(self.plugins.selectInstallation)throw error;var chain=Promise.resolve(),plans=[];requested.forEach(function(item){chain=chain.then(function(){return self.plugins.installationPlan(item.repoId,item.id,function(){self.check();},{coreVersion:target||self.core.status().current}).then(function(rows){rows.forEach(function(c){if(!plans.some(function(v){return v.key===c.key&&v.manifest.version===c.manifest.version;}))plans.push(c);});},function(e){self.check();unplanned[item.key]=e.message;});});});return chain.then(function(){return plans;});}).then(function(plan){
+   self.check();var panel=self.app.catalog.panel;if(!setupAll){if(panel&&panel.capacity&&panel.capacity.evaluate(keys).remaining<0)throw Error('Network origin budget exceeded');if(self.plugins.checkPackageLimit)self.plugins.checkPackageLimit(plan);}var pins=self.pins(plan);
    // Connected roots share one transaction so a shared dependency cannot be half-updated.
    var items=requested.map(function(r){return {key:r.key,repoId:r.repoId,id:r.id,name:r.name,status:unplanned[r.key]?'failed':'queued',unplanned:!!unplanned[r.key],message:unplanned[r.key]||''};});
-   self.job={version:1,phase:target?'core':'items',core:target,coreHash:found&&found.manifestSha256||'',channel:self.core.config.channel,createdAt:Date.now(),pins:pins,items:items,modal:!!(self.app.catalog.panel&&self.app.catalog.panel.kind==='update-center')};self.save();self.running=false;self.draw();return self.job;
+   self.job={version:1,phase:target?'core':'items',core:target,coreHash:found&&found.manifestSha256||'',channel:self.core.config.channel,createdAt:Date.now(),pins:pins,items:items,modal:!!(self.app.catalog.panel&&self.app.catalog.panel.kind==='update-center')};if(setupAll)self.job.setupAll=true;self.save();self.running=false;self.draw();return self.job;
   }).catch(function(e){self.job=old;self.running=false;self.draw();throw e;});
  };
  Workflow.prototype.cancel=function(){this.cancelled=true;if(this.running){this.core.cancel();this.plugins.cancel();}if(this.job){this.job.phase='interrupted';this.job.items.forEach(function(i){if(i.status==='running')i.status='queued';});try{this.save();}catch(e){this.notice=e.message;}}this.draw();};
@@ -78,9 +68,24 @@
   function items(){
    self.check();job.phase='items';changed();var pending=job.items.filter(function(i){return i.status!=='ready'&&!i.unplanned;});
    if(!pending.length)return Promise.resolve();
+   function progress(id,detail){job.current=id;if(detail){if(detail.stage==='planning'&&!detail.packages.length){lastDownloaded=0;lastReused=0;}downloaded+=Math.max(0,(detail.downloaded||0)-lastDownloaded);reused+=Math.max(0,(detail.reused||0)-lastReused);lastDownloaded=detail.downloaded||0;lastReused=detail.reused||0;(detail.packages||[]).forEach(function(row){var key=row.key||row.id;if(!packageProgress[key]||row.stage!=='waiting'){var prior=packageProgress[key],next=copy(row);if(prior){next.bytes=Math.max(prior.bytes||0,next.bytes||0);next.installed=Math.max(prior.installed||0,next.installed||0);if(prior.stage==='ready')next.stage='ready';}packageProgress[key]=next;}});var all=Object.keys(packageProgress).map(function(key){return packageProgress[key];});self.progress=copy(detail);self.progress.packages=all;self.progress.downloaded=downloaded;self.progress.reused=reused;self.progress.total=0;self.progress.processed=0;self.progress.installed=0;self.progress.installTotal=0;all.forEach(function(row){self.progress.total+=row.total||0;self.progress.processed+=row.bytes||0;self.progress.installed+=row.installed||0;self.progress.installTotal+=row.installTotal||0;});}var now=Date.now();if(!self.progressDrawAt||now-self.progressDrawAt>=150||!detail||detail.stage!=='downloading'){self.progressDrawAt=now;self.draw();}}
+   if(job.setupAll){
+    // Plan each site inside the real download. Installed dependencies keep their normal constraints.
+    return pending.reduce(function(chain,item){return chain.then(function(){
+     self.check();item.status='running';item.message='';if(self.progress)self.progress.setupFraction=0;changed();
+     return self.plugins.download(item.repoId,item.id,{approved:item.pins||null,onPlan:function(rows){
+      self.check();item.pins=self.pins(rows);self.save();
+     },onProgress:function(id,detail){
+      if(detail)detail.setupFraction=((detail.total?detail.processed/detail.total:0)+(detail.installTotal?detail.installed/detail.installTotal:0))/2;
+      progress(id,detail);
+     }}).then(function(){
+      item.pins.forEach(function(pin){job.pins=job.pins.filter(function(prior){return prior.key!==pin.key;});job.pins.push(pin);});
+      delete item.pins;item.status='ready';
+     },function(error){if(error.cancelled||self.cancelled)throw error;item.status='failed';item.message=String(error.message||error).slice(0,240);}).then(changed);
+    });},Promise.resolve());
+   }
    // All requested roots are planned together; retrying uses immutable approved pins.
    pending.forEach(function(i){i.status='running';});changed();
-   function progress(id,detail){job.current=id;if(detail){if(detail.stage==='planning'&&!detail.packages.length){lastDownloaded=0;lastReused=0;}downloaded+=Math.max(0,(detail.downloaded||0)-lastDownloaded);reused+=Math.max(0,(detail.reused||0)-lastReused);lastDownloaded=detail.downloaded||0;lastReused=detail.reused||0;(detail.packages||[]).forEach(function(row){var key=row.key||row.id;if(!packageProgress[key]||row.stage!=='waiting'){var prior=packageProgress[key],next=copy(row);if(prior){next.bytes=Math.max(prior.bytes||0,next.bytes||0);next.installed=Math.max(prior.installed||0,next.installed||0);if(prior.stage==='ready')next.stage='ready';}packageProgress[key]=next;}});var all=Object.keys(packageProgress).map(function(key){return packageProgress[key];});self.progress=copy(detail);self.progress.packages=all;self.progress.downloaded=downloaded;self.progress.reused=reused;self.progress.total=0;self.progress.processed=0;self.progress.installed=0;self.progress.installTotal=0;all.forEach(function(row){self.progress.total+=row.total||0;self.progress.processed+=row.bytes||0;self.progress.installed+=row.installed||0;self.progress.installTotal+=row.installTotal||0;});}var now=Date.now();if(!self.progressDrawAt||now-self.progressDrawAt>=150||!detail||detail.stage!=='downloading'){self.progressDrawAt=now;self.draw();}}
    return self.plugins.download(pending[0].repoId,pending[0].id,{requests:pending,approved:job.pins,onProgress:progress}).then(function(){pending.forEach(function(i){i.status='ready';});changed();},function(error){
     if(error.cancelled||self.cancelled)throw error;
     // A dependency conflict cannot be bypassed. Independent roots can still succeed.

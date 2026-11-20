@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "channel": "stable",
-  "revision": 111,
+  "revision": 125,
   "updateVersion": "2.1.10",
   "minAppVersion": "2.0.1",
   "manifest": "versions/2.1.10/manifest.json",
@@ -45,6 +45,17 @@
       ],
       "manifest": "versions/2.1.14/manifest.json",
       "manifestSha256": "65de36086b90ce81a8e0a8c3f4492096cc3b2e84d6507a0c2a8114b3194f3055"
+    },
+    {
+      "updateVersion": "2.1.15",
+      "minAppVersion": "2.0.3",
+      "requires": [
+        "unified-repository-v1",
+        "media-fragment-32-mib",
+        "managed-plugin-budgets-v1"
+      ],
+      "manifest": "versions/2.1.15/manifest.json",
+      "manifestSha256": "321767ab9866b913f8dd7797ad57b86dd9d6f61aadb5bc192d7f72d8a2678b78"
     }
   ]
 }

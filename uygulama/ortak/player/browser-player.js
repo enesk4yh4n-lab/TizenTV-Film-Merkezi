@@ -23,6 +23,9 @@
     this.listeners.push([name, fn]);
   };
   Engine.prototype.stop = function () {
+    if (this.splitAudio) { this.splitAudio.close(); this.splitAudio = null; }
+    this.splitAudioWantsPlay = false;
+    if (this.webAudio) { this.webAudio.close(); this.webAudio = null; }
     if (this.packageMedia) { this.packageMedia.destroy(); this.packageMedia = null; }
     this.active = false;
     this.generation++;
@@ -102,11 +105,10 @@
         !alive() ||
         self.ready ||
         !self.openingMediaReady ||
-        (self.position > 0 && typeof v.readyState === 'number' && v.readyState < 3)
+        (typeof v.readyState === 'number' && v.readyState < (self.position > 0 ? 3 : 2))
       )
         return;
       if (self.initialBuffer) {
-        if (v.readyState < 2) return;
         if (self.initialFrameAt === null) self.initialFrameAt = Date.now();
         var buffered = 0;
         try {
@@ -120,6 +122,16 @@
         );
         if (buffered < wanted && Date.now() - self.initialFrameAt < 12000) return;
       }
+      if (self.splitAudio) {
+        if (self.fatalReported || !C.finite(v.duration)) return;
+        try {
+          self.splitAudio.ready(v.duration);
+        } catch (error) {
+          self.fatalReported = true;
+          self.emit('error', { type:'media', fatal:true, message:error.message });
+          return;
+        }
+      }
       self.ready = true;
       self.emit('ready', self.snapshot());
     }
@@ -130,14 +142,32 @@
     }
     self.listen('loadedmetadata', ready);
     self.listen('loadeddata', ready);
-    self.listen('canplay', ready);
+    self.listen('canplay', function () {
+      ready();
+      if (self.splitAudio) self.splitAudio.buffering(false);
+    });
     self.listen('durationchange', function () {
       if (alive() && self.ready) self.emit('time', self.snapshot());
     });
-    self.listen('playing', event('playing'));
-    self.listen('pause', event('paused'));
-    self.listen('waiting', event('buffering'));
-    self.listen('seeking', event('seeking'));
+    self.listen('playing', function () {
+      if (self.splitAudio) { self.splitAudio.buffering(false); return; }
+      if (self.webAudio) self.webAudio.playing();
+      event('playing')();
+    });
+    self.listen('pause', function () {
+      if (self.splitAudio && self.splitAudioWantsPlay) return;
+      if (self.webAudio) self.webAudio.pause();
+      event('paused')();
+    });
+    self.listen('waiting', function () {
+      if (self.splitAudio) self.splitAudio.buffering(true);
+      if (self.webAudio) self.webAudio.wait();
+      event('buffering')();
+    });
+    self.listen('seeking', function () {
+      if (self.webAudio) self.webAudio.seek();
+      event('seeking')();
+    });
     self.listen('seeked', function () {
       if (!alive()) return;
       if (self.requestedSeek) {
@@ -146,7 +176,11 @@
       }
       self.emit('seeked', self.snapshot());
     });
-    self.listen('ended', event('ended'));
+    self.listen('ended', function () {
+      if (self.splitAudio) self.splitAudio.pause();
+      if (self.webAudio) self.webAudio.pause();
+      event('ended')();
+    });
     self.listen('timeupdate', function () {
       if (alive()) {
         self.subtitles.render(v.currentTime);
@@ -188,12 +222,15 @@
           errorRetry: retry
         }
       };
+      var fragmentLoadPolicy = { default: C.copy(loadPolicy.default) };
+      fragmentLoadPolicy.default.maxLoadTimeMs = C.fragmentTimeout(source);
+      var webAudio = root.HlsWebAudio && root.HlsWebAudio.supported(source);
       var h = (self.hls = new root.Hls({
         enableWorker: false,
         lowLatencyMode: false,
         maxBufferLength: self.bufferPolicy.forward,
-        maxMaxBufferLength: self.bufferPolicy.maxForward,
-        backBufferLength: self.bufferPolicy.back,
+        maxMaxBufferLength: webAudio ? Math.min(15, self.bufferPolicy.maxForward) : self.bufferPolicy.maxForward,
+        backBufferLength: webAudio ? Math.min(10, self.bufferPolicy.back) : self.bufferPolicy.back,
         maxBufferSize: self.bufferPolicy.maxBytes,
         // Initialize the legacy TV decoder with the opening GOP before the controller
         // applies the saved position. Starting demux and seeking to it concurrently
@@ -207,7 +244,7 @@
         enableCEA708Captions: false,
         manifestLoadPolicy: loadPolicy,
         playlistLoadPolicy: loadPolicy,
-        fragLoadPolicy: loadPolicy,
+        fragLoadPolicy: fragmentLoadPolicy,
         keyLoadPolicy: loadPolicy,
         loader: root.NativeHlsLoader.create({
           request: source.packageKey ? (self.packageMedia = root.PackageMediaLoader.open(source)).request : null,
@@ -223,6 +260,10 @@
           onstatus: self.log
         })
       }));
+      if (webAudio)
+        self.webAudio = new root.HlsWebAudio.Session(h, root.Hls.Events, v, function (error) {
+          if (alive()) self.emit('error', { type:'media', fatal:true, message:error.message });
+        });
       function on(name, fn) {
         h.on(root.Hls.Events[name], function (eventName, data) {
           if (alive()) fn(data);
@@ -398,8 +439,41 @@
             fatal: true
           });
       });
-      h.attachMedia(v);
-      h.loadSource(source.url);
+      if (root.AvPlaySplitAudio && root.AvPlaySplitAudio.supportedInBrowser(source)) {
+        var browser = {
+          getState: function () {
+            // A delayed waiting event can survive an internal pause even after
+            // enough picture data arrives. Read current readiness on each drive.
+            return v.seeking || v.readyState < 3 ? 'IDLE' : v.paused ? 'PAUSED' : 'PLAYING';
+          },
+          getCurrentTime: function () { return v.currentTime * 1000; },
+          play: function () {
+            var request = v.play(), playToken = self.playGeneration;
+            if (request && request.catch) request.catch(function (error) {
+              if (alive() && playToken === self.playGeneration && error.name !== 'AbortError')
+                self.emit('error', { type:'play', message:error.message });
+            });
+          },
+          pause: function () { v.pause(); }
+        };
+        var limitAt = self.options.deadline && self.options.deadline();
+        self.splitAudio = new root.AvPlaySplitAudio.Session(source, browser,
+          Math.min(Date.now() + 15000, limitAt || Infinity), function (type, value) {
+            if (!alive()) return;
+            if (type === 'error') self.emit('error', { type:'media', fatal:true, message:value.message });
+            else self.emit(type, type === 'audiochanged' ? self.tracks() : self.snapshot());
+          }, true, source.loaderId ? self.packageMedia : null);
+        self.splitAudio.prepare().then(function (url) {
+          if (!alive()) return;
+          h.attachMedia(v);
+          h.loadSource(url);
+        }).catch(function (error) {
+          if (alive()) self.emit('error', { type:'media', fatal:true, message:error.message });
+        });
+      } else {
+        h.attachMedia(v);
+        h.loadSource(source.url);
+      }
     } catch (e) {
       self.emit('error', { type: 'unsupported', fatal: true, message: e.message });
     }
@@ -499,7 +573,7 @@
             };
           })
         : [],
-      audio: h
+      audio: this.splitAudio ? this.splitAudio.tracks() : h
         ? h.audioTracks
             .map(function (t, i) {
               return {
@@ -525,7 +599,7 @@
       blockedQualities: this.blockedQualities || [],
       qualityIndex: h ? h.loadLevel : -1,
       autoQuality: h ? h.autoLevelEnabled : true,
-      audioIndex: h ? h.audioTrack : -1,
+      audioIndex: this.splitAudio ? this.splitAudio.index() : h ? h.audioTrack : -1,
       subtitleKey: this.selectedSubtitle ? this.selectedSubtitle.key : null,
       live: v.duration === Infinity
     };
@@ -539,6 +613,12 @@
       token = self.generation,
       request = ++self.playGeneration;
     try {
+      if (self.splitAudio) {
+        self.splitAudioWantsPlay = true;
+        self.splitAudio.play();
+        return true;
+      }
+      if (self.webAudio) self.webAudio.play();
       var p = self.video.play();
       if (p && p.catch)
         p.catch(function (e) {
@@ -552,6 +632,12 @@
   Engine.prototype.pause = function () {
     if (this.rateSwitch) this.rateSwitch.wantsPlay = false;
     this.playGeneration++;
+    if (this.splitAudio) {
+      this.splitAudioWantsPlay = false;
+      this.splitAudio.pause();
+      if (this.video.paused) this.emit('paused', this.snapshot());
+    }
+    if (this.webAudio) this.webAudio.pause();
     this.video.pause();
   };
   Engine.prototype.seek = function (position) {
@@ -569,13 +655,15 @@
       return true;
     }
     try {
+      var now = Date.now(), fragmentWait = this.hls ? C.fragmentTimeout(this.source) : 22000;
       this.requestedSeek = {
         target: position,
-        started: Date.now(),
-        last: Date.now(),
+        started: now,
+        last: now,
         attempts: 0,
         stableSince: 0
       };
+      if (fragmentWait > 22000) this.requestedSeek.networkDeadline = now + fragmentWait;
       var covered = s.buffered.some(function (r) {
         return position >= r.start - 0.1 && position < r.end;
       });
@@ -592,6 +680,10 @@
       // Tizen backend otherwise lands on the preceding GOP when seeking exactly
       // to a segment's integer boundary. Use a small PTS boundary tolerance.
       this.video.currentTime = Math.min(max || position + 0.05, position > 0 ? position + 0.05 : 0);
+      if (this.splitAudio) {
+        this.playGeneration++;
+        this.splitAudio.seek(position);
+      }
       this.subtitles.render(position);
       return true;
     } catch (e) {
@@ -629,7 +721,7 @@
     if (
       !C.finite(duration) ||
       duration <= 0 ||
-      duration > 10 ||
+      duration > (this.splitAudio ? 12 : 10) ||
       target >= fragment.start + duration ||
       time < fragment.start - 0.1 ||
       time > target + 0.1
@@ -661,6 +753,7 @@
       if (!pending.stableSince) pending.stableSince = Date.now();
       if (!v.paused || Date.now() - pending.stableSince >= 800) {
         this.requestedSeek = null;
+        if (this.splitAudio) this.splitAudio.seeked();
         if (v.paused && Math.abs(v.currentTime - pending.target) > 0.3)
           this.emit('notice', { message: 'TV bu yayında en yakın erişilebilir karede durakladı.' });
         this.emit('seeked', this.snapshot());
@@ -681,7 +774,7 @@
         v.currentTime = Math.min(v.duration - 0.1, pending.target > 0 ? pending.target + 0.05 : 0);
       } catch (ignore) {}
     }
-    if (Date.now() - pending.started > 20000) {
+    if (Date.now() > (pending.networkDeadline || pending.started + 20000)) {
       this.requestedSeek = null;
       if (!covered || Math.abs(v.currentTime - pending.target) > 2) {
         this.emit('error', {
@@ -693,6 +786,7 @@
         return;
       }
       this.emit('notice', { message: 'TV bu yayında en yakın erişilebilir konuma gitti.' });
+      if (this.splitAudio) this.splitAudio.seeked();
       this.emit('seeked', this.snapshot());
     }
   };
@@ -763,6 +857,10 @@
     return false;
   };
   Engine.prototype.selectAudio = function (index) {
+    if (this.splitAudio) {
+      this.playGeneration++;
+      return this.splitAudio.select(index, this.video.currentTime);
+    }
     if (!this.hls || !this.hls.audioTracks[index] || C.audioGate(this.hls.audioTracks[index]))
       return false;
     if (this.hls.audioTrack === index) return true;
@@ -801,6 +899,7 @@
     return this.subtitles.select(track, { policy: this.policy, referer: this.source.referer });
   };
   Engine.prototype.setRate = function (rate) {
+    if (this.webAudio || this.splitAudio) return rate === 1;
     try {
       var v = this.video,
         position = this.rateSwitch ? this.rateSwitch.target : v.currentTime || 0,

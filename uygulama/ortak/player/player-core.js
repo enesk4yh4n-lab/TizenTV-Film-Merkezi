@@ -89,7 +89,11 @@
    back: mode === 'low' ? 5 : 10, maxBytes: (mode === 'low' ? 16 : 30) * 1024 * 1024, initial: initial,
    nativeStart: mode === 'auto' ? 0 : mode === 'low' ? 4 : 10, nativeResume: mode === 'auto' ? 0 : mode === 'low' ? 4 : 15 };
  }
+ function fragmentTimeout(source) {
+  var override = source && source.packageKey && source.fragmentTimeoutMs;
+  return finite(override) ? clamp(Math.floor(override), 22000, 30000) : 22000;
+ }
  var defaults = { audioLanguage: 'tr', quality: 0, qualityCap: 0, speed: 1, aspect: 'fit', seekStep: 10, autoNext: false, rememberTracks: true, bufferProfile: 'auto', sourceScanMode: 'backup',
   subtitleStyle: { size: 36, color: '#ffffff', background: 0.65, shadow: true, bottom: 8 }, verifiedRates: [1] };
- root.PlayerCore = { finite: finite, clamp: clamp, copy: copy, format: format, language: language, role: role, trackKey: trackKey, matchTrack: matchTrack, pageId: pageId, content: content, emitter: emitter, safeMessage: safeMessage, mediaGate: mediaGate, audioGate: audioGate, defaults: defaults, bufferPolicy: bufferPolicy };
+ root.PlayerCore = { finite: finite, clamp: clamp, copy: copy, format: format, language: language, role: role, trackKey: trackKey, matchTrack: matchTrack, pageId: pageId, content: content, emitter: emitter, safeMessage: safeMessage, mediaGate: mediaGate, audioGate: audioGate, defaults: defaults, bufferPolicy: bufferPolicy, fragmentTimeout: fragmentTimeout };
 })(window);

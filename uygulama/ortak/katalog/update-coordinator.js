@@ -109,17 +109,23 @@
     this.opening=true;panel.working=true;panel.notice='';panel.preparing={phase:'repository',startedAt:Date.now(),done:0,total:0};var generation=this.generation;a.renderPanel('update-flow-cancel');
     function current(){if(a.panel!==panel||generation!==self.generation||self.app.controller.content){var e=Error('Selection cancelled');e.cancelled=true;throw e;}}
     function progress(value){current();panel.preparing.phase=value.phase;panel.preparing.done=value.done||0;panel.preparing.total=value.total||0;a.renderPanel('update-flow-cancel');}
-    var check=options.setup&&!options.includeCore&&this.sites.checkSites?this.sites.checkSites(options.repoId).then(function(result){if(result.failed&&result.failed.length)throw Error(result.failed[0].message||'Repository check failed');}):this.check();
+    var setupAll=options.setup&&!options.includeCore&&!options.choose;
+    function checkSelectedRepository(){return self.sites.checkSites(options.repoId).then(function(result){if(result.failed&&result.failed.length)throw Error(result.failed[0].message||'Repository check failed');});}
+    var check;
+    if(setupAll&&options.repoId){
+      // Adding a repository already verifies and saves its index.
+      check=Promise.resolve().then(function(){current();return self.plugins.catalog(options.repoId);}).then(function(index){
+        current();self.sites.catalogs[options.repoId]=index;delete self.sites.failures[options.repoId];
+      },function(){current();return checkSelectedRepository();});
+    }else check=options.setup&&!options.includeCore?checkSelectedRepository():this.check();
     return check.then(function(){current();var groups=flow.groups(),rows=groups.updates.concat(groups.newSites).filter(function(r){return !options.repoId||r.repoId===options.repoId;}),repoIds=options.repoId?[options.repoId]:Object.keys(self.plugins.state.repositories);panel.expandedRepos=panel.expandedRepos||{};repoIds.forEach(function(id){panel.expandedRepos[id]=true;});
       if(options.choose){progress({phase:'dependencies',done:0,total:rows.length});self.openingTask=self.plugins.previewCapacity(rows,function(){return a.panel===panel&&generation===self.generation&&!self.app.controller.content;},progress);return self.openingTask.then(function(view){current();panel.capacity=view;panel.capacityEpoch=String(self.plugins.state.seq||0)+'|'+String(groups.checkedAt||0)+'|'+self.core.status().current;panel.capacityLoading=false;panel.centerView='new';panel.selectionRepo=options.repoId||'';panel.centerReturn='update-new-plugins';panel.notice=t('Yüklemek istediğiniz eklentileri seçin. Gerekli bileşenler birlikte yüklenir.','Choose plugins to install. Required components are included.');return false;});}
       var core=!!(options.includeCore&&self.last&&self.last.core);if(!rows.length&&!core){panel.notice=t('Yüklenecek yeni eklenti veya güncelleme bulunamadı.','No new plugins or updates found.');return false;}
+      var keys=rows.map(function(row){return row.key;});
+      if(setupAll)keys.sort();
       panel.notice='';flow.cancelled=false;
-      progress({phase:'dependencies',done:0,total:rows.length});self.openingTask=options.setup&&rows.length?flow.fitCapacity(rows,function(){return a.panel===panel&&generation===self.generation&&!self.app.controller.content;},progress):Promise.resolve({keys:rows.map(function(r){return r.key;}),skipped:[]});
-      return self.openingTask.then(function(selection){
-        current();if(selection.view)panel.capacity=selection.view;
-        if(!selection.keys.length&&!core){panel.capacityFull=true;panel.notice=t('Kapasite dolu. Yeni eklenti kurmak için kullanmadığınız eklentileri kaldırabilirsiniz.','Capacity is full. Remove unused plugins to install new ones.');return false;}
-        progress({phase:'plan',done:0,total:0});return flow.prepare(selection.keys,core,'mixed').then(function(){current();flow.job.capacitySkipped=selection.skipped;flow.save();panel.preparing=null;return flow.run();}).then(function(){return true;});
-      });
+      if(!setupAll)progress({phase:'plan',done:0,total:0});
+      return flow.prepare(keys,core,setupAll?'setup-all':'mixed').then(function(){current();panel.preparing=null;return flow.run();}).then(function(){return true;});
     }).then(function(result){self.opening=false;self.openingTask=null;panel.working=false;panel.preparing=null;if(a.panel===panel)a.renderPanel(options.choose?'update-repo-'+Math.max(0,Object.keys(self.plugins.state.repositories).indexOf(options.repoId))+'-item-0':result?'update-confirm-cancel':'update-add-repo');return result;},function(e){self.opening=false;self.openingTask=null;panel.working=false;panel.preparing=null;if(a.panel===panel){panel.notice=e.cancelled?t('Hazırlık iptal edildi.','Preparation cancelled.'):e.message;panel.errorReport=!e.cancelled&&root.FilmErrorReporter&&root.FilmErrorReporter.capture({scope:'update',stage:'install-selection',error:e});a.renderPanel('management-check-all');}return false;});
   };
   Coordinator.prototype.start = function () {

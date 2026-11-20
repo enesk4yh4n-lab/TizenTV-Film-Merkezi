@@ -3,7 +3,7 @@
   function tr(value) {
     return root.FilmI18n ? root.FilmI18n.text(value) : value;
   }
-  root.FilmLegal.start(function () {
+  function onLegalReady() {
     if(root.FilmPackageInstaller)root.FilmPackageInstaller.attach(root.FilmPlugins);
     if(root.FilmRepositorySearch&&root.FilmPlugins)root.FilmPlugins.search=new root.FilmRepositorySearch();
     root.CatalogRuntime.install();
@@ -121,5 +121,8 @@
       }, 1000);
       log(root.AppInfo.version + ' hazır. Gerçek katalog / native-XHR / hls.js.');
     });
-  });
+  }
+  function start() { root.FilmLegal.start(onLegalReady); }
+  if (root.FilmTizen65Transport) root.FilmTizen65Transport.prepare(root.FilmUpdate, root.FilmPlugins).then(start, start);
+  else start();
 })(window);

@@ -316,9 +316,12 @@
     this.healthySince = 0;
   };
   Controller.prototype.deadline = function () {
-    return ['resolving', 'loading', 'recovering', 'buffering'].indexOf(this.phase) >= 0
-      ? this.budgetEnd
-      : null;
+    if (['resolving', 'loading', 'recovering', 'buffering'].indexOf(this.phase) < 0)
+      return null;
+    // A seek on an already opened player can outlive its startup budget.
+    var seekDeadline = this.phase === 'buffering' && this.ready && this.pendingSeek !== null &&
+      this.engine.requestedSeek && this.engine.requestedSeek.networkDeadline;
+    return seekDeadline ? Math.max(this.budgetEnd, seekDeadline) : this.budgetEnd;
   };
   Controller.prototype.ask = function (kind, message, choices) {
     this.dialog = { kind: kind, message: message, choices: choices, session: this.session };
@@ -2064,6 +2067,8 @@
       );
       return;
     }
+    var seekNetworkDeadline = this.pendingSeek !== null && this.engine.requestedSeek &&
+      this.engine.requestedSeek.networkDeadline;
     if (
       this.ready &&
       this.desiredPlay &&
@@ -2071,7 +2076,8 @@
       !this.dialog &&
       ['playing', 'buffering', 'seeking'].indexOf(this.phase) >= 0 &&
       this.lastPlaybackAt &&
-      time - this.lastPlaybackAt > 20000
+      time - this.lastPlaybackAt > 20000 &&
+      !(seekNetworkDeadline > time)
     )
       this.recover({
         type: 'network',

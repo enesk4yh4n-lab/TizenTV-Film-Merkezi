@@ -31,8 +31,18 @@
   var coreSteps=job&&job.core?2:0,totalSteps=(packages.length||job&&job.pins&&job.pins.length||0)*2+coreSteps,completed=!core?coreSteps:0,overall=completed;
   packages.forEach(function(v){var downloaded=v.total>0?Math.min(1,(v.bytes||0)/v.total):v.stage==='verified'||v.stage==='ready'?1:0,prepared=v.installTotal>0?Math.min(1,(v.installed||0)/v.installTotal):v.stage==='ready'?1:0;overall+=downloaded+prepared;if(downloaded===1)completed++;if(v.stage==='ready')completed++;});
   if(core){overall=restart?2:0;completed=restart?2:0;}
+  if(job&&job.setupAll){
+   var ready=job.items.filter(function(item){return item.status==='ready';}).length;
+   var finished=ready+job.items.filter(function(item){return item.status==='failed';}).length;
+   var activeItem=job.items.some(function(item){return item.status==='running';});
+   totalSteps=job.items.length;overall=finished+(activeItem&&detail?detail.setupFraction||0:0);
+   text('fm-install-total-title',t('Toplam indirilen','Total downloaded'));meter('total',0,0,false);
+   text('fm-install-total-bytes',detail?bytes(detail.downloaded)+t(' indirildi · ',' downloaded · ')+bytes(detail.reused)+t(' önbellekten',' from cache'):t('İndirme bekleniyor…','Waiting for downloads…'));
+   text('fm-install-install-title',t('Hazır eklentiler','Plugins ready'));meter('install',ready,totalSteps,true);
+   text('fm-install-install-bytes',ready+' / '+totalSteps+t(' eklenti hazır',' plugins ready'));
+  }
   text('fm-install-overall-title',t('Genel toplam ilerleme','Overall progress')+(totalSteps&&(!core||restart)?percent(overall,totalSteps):''));meter('overall',overall,totalSteps&&(!core||restart)?totalSteps:0,false);
-  text('fm-install-overall-bytes',totalSteps?completed+' / '+totalSteps+t(' adım tamamlandı · Her paket: indirme + doğrulama ve kurulum',' steps completed · Each package: download + verification and installation'):t('Paketler ve işlem adımları hesaplanıyor…','Calculating packages and installation steps…'));
+  text('fm-install-overall-bytes',job&&job.setupAll?finished+' / '+totalSteps+t(' eklenti işlendi',' plugins processed'):totalSteps?completed+' / '+totalSteps+t(' adım tamamlandı · Her paket: indirme + doğrulama ve kurulum',' steps completed · Each package: download + verification and installation'):t('Paketler ve işlem adımları hesaplanıyor…','Calculating packages and installation steps…'));
   var skipped=job&&job.capacitySkipped&&job.capacitySkipped.length||0;
   text('fm-install-note',restart&&skipped?job.items.filter(function(i){return i.status==='ready';}).length+t(' eklenti kuruldu. Kapasite nedeniyle sonraya bırakılan: ',' plugins installed. Deferred due to capacity: ')+skipped:t('İndirme ve önbellek birlikte gösterilir. İndirme %100 olsa da doğrulama ve kurulum devam edebilir.','Download includes cached files. Verification and installation may continue after download reaches 100%.'));
   if(!p.progressDetails&&!(restart&&skipped))text('fm-install-note',restart?t('De\u011fi\u015fikliklerin uygulanmas\u0131 i\u00e7in yeniden ba\u015flat\u0131n.','Restart to apply the changes.'):t('L\u00fctfen bekleyin; indirme ve kurulum otomatik devam eder.','Please wait; download and installation continue automatically.'));
