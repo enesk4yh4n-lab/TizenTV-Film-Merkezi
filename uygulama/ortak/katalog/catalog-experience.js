@@ -303,9 +303,7 @@
         'recommendation-prefs',
         'detail-text',
         'detail-more',
-        'detail-sites',
-        'ui-language',
-        'application-settings'
+        'detail-sites'
       ].indexOf(p.kind) < 0
     )
       return false;
@@ -323,73 +321,12 @@
             ? 'Ne izlesem?'
             : p.kind === 'detail-text'
               ? p.title
-              : p.kind === 'application-settings'
-                ? 'Uygulama ayarları'
-              : p.kind === 'ui-language'
-                ? 'Arayüz dili'
-                : p.kind === 'detail-sites'
-                  ? 'İzlenecek site'
-                  : 'Diğer işlemler'
+              : p.kind === 'detail-sites'
+                ? 'İzlenecek site'
+                : 'Diğer işlemler'
       )
     );
-    if (p.kind === 'application-settings') {
-      box.appendChild(button('Dil / Language', 'settings-language', function () {
-        a.panel = { kind: 'ui-language', returnKey: 'catalog-tools' };
-        a.renderPanel('ui-language-' + root.FilmI18n.language());
-      }, 'filter-field'));
-      box.appendChild(node('h3', '', 'Aynı film ve dizileri birleştir'));
-      box.appendChild(node('p', 'catalog-note', 'Açıkken aynı içerikler tek kartta toplanır. Kapalıyken her sitenin sonucu ayrı gösterilir; birleştirme için ek doğrulama yapılmaz.'));
-      box.appendChild(node('p', 'catalog-note', 'Değiştirildiğinde katalog ana sayfası yenilenir. Listem ve izleme kayıtları korunur.'));
-      [[true, 'Açık'], [false, 'Kapalı']].forEach(function (row) {
-        var selected = self.preferences.merging() === row[0],
-          choice = button((selected ? '✓ ' : '') + tr(row[1]), 'app-merge-' + (row[0] ? 'on' : 'off'), function () {
-            if (self.preferences.merging() === row[0]) return;
-            a.begin();
-            self.preferences.merging(row[0]);
-            if (a.hub) a.hub.setMerging(row[0]);
-            a.closePanel(false);
-            a.history = [];
-            a.navigate('home');
-            if (self.preferences.blocked || self.preferences.failed)
-              a.app.view.toast('Tercih bu oturumda kullanılacak; kalıcı olarak kaydedilemedi.');
-          }, 'filter-field', true);
-        choice.setAttribute('aria-pressed', selected ? 'true' : 'false');
-        box.appendChild(choice);
-      });
-    } else if (p.kind === 'ui-language') {
-      box.appendChild(
-        node(
-          'p',
-          'catalog-note',
-          'Yalnız arayüz dili değişir. Film bilgileri, TV klavyesi, ses ve altyazı tercihleri korunur.'
-        )
-      );
-      if (this.preferences.blocked || this.preferences.failed)
-        box.appendChild(
-          node(
-            'p',
-            'catalog-note',
-            'Dil tercihi bu oturumda kullanılacak; kalıcı olarak kaydedilemedi.'
-          )
-        );
-      [
-        ['tr', 'Türkçe'],
-        ['en', 'English']
-      ].forEach(function (row) {
-        var selected = root.FilmI18n.language() === row[0],
-          choice = button(
-            (selected ? '✓ ' : '') + row[1],
-            'ui-language-' + row[0],
-            function () {
-              root.FilmI18n.set(row[0]);
-            },
-            'filter-field',
-            true
-          );
-        choice.setAttribute('aria-pressed', selected ? 'true' : 'false');
-        box.appendChild(choice);
-      });
-    } else if (p.kind === 'recent-searches') {
+    if (p.kind === 'recent-searches') {
       var rows = this.preferences.list();
       box.appendChild(node('p', 'catalog-note', 'Seçtiğiniz sorgu açık katalogda aranır.'));
       rows.forEach(function (query, i) {

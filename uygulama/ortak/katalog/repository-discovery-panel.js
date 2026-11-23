@@ -66,7 +66,7 @@
   if(!p.discoveryStarted){p.discoveryStarted=true;root.setTimeout(function(){if(a.panel===p)search(a,p,draw,1);},0);}
  }
  function redraw(a,key){if(a.panel&&a.panel.pluginView==='setup-search')a.renderPanel(key);else root.FilmUpdateCenter.render(a,key);}
- function key(a,e){var p=a.panel,s=p&&p.repositoryDiscovery,c=e.keyCode;if(!p||!(p.kind==='plugins'&&p.pluginView==='setup-search'||p.kind==='update-center'||/^(tools|application-settings)$/.test(p.kind)&&p.settingsCategory==='updates')||p.centerAction!=='add'||!s)return false;
+ function key(a,e){var p=a.panel,s=p&&p.repositoryDiscovery,c=e.keyCode;if(!p||!(p.kind==='plugins'&&p.pluginView==='setup-search'||p.kind==='update-center'||p.kind==='tools'&&p.settingsCategory==='updates')||p.centerAction!=='add'||!s)return false;
   if(s.editing){if([13,65376,65385,27,10009].indexOf(c)>=0){e.preventDefault();var input=document.getElementById('update-discovery-query');if(input){s.query=input.value;input.readOnly=true;input.blur();}s.editing=false;redraw(a,'update-discovery-run');}return true;}
   if(c===27||c===10009){e.preventDefault();if(s.approving)return true;var confirm=!!s.candidate;cancel(p);if(!confirm&&p.onboarding){root.FilmRepositorySetup.complete(a);return true;}if(!confirm)p.centerAction='';redraw(a,confirm?'update-discovery-run':'update-add-repo');return true;}return false;
  }

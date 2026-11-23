@@ -211,7 +211,7 @@
         v.load();
         return;
       }
-      if (!root.Hls || !root.Hls.isSupported())
+      if (!root.FilmDeviceProfile.hasHlsMse())
         throw new Error('Bu TV’de MSE / HLS motoru kullanılamıyor.');
       var retry = { maxNumRetry: 1, retryDelayMs: 1000, maxRetryDelayMs: 2000 };
       var loadPolicy = {
@@ -373,6 +373,12 @@
             v.currentTime
           );
       });
+      if (fragmentLoadPolicy.default.maxLoadTimeMs > 22000) {
+        on('FRAG_LOADED', function (d) {
+          if (!self.ready && d.frag && d.frag.type === 'main' && typeof d.frag.sn === 'number' &&
+              d.payload && d.payload.byteLength > 0) self.emit('openingdata');
+        });
+      }
       on('FRAG_BUFFERED', function (d) {
         if (d.frag && d.frag.type === 'main' && typeof d.frag.sn === 'number') {
           self.openingMediaReady = true;

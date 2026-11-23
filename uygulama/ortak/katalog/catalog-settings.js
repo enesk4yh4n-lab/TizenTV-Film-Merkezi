@@ -6,7 +6,7 @@
   function b(label, key, action, cls) { var x = n('button', cls, label); x.type = 'button'; x.setAttribute('data-focus', key); x.onclick = action; return x; }
   function on(value) { return value ? t('Açık', 'On') : t('Kapalı', 'Off'); }
   function UI(app, preferences) { this.a = app; this.p = preferences; this.refresh = false; this.rebuild = false; this.applyAppearance(); }
-  UI.prototype.active = function () { return this.a.panel && /^(tools|application-settings)$/.test(this.a.panel.kind); };
+  UI.prototype.active = function () { return this.a.panel && this.a.panel.kind === 'tools'; };
   UI.prototype.applyAppearance = function () { document.documentElement.classList.toggle('fm-large-text', this.p.appearance().largeText); };
   UI.prototype.landing = function () { var key = this.p.appearance().startScreen, types = this.a.site.contentTypes; return types && ((key === 'movies' && types.indexOf('movie') < 0) || (key === 'series' && types.indexOf('series') < 0)) ? 'home' : key; };
   UI.prototype.filterRails = function (rows) { var shown = this.p.appearance().rows; return rows.filter(function (row) { return shown[row.kind] !== false; }); };
@@ -85,7 +85,7 @@
         if (a.experience.metadata) a.experience.metadata.configure();
         if (a.experience.suggestions) a.experience.suggestions.cancel();
         self.drawOptions('settings-suggestions');
-      }, t('Arama metni seçilen öneri kaynağına gönderilir. Öneriler bir saniye sonra görünür.', 'Search text is sent to the selected suggestion source. Suggestions appear after one second.'));
+      }, t('Klavye kapandıktan sonra arama metni seçilen öneri kaynağına gönderilir.', 'After the keyboard closes, the search text is sent to the selected suggestion source.'));
       var sources = (a.experience.metadata ? a.experience.metadata.suggestionSources() : [{ value: 'tmdb', label: 'TMDB' }]).map(function (item) {
         return [item.value, item.site ? t('Diğer · ', 'Other · ') + item.label + t(' sitesi önerileri', ' site suggestions') : item.label];
       }), source = this.p.suggestionSource(), currentSource = sources.filter(function (v) { return v[0] === source; })[0];

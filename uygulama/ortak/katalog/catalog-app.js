@@ -1790,7 +1790,7 @@
     if (restore && root.CatalogManagementPanel && root.CatalogManagementPanel.back(this)) return;
     if (this.panel && /^(active-sites|site-management|update-center)$/.test(this.panel.kind) && this.app.siteManagement) this.app.siteManagement.cancel();
     if (!this.panel) return;
-    if((this.panel.kind==='update-center'||/^(tools|application-settings)$/.test(this.panel.kind)&&this.panel.settingsCategory==='updates')&&root.FilmRepositoryDiscovery)root.FilmRepositoryDiscovery.cancel(this.panel);
+    if((this.panel.kind==='update-center'||this.panel.kind==='tools'&&this.panel.settingsCategory==='updates')&&root.FilmRepositoryDiscovery)root.FilmRepositoryDiscovery.cancel(this.panel);
     var settings = this.experience.settings;
     if (settings && settings.beforeClose(restore)) return;
     if(this.panel.kind==='plugins'&&root.FilmPlugins.search)root.FilmPlugins.search.cancel();
@@ -1842,19 +1842,15 @@
             ? tr('Güncellemeler')
           : p.kind === 'exit'
           ? 'Uygulamadan çıkılsın mı?'
-          : p.kind === 'tools'
-            ? 'Seçenekler'
-            : p.kind === 'about'
-              ? 'Hakkında'
-              : p.kind === 'site-addresses'
-                ? 'Site adresleri'
-              : p.kind === 'support'
-                ? 'Oynatma desteği'
-                : p.kind === 'episode-state'
-                  ? 'Bölüm seçenekleri'
-                  : p.kind === 'reset-series'
-                    ? 'Dizinin izleme kayıtları sıfırlansın mı?'
-                    : 'Katalog filtreleri'
+          : p.kind === 'about'
+            ? 'Hakkında'
+            : p.kind === 'support'
+              ? 'Oynatma desteği'
+              : p.kind === 'episode-state'
+                ? 'Bölüm seçenekleri'
+                : p.kind === 'reset-series'
+                  ? 'Dizinin izleme kayıtları sıfırlansın mı?'
+                  : 'Katalog filtreleri'
       )
     );
     if (p.kind === 'plugins') {
@@ -1973,120 +1969,6 @@
             self.openFilters();
           },
           'gold-button'
-        )
-      );
-    } else if (p.kind === 'site-addresses') {
-      var addressState = root.SiteAddresses.status();
-      box.appendChild(node('p', 'catalog-note', p.note || (addressState.pending
-        ? 'Yeni adresler hazır. Uygula, kayıtları koruyarak uygulamayı yeniden açar.'
-        : 'Adres listesi açılışta arka planda kontrol edilir. Erişilemezse kayıtlı adresler kullanılır.')));
-      box.appendChild(button(p.checking ? 'Kontrol ediliyor…' : 'Site adreslerini yenile', 'addresses-refresh', function () {
-        if (p.checking) return;
-        p.checking = true; p.note = '';
-        self.renderPanel('addresses-refresh');
-        root.SiteAddresses.refresh(true).then(function (state) {
-          if (self.panel !== p) return;
-          p.checking = false;
-          p.note = state.pending ? 'Yeni adresler hazır. Uygula, kayıtları koruyarak uygulamayı yeniden açar.' : 'Site adresleri güncel.';
-          self.renderPanel('addresses-refresh');
-        }, function () {
-          if (self.panel !== p) return;
-          p.checking = false; p.note = 'Adres listesi alınamadı veya kaydedilemedi. Mevcut adresler korunuyor.';
-          self.renderPanel('addresses-refresh');
-        });
-      }, 'filter-field'));
-      if (addressState.pending) box.appendChild(button('Adresleri uygula ve yeniden aç', 'addresses-apply', function () {
-        if (self.app.controller.content) return;
-        if (self.hub) self.hub.flush();
-        root.location.reload();
-      }, 'gold-button'));
-      root.SiteRegistry.sites.forEach(function (site) { box.appendChild(node('p', 'catalog-note', site.name + ' · ' + site.base)); });
-    } else if (p.kind === 'tools') {
-      if (root.SiteAddresses) box.appendChild(button('Site adresleri', 'tools-addresses', function () {
-        self.panel = { kind: 'site-addresses', returnKey: p.returnKey };
-        self.renderPanel('addresses-refresh');
-      }, 'filter-field'));
-      if (root.FilmI18n)
-        box.appendChild(
-          button(
-            'Uygulama ayarları',
-            'tools-settings',
-            function () {
-              self.panel = { kind: 'application-settings', returnKey: 'catalog-tools' };
-              self.renderPanel('settings-language');
-            },
-            'filter-field'
-          )
-        );
-      box.appendChild(
-        node(
-          'p',
-          'catalog-note',
-          'Film Merkezi · ' +
-            this.site.name +
-            ' ' +
-            root.AppInfo.version +
-            ' · Bu TV’de ' +
-            this.library.favorites().length +
-            '/200 kayıt'
-        )
-      );
-      box.appendChild(
-        button(
-          'Hakkında',
-          'tools-about',
-          function () {
-            self.panel = { kind: 'about', returnKey: p.returnKey };
-            self.renderPanel();
-          },
-          'filter-field'
-        )
-      );
-      box.appendChild(
-        button(
-          'Oynatma desteği',
-          'tools-support',
-          function () {
-            self.panel = { kind: 'support', returnKey: p.returnKey };
-            self.renderPanel();
-          },
-          'filter-field'
-        )
-      );
-      box.appendChild(
-        button(
-          'Takip ettiğim diziler',
-          'tools-following',
-          function () {
-            self.closePanel(false);
-            self.navigate('following');
-          },
-          'filter-field'
-        )
-      );
-      box.appendChild(
-        button(
-          'Katalog önbelleğini temizle',
-          'tools-cache',
-          function () {
-            self.cache.clear();
-            self.images.clear();
-            self.closePanel(true);
-            self.app.view.toast('Katalog önbelleği temizlendi. Listem ve izleme geçmişi korundu.');
-            self.retry();
-          },
-          'filter-field'
-        )
-      );
-      box.appendChild(
-        button(
-          'İzleme geçmişini temizle',
-          'tools-history',
-          function () {
-            self.panel = { kind: 'clear-history', returnKey: p.returnKey };
-            self.renderPanel();
-          },
-          'filter-field'
         )
       );
     } else if (p.kind === 'episode-state') {
@@ -2232,7 +2114,7 @@
           ? 'Kal'
           : p.kind === 'plugins'
             ? 'Geri'
-          : ['tools', 'about', 'support', 'site-addresses'].indexOf(p.kind) >= 0
+          : ['about', 'support'].indexOf(p.kind) >= 0
             ? 'Kapat'
             : 'Vazgeç',
         'panel-cancel',

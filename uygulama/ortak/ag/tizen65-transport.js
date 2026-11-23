@@ -79,10 +79,11 @@
     return embed;
   }
   function prepare(core, plugins) {
-    var agent = root.navigator, original = root.FilmWasmTLS, transport = root.FilmNativeTLS, bridge, timer;
-    if (!agent || !/\bTizen 6\.5(?:[; )]|$)/i.test(agent.userAgent || '') ||
-        !root.Worker || !root.WebAssembly || !root.TextDecoder || !original || !transport ||
-        transport.supported() || original.supported() ||
+    var agent = root.navigator, device = root.FilmDeviceProfile, original = root.FilmWasmTLS,
+      transport = root.FilmNativeTLS, bridge, timer;
+    if (!device || device.version !== '6.5' ||
+        !device.hasWasmWorker() || !original || !transport ||
+        device.hasOwnedTransport() || original.supported() ||
         agent.mimeTypes && agent.mimeTypes['application/x-nacl'] ||
         !core || core.blocked || core.bootStopped || core.config.appVersion !== '2.0.3' ||
         !plugins || plugins.blocked) return Promise.resolve(false);

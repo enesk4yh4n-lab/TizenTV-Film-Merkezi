@@ -88,7 +88,6 @@
   };
   Controller.prototype.sourceAllowed = function (source) {
     return (
-      !this.content.sourceContext ||
       !root.UnifiedPlayback ||
       root.UnifiedPlayback.allowed(source, this.currentMedia(), this.settings)
     );
@@ -123,13 +122,17 @@
     return Math.max(0, sources.indexOf(pool[index]));
   };
   Controller.prototype.usableSource = function (index) {
-    var source = this.content.sources[index];
+    var source = this.content.sources[index],
+      compatibility = this.compatibility,
+      blocked = compatibility && (compatibility.engineFailed || compatibility.sourceFailed);
+    if (index === this.currentSource || this.failedSources[index] || !this.sourceAllowed(source))
+      return false;
+    var engine = this.pickEngine(source);
     return (
-      index !== this.currentSource &&
-      !this.failedSources[index] &&
-      this.sourceAllowed(source) &&
-      (!this.compatibility ||
-        !this.compatibility.sourceFailed(this.content, source, this.pickEngine(source) || 'html5'))
+      !!engine &&
+      // Older network failures rank sources lower in pickSource, but
+      // a newly resolved URL may work. Confirmed media incompatibility still blocks.
+      (!blocked || !blocked.call(compatibility, this.content, source, engine))
     );
   };
   Controller.prototype.alternativeSource = function (preferSite) {
@@ -307,7 +310,9 @@
   Controller.prototype.resetBudget = function () {
     this.error = null;
     this.budgetEnd = this.now() + 60000;
+    this.openingDecodeGraceUsed = false;
     this.retryCount = 0;
+    this.retryAttempts = 0;
     this.sameRetries = 0;
     this.refreshCount = 0;
     this.mediaRetries = 0;
@@ -625,46 +630,51 @@
     });
   };
   Controller.prototype.continueDiscoveryFallback = function () {
-    var self = this,
-      discovery = this.discovery,
-      index = -1;
-    if (!discovery || !discovery.waiting || !self.content) return;
-    this.content.sources.some(function (s, i) {
-      if (self.usableSource(i)) {
-        index = i;
-        return true;
-      }
-      return false;
-    });
+    var discovery = this.discovery;
+    if (!discovery || !discovery.waiting || !this.content) return;
+    var index = this.alternativeSource(!!this.content.sourceContext);
     if (index >= 0) {
       discovery.waiting = false;
-      self.notice('Hazır olan alternatif kaynak deneniyor.');
-      self.load(index, self.position);
-    } else if (!discovery.active)
-      self.fail(discovery.failure || 'Oynatılabilir alternatif kaynak bulunamadı.');
+      discovery.onExhausted = null;
+      this.retryCount++;
+      this.notice('Hazır olan alternatif kaynak deneniyor.');
+      this.load(index, this.position);
+    } else if (!discovery.active) {
+      discovery.waiting = false;
+      var onExhausted = discovery.onExhausted;
+      discovery.onExhausted = null;
+      if (onExhausted) onExhausted();
+      else this.fail(discovery.failure || 'Oynatılabilir alternatif kaynak bulunamadı.');
+    }
   };
-  Controller.prototype.waitForDiscovery = function (message) {
+  Controller.prototype.waitForDiscovery = function (message, onExhausted) {
     var resume = this.discovery && !this.discovery.active && this.hasDeferredSources();
     if (!this.discovery || (!this.discovery.active && !resume)) return false;
-    this.failedSources[this.currentSource] = true;
-    this.discovery.waiting = true;
-    this.discovery.failure = message;
+    var self = this, index = this.currentSource, previouslyFailed = this.failedSources[index];
+    this.failedSources[index] = true;
+    var fallback = { waiting: true, failure: message };
+    if (onExhausted) fallback.onExhausted = function () {
+      if (!previouslyFailed) delete self.failedSources[index];
+      onExhausted();
+    };
     clearTimeout(this.retryTimer);
     this.retryTimer = null;
+    this.cancelCountdown();
     this.engine.stop();
     this.ready = false;
     this.loadToken++;
     this.setPhase('recovering');
-    if (resume) {
-      this.resolveAndLoad(true, true, null, true);
-      this.discovery.waiting = true;
-      this.discovery.failure = message;
-    }
     this.notice('Diğer kaynaklar hazırlanıyor.');
-    this.continueDiscoveryFallback();
+    if (resume) this.resolveAndLoad(true, true, null, true, fallback);
+    else {
+      this.discovery.waiting = fallback.waiting;
+      this.discovery.failure = fallback.failure;
+      this.discovery.onExhausted = fallback.onExhausted;
+      this.continueDiscoveryFallback();
+    }
     return true;
   };
-  Controller.prototype.resolveAndLoad = function (refresh, preserve, recoveryEngine, resumeOnly) {
+  Controller.prototype.resolveAndLoad = function (refresh, preserve, recoveryEngine, resumeOnly, fallback) {
     var self = this,
       session = self.session;
     if (refresh) self.refreshReport = null;
@@ -679,7 +689,9 @@
     self.discovery = {
       active: true,
       started: !!preserve,
-      waiting: false,
+      waiting: !!fallback,
+      failure: fallback && fallback.failure,
+      onExhausted: fallback && fallback.onExhausted,
       preserve: !!preserve,
       manual: !!preserve && !resumeOnly,
       resumeOnly: !!resumeOnly,
@@ -908,6 +920,16 @@
   };
   Controller.prototype.event = function (type, data) {
     var self = this;
+    if (type === 'openingdata') {
+      var remaining = self.budgetEnd - self.now();
+      // Let the decoder consume data delivered at the end of the opening budget, once.
+      if (!self.ready && self.phase === 'loading' && !self.openingDecodeGraceUsed &&
+          remaining > 0 && remaining < 3000) {
+        self.budgetEnd += 3000 - remaining;
+        self.openingDecodeGraceUsed = true;
+      }
+      return;
+    }
     if (type === 'tracks') {
       var audioSignature = data.audio
           .map(function (t) {
@@ -1584,6 +1606,7 @@
     if (
       !this.content ||
       (this.dialog && this.dialog.kind === 'engine-switch') ||
+      (this.phase === 'recovering' && (this.retryTimer || this.discovery && this.discovery.waiting)) ||
       ['error', 'ended', 'idle', 'suspended', 'mismatch'].indexOf(this.phase) >= 0
     )
       return;
@@ -1671,198 +1694,99 @@
       this.qualityChange = null;
       this.notice('Kalite değişimi tamamlanamadı; önceki kaliteyle toparlanıyor.');
     }
-    var renewed = this.content.sources[this.currentSource];
-    if (
-      !qualityRolledBack &&
-      !automaticFailure &&
-      error.type === 'network' &&
-      this.activeSource &&
-      renewed &&
-      renewed.url !== this.activeSource.url &&
-      renewed.id === this.activeSource.id
-    ) {
-      if (this.healthySince && this.now() - this.healthySince >= 30000) this.resetBudget();
-      if (this.now() < this.budgetEnd && this.retryCount < 5) {
-        this.retryCount++;
-        this.cancelDiscovery();
-        this.cancelCountdown();
-        this.engine.stop();
-        this.ready = false;
-        this.loadToken++;
-        this.setPhase('recovering');
-        var owner = this,
-          generation = this.session;
-        clearTimeout(this.retryTimer);
-        this.retryTimer = setTimeout(function () {
-          owner.retryTimer = null;
-          if (generation === owner.session && owner.phase === 'recovering') {
-            var replacement = owner.content.sources[owner.currentSource];
-            if (!owner.engine.canUse || owner.engine.canUse(failedEngine, replacement))
-              owner.forcedEngine = failedEngine;
-            owner.load(owner.currentSource, owner.position);
-          }
-        }, 1000);
-        return;
-      }
-    }
-    if (
-      !qualityRolledBack &&
-      !alternate &&
-      (error.type === 'unsupported' || error.type === 'play')
-    ) {
-      var message =
-        error.type === 'play' ? 'Oynatma başlatılamadı. Tekrar deneyin.' : error.message;
-      var pooled = this.content.sourceContext ? this.alternativeSource(true) : -1;
-      if (pooled >= 0 && this.now() < this.budgetEnd && this.retryCount < 5) {
-        this.retryCount++;
-        this.failedSources[this.currentSource] = true;
-        this.notice('Bu kaynak açılmadı; diğer uygun site/kaynak deneniyor.');
-        this.load(pooled, this.position);
-        return;
-      }
-      if (this.now() < this.budgetEnd && this.retryCount < 5 && this.waitForDiscovery(message)) {
-        this.retryCount++;
-        return;
-      }
-      this.fail(message);
-      return;
-    }
     if (this.healthySince && this.now() - this.healthySince >= 30000) this.resetBudget();
     this.healthySince = 0;
-    if (this.now() >= this.budgetEnd || this.retryCount >= 5) {
-      this.fail('Oynatma sürdürülemedi. ' + this.failureDetail(error));
+    var self = this,
+      session = this.session,
+      sameQualitySource = qualityRolledBack || automaticFailure,
+      detail = this.failureDetail(error),
+      codecFailure = /manifestIncompatibleCodecs|bufferIncompatibleCodecs|bufferAddCodec/i.test(
+        error.details || ''
+      );
+
+    if (this.now() >= this.budgetEnd) {
+      this.fail('Oynatma sürdürülemedi. ' + detail);
       return;
     }
-    this.retryCount++;
+    if (!sameQualitySource) {
+      var next = this.alternativeSource(!!this.content.sourceContext);
+      if (next >= 0) {
+        this.retryCount++;
+        this.failedSources[this.currentSource] = true;
+        this.cancelCountdown();
+        this.notice('Diğer uygun kaynak deneniyor.');
+        this.load(next, this.position);
+        return;
+      }
+      if (this.waitForDiscovery(detail, retryCurrent)) return;
+    }
     this.cancelCountdown();
     this.engine.stop();
     this.ready = false;
     this.loadToken++;
     this.setPhase('recovering');
-    var self = this,
-      session = this.session,
-      delay = Math.min(4000, 1000 * Math.pow(2, this.retryCount - 1)),
-      action;
-    var stalledAlternative = -1;
-    if (
-      restoringSeek ||
-      /^(bufferAppendNoProgress|playbackStalled|seekTimeout)$/.test(error.details || '')
-    )
-      this.content.sources.some(function (s, i) {
-        if (self.usableSource(i)) {
-          stalledAlternative = i;
-          return true;
-        }
-        return false;
-      });
-    if (qualityRolledBack || automaticFailure)
-      action = function () {
-        self.forcedEngine = failedEngine;
-        self.load(self.currentSource, self.position);
-      };
-    else if (alternate) {
-      var failureKey = '$' + failedSource.id + ':' + failedEngine,
-        failure = this.engineFailures[failureKey];
-      if (!failure) failure = this.engineFailures[failureKey] = { count: 0, declined: false };
-      failure.count++;
-      if (failure.count >= 5 && !failure.declined) {
-        this.askEngineSwitch(failedSource, failedEngine, alternate, failure, delay);
+    retryCurrent();
+
+    function retryCurrent() {
+      if (session !== self.session || self.phase !== 'recovering') return;
+      if (self.now() >= self.budgetEnd || self.retryAttempts >= 5) {
+        self.fail('Oynatma sürdürülemedi. ' + detail);
         return;
       }
-      action = function () {
-        self.forcedEngine = failedEngine;
-        self.load(self.currentSource, self.position);
-      };
-    } else if (this.content.sourceContext && this.alternativeSource(true) >= 0) {
-      var pooledIndex = this.alternativeSource(true);
-      this.failedSources[this.currentSource] = true;
-      action = function () {
-        self.notice('Diğer uygun site/kaynak deneniyor.');
-        self.load(pooledIndex, self.position);
-      };
-    } else if (stalledAlternative >= 0) {
-      this.failedSources[this.currentSource] = true;
-      action = function () {
-        self.notice('Medya ilerlemiyor; alternatif kaynak deneniyor.');
-        self.load(stalledAlternative, self.position);
-      };
-    } else if (
-      /manifestIncompatibleCodecs|bufferIncompatibleCodecs|bufferAddCodec/i.test(
-        error.details || ''
-      )
-    ) {
-      this.failedSources[this.currentSource] = true;
-      var compatible = -1;
-      this.content.sources.some(function (s, i) {
-        if (self.usableSource(i)) {
-          compatible = i;
-          return true;
+      var replacement = !sameQualitySource && error.type === 'network' &&
+        self.content.sources[self.currentSource],
+        freshAddress = replacement && failedSource &&
+          replacement.id === failedSource.id && replacement.url !== failedSource.url,
+        attempt = self.retryAttempts + 1,
+        delay = freshAddress ? 1000 : Math.min(4000, 1000 * Math.pow(2, attempt - 1)),
+        action = reloadCurrent;
+      if (alternate && !sameQualitySource && !freshAddress) {
+        var failureKey = '$' + failedSource.id + ':' + failedEngine,
+          failure = self.engineFailures[failureKey];
+        if (!failure) failure = self.engineFailures[failureKey] = { count: 0, declined: false };
+        failure.count++;
+        if (failure.count >= 5 && !failure.declined) {
+          self.retryCount++;
+          self.retryAttempts++;
+          self.askEngineSwitch(failedSource, failedEngine, alternate, failure, delay);
+          return;
         }
-        return false;
-      });
-      if (compatible < 0) {
-        if (
-          !this.waitForDiscovery(
-            'Bu kaynağın görüntü veya ses biçimi TV/motor tarafından desteklenmiyor. Başka kaynak seçin.'
-          )
-        )
-          this.fail(
-            'Bu kaynağın görüntü veya ses biçimi TV/motor tarafından desteklenmiyor. Başka kaynak seçin.'
-          );
-        return;
-      }
-      action = function () {
-        self.load(compatible, self.position);
-      };
-    } else if (error.type === 'media' && this.mediaRetries < 1) {
-      this.mediaRetries++;
-      action = function () {
-        self.forcedEngine = failedEngine;
-        self.load(self.currentSource, self.position);
-      };
-    } else if (
-      this.sameRetries < 1 &&
-      !expiredAddress &&
-      error.code !== 403 &&
-      error.code !== 404
-    ) {
-      this.sameRetries++;
-      action = function () {
-        self.forcedEngine = failedEngine;
-        self.load(self.currentSource, self.position);
-      };
-    } else if (this.discovery && (this.discovery.active || this.hasDeferredSources())) {
-      this.waitForDiscovery('Uygun kaynak kalmadı. ' + this.failureDetail(error));
-      return;
-    } else if (this.content.pageUrl && this.refreshCount < 1) {
-      this.refreshCount++;
-      action = function () {
-        self.resolveAndLoad(true, false, failedEngine);
-      };
-    } else {
-      this.failedSources[this.currentSource] = true;
-      var index = -1;
-      this.content.sources.some(function (s, i) {
-        if (self.usableSource(i)) {
-          index = i;
-          return true;
+      } else if (!sameQualitySource && !freshAddress) {
+        if (error.type === 'unsupported' || error.type === 'play') {
+          self.fail(error.type === 'play' ? 'Oynatma başlatılamadı. Tekrar deneyin.' : error.message);
+          return;
         }
-        return false;
-      });
-      if (index < 0) {
-        this.fail('Uygun kaynak kalmadı. ' + this.failureDetail(error));
-        return;
+        if (codecFailure) {
+          self.fail('Bu kaynağın görüntü veya ses biçimi TV/motor tarafından desteklenmiyor. Başka kaynak seçin.');
+          return;
+        }
+        if (error.type === 'media' && self.mediaRetries < 1) self.mediaRetries++;
+        else if (self.sameRetries < 1 && !expiredAddress && error.code !== 403 && error.code !== 404)
+          self.sameRetries++;
+        else if (self.content.pageUrl && self.refreshCount < 1) {
+          self.refreshCount++;
+          action = function () { self.resolveAndLoad(true, false, failedEngine); };
+        } else {
+          self.fail('Uygun kaynak kalmadı. ' + detail);
+          return;
+        }
       }
-      action = function () {
-        self.load(index, self.position);
-      };
+      self.retryCount++;
+      self.retryAttempts++;
+      self.notice('Bağlantı toparlanıyor · deneme ' + attempt + '/5');
+      clearTimeout(self.retryTimer);
+      self.retryTimer = setTimeout(function () {
+        self.retryTimer = null;
+        if (session === self.session && self.phase === 'recovering') action();
+      }, delay);
     }
-    this.notice('Bağlantı toparlanıyor · deneme ' + this.retryCount + '/5');
-    clearTimeout(this.retryTimer);
-    this.retryTimer = setTimeout(function () {
-      self.retryTimer = null;
-      if (session === self.session && self.phase === 'recovering') action();
-    }, delay);
+
+    function reloadCurrent() {
+      var source = self.content.sources[self.currentSource];
+      if (!self.engine.canUse || self.engine.canUse(failedEngine, source))
+        self.forcedEngine = failedEngine;
+      self.load(self.currentSource, self.position);
+    }
   };
   Controller.prototype.fail = function (message) {
     clearTimeout(this.retryTimer);

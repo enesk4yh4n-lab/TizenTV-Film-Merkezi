@@ -2,9 +2,8 @@
 (function (root) {
   'use strict';
   function supported() {
-    return /\bTizen 10(?:\.|\b)/i.test(root.navigator && root.navigator.userAgent || '') &&
-      !!(root.fetch && root.AbortController && root.TextDecoder && root.ReadableStream) &&
-      !(root.FilmNativeTLS && root.FilmNativeTLS.supported());
+    var device = root.FilmDeviceProfile;
+    return !!(device && device.major === 10 && device.hasStreamingFetch() && !device.hasOwnedTransport());
   }
   function fault(message, stage, code) {
     var e = new Error(message); e.stage = stage || 'network'; e.code = code || 0; return e;

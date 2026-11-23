@@ -1,3 +1,12 @@
+## Çekirdek 2.1.16 — 24 Kasım 2026
+
+- Film ve dizilerde uygun yedek kaynak, aynı kaynağı yeniden denemeden veya motor değiştirmeden önce açılıyor. İzleme konumu ve duraklatma durumu korunuyor.
+- Tizen 3.0–10.0 için ağ ve oynatma yetenekleri ortak profilden denetleniyor.
+- Yavaş HLS kaynaklarında ilk görüntünün hazırlanmasına kısa bir ek süre tanınıyor. Erişim doğrulaması isteyen kaynaklar anlaşılır hata gösteriyor.
+- Eski ayar ekranları ve yinelenen kurulum onayı kaldırıldı. Güncelleme düğmeleri aynı akışı kullanıyor. Arama önerilerinin açıklaması güncellendi.
+
+**WGT 2.0.3** kullananlar çekirdeği Güncelleme Merkezi’nden yükleyebilir.
+
 ## Çekirdek 2.1.15 — 20 Kasım 2026
 
 - İlk kurulumda **Tümünü yükle** seçilince eklentiler toplu ön taramayı beklemeden sırayla işleniyor. Hazır eklentilerle devam edebilir ve kalanları daha sonra deneyebilirsiniz.
