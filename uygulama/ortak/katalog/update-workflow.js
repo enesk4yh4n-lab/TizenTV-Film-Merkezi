@@ -1,26 +1,16 @@
 /* One opt-in update intent. No report history; only resumable in-flight work. */
 (function(root){
  'use strict';
- var KEY='filmmerkezi.update.intent.v1',S=root.FilmPluginSchema,MAX_PACKAGES=S.maxPackages||64;
+ var KEY='filmmerkezi.update.intent.v1',S=root.FilmPluginSchema;
  function copy(v){return JSON.parse(JSON.stringify(v));}
- function validPins(pins){return Array.isArray(pins)&&pins.length<=MAX_PACKAGES&&pins.every(function(p){return p&&typeof p.repoId==='string'&&p.key===p.repoId+'/'+p.id&&/^[pr]\d{3}$/.test(p.id)&&/^[a-f0-9]{64}$/.test(p.publisher)&&/^[a-f0-9]{64}$/.test(p.hash)&&/^\d+\.\d+\.\d+$/.test(p.version);});}
+ function validPins(pins){return Array.isArray(pins)&&pins.every(function(p){return p&&typeof p.repoId==='string'&&p.key===p.repoId+'/'+p.id&&/^[pr]\d{3}$/.test(p.id)&&/^[a-f0-9]{64}$/.test(p.publisher)&&/^[a-f0-9]{64}$/.test(p.hash)&&/^\d+\.\d+\.\d+$/.test(p.version);});}
  function validJob(v){
-  if(!v||v.version!==1||!Array.isArray(v.items)||v.items.length>MAX_PACKAGES||!validPins(v.pins)||['core','core-restart','items','interrupted','failed','site-restart'].indexOf(v.phase)<0)return false;
+  if(!v||v.version!==1||!Array.isArray(v.items)||!validPins(v.pins)||['core','core-restart','items','interrupted','failed','site-restart'].indexOf(v.phase)<0)return false;
   if(v.setupAll!==undefined&&typeof v.setupAll!=='boolean')return false;
-  if(v.capacitySkipped&&(!Array.isArray(v.capacitySkipped)||v.capacitySkipped.length>MAX_PACKAGES||!v.capacitySkipped.every(function(key){return typeof key==='string'&&key.length<512;})))return false;
   if(typeof v.core!=='string'||typeof v.coreHash!=='string'||(v.core&&!/^\d+\.\d+\.\d+$/.test(v.core))||(v.core&&!/^[a-f0-9]{64}$/.test(v.coreHash)))return false;
   var seen={};return v.items.every(function(i){if(!i||typeof i.repoId!=='string'||!i.repoId||!/^([pr])\d{3}$/.test(i.id)||i.key!==i.repoId+'/'+i.id||seen[i.key]||['queued','running','ready','failed'].indexOf(i.status)<0||i.pins!==undefined&&(!v.setupAll||!validPins(i.pins)))return false;seen[i.key]=true;return true;});
  }
  function t(a,b){return root.FilmI18n&&root.FilmI18n.language()==='en'?b:a;}
- function limitNotice(error){
-  if(error&&error.cancelled)return null;var message=String(error&&error.message||error||''),kind=error&&error.budgetKind||'';
-  if(/Network origin budget exceeded|Ağ izin sınırı aşılıyor/i.test(message))kind='origins';
-  else if(/\d+ package limit/i.test(message))kind='packages';
-  else if(/\d+(?:\.\d+)?\s*MiB.*(?:eklenti|plugin)|(?:eklenti|plugin).*\d+\s*MiB|Not enough free space to install/i.test(message))kind='storage';
-  if(!kind)return null;
-  var titles={origins:t('Yeni eklenti için ağ izin sınırına ulaşıldı.','The network permission limit for new plugins has been reached.'),packages:t('Kurulabilecek paket sayısı sınırına ulaşıldı.','The installed package count limit has been reached.'),storage:t('Eklenti depolama alanı dolu.','Plugin storage is full.')};
-  return {kind:kind,title:titles[kind],message:t('Bu eklentiyi yüklemek için kullanmadığınız eklentileri kaldırın. Yeterli yer açtıktan sonra tekrar deneyin. Mevcut kurulum korunuyor; hiçbir eklenti kendiliğinden silinmez.','Remove unused plugins to install this plugin, then try again once enough capacity is available. Your current installation is preserved; no plugins are removed automatically.')};
- }
  function Workflow(app){this.app=app;this.manager=app.siteManagement;this.plugins=root.FilmPlugins;this.core=root.FilmUpdate;this.running=false;this.cancelled=false;this.job=null;this.notify=function(){};this.storage=app.catalog.storage;this.readOnly=false;try{var raw=this.storage.getItem(KEY);if(raw){var v=JSON.parse(raw);if(!validJob(v))throw Error('Invalid update intent');this.job=v;}}catch(e){this.readOnly=true;this.notice=t('Önceki toplu işlem kaydı okunamadı; otomatik devam kapalı.','Previous batch record could not be read; automatic resume is disabled.');}}
  Workflow.prototype.save=function(){if(this.readOnly)throw Error(t('Toplu işlem kaydı kullanılamıyor.','Batch storage is unavailable.'));if(this.job)this.storage.setItem(KEY,JSON.stringify(this.job));else this.storage.removeItem(KEY);};
  Workflow.prototype.dismiss=function(){
@@ -55,7 +45,7 @@
   if(!requested.length&&!target)return Promise.reject(Error(t('Güncelleme bulunmadı.','No updates available.')));
   this.progress=null;this.running=true;this.cancelled=false;this.draw();
   return Promise.resolve().then(function(){self.check();return requested.length&&!setupAll?self.plugins.installationPlan(requested[0].repoId,requested[0].id,function(){self.check();},{requests:requested,coreVersion:target||self.core.status().current}):[];}).catch(function(error){self.check();if(self.plugins.selectInstallation)throw error;var chain=Promise.resolve(),plans=[];requested.forEach(function(item){chain=chain.then(function(){return self.plugins.installationPlan(item.repoId,item.id,function(){self.check();},{coreVersion:target||self.core.status().current}).then(function(rows){rows.forEach(function(c){if(!plans.some(function(v){return v.key===c.key&&v.manifest.version===c.manifest.version;}))plans.push(c);});},function(e){self.check();unplanned[item.key]=e.message;});});});return chain.then(function(){return plans;});}).then(function(plan){
-   self.check();var panel=self.app.catalog.panel;if(!setupAll){if(install&&panel&&panel.capacity&&panel.capacity.evaluate(keys).remaining<0)throw Error('Network origin budget exceeded');if(self.plugins.checkPackageLimit)self.plugins.checkPackageLimit(plan);}var pins=self.pins(plan);
+   self.check();var pins=self.pins(plan);
    // Connected roots share one transaction so a shared dependency cannot be half-updated.
    var items=requested.map(function(r){return {key:r.key,repoId:r.repoId,id:r.id,name:r.name,status:unplanned[r.key]?'failed':'queued',unplanned:!!unplanned[r.key],message:unplanned[r.key]||''};});
    self.job={version:1,phase:target?'core':'items',core:target,coreHash:found&&found.manifestSha256||'',channel:self.core.config.channel,createdAt:Date.now(),pins:pins,items:items,modal:!!(self.app.catalog.panel&&self.app.catalog.panel.kind==='update-center')};if(setupAll)self.job.setupAll=true;self.save();self.running=false;self.draw();return self.job;
@@ -110,5 +100,4 @@
   return root.FilmUpdateVerify.sha(this.core.state.active.text).then(function(hash){if(hash!==job.coreHash)throw Error('Core digest changed');if(!job.items.length){self.job=null;self.coreCompleted=true;self.save();return false;}job.phase='items';self.save();if(!self.app.catalog.panel&&!self.app.controller.content&&root.FilmUpdateCoordinator&&root.FilmUpdateCoordinator.current){if(job.modal){self.app.catalog.panel={kind:'update-center',onboarding:true,returnKey:'catalog-tools'};self.app.catalog.renderPanel();}else root.FilmUpdateCoordinator.current.offer();}return self.run();}).catch(function(e){job.phase='failed';self.notice=e.message;self.save();self.draw();});
  };
  root.FilmUpdateWorkflow=Workflow;
- root.FilmUpdateWorkflow.limitNotice=limitNotice;
 })(window);

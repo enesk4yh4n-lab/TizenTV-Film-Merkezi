@@ -4,11 +4,10 @@ Samsung Tizen TV’ler için ücretsiz ve açık kaynaklı bir **medya merkezi**
 
 **2.x yapısı:** Site ve çözümleyiciler kullanıcının seçtiği depolardan ayrı paketler olarak kurulur. WGT hazır site veya önceden seçili depo içermez.
 
-## Son güncelleme · Çekirdek 2.1.16
+## Son güncelleme · Çekirdek 2.1.17
 
-- Bir kaynak açılmazsa veya kesilirse uygun yedekler otomatik deneniyor.
-- Tizen cihaz yetenekleri ortak profilden denetleniyor.
-- Ayarlar ve güncelleme ekranları sadeleştirildi.
+- Yeni eklentiler beklemeden seçilebiliyor.
+- Kurulum ekranı seçilen paketlerin doğrulama ve indirme ilerlemesini gösteriyor.
 
 Mevcut **WGT 2.0.3** üzerinden güncelleyebilirsiniz. [Ayrıntılı sürüm notları](CHANGELOG.md).
 

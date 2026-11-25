@@ -1,3 +1,10 @@
+## Çekirdek 2.1.17 — 25 Kasım 2026
+
+- Güncelleme Merkezi’nde yeni eklentilerin pasif görünmesine neden olan kapasite ön kontrolü kaldırıldı.
+- Seçilen paketlerin imza ve bağımlılık doğrulaması kurulum sırasında yapılıyor.
+
+Güncellemeyi mevcut **WGT 2.0.3** ile Güncelleme Merkezi’nden alabilirsiniz.
+
 ## Çekirdek 2.1.16 — 24 Kasım 2026
 
 - Film ve dizilerde uygun yedek kaynak, aynı kaynağı yeniden denemeden veya motor değiştirmeden önce açılıyor. İzleme konumu ve duraklatma durumu korunuyor.
