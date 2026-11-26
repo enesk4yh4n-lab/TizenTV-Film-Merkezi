@@ -143,7 +143,7 @@
       .then(
         function (result) {
           if (token !== a.generation || a.screen !== s) return;
-          s.items = result.cards;
+          s.items = root.ContentSafety ? root.ContentSafety.filter(result.cards) : result.cards;
           s.notice = result.notice;
           s.result = result;
           s.loading = false;
@@ -194,7 +194,7 @@
     status.setAttribute('role', 'status');
     parent.appendChild(status);
     var row = node('div', 'recommendation-cards');
-    (s.items || []).forEach(function (card, i) {
+    (root.ContentSafety ? root.ContentSafety.filter(s.items) : s.items || []).forEach(function (card, i) {
       row.appendChild(a.card(card, i));
     });
     parent.appendChild(row);

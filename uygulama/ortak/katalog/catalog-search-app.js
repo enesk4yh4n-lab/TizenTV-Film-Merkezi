@@ -138,12 +138,14 @@
         mode = this.catalogOrderMode(s),
         revision = this.hub ? this.hub.revision : 0,
         query = typeof s.query === 'string' ? s.query : JSON.stringify(s.query || {}),
+        safety = root.ContentSafety && root.ContentSafety.revision(),
         cache = s.orderedGrid;
       if (cache && cache.items === items && cache.length === items.length &&
-          cache.revision === revision && cache.catalogRevision === s.catalogRevision &&
+          cache.revision === revision && cache.safety === safety && cache.catalogRevision === s.catalogRevision &&
           cache.mode === mode && cache.query === query && cache.tab === s.tab && cache.localType === s.localType && cache.type === s.type && cache.section === s.section)
         return cache.value;
       var source = items;
+      if (root.ContentSafety) items = root.ContentSafety.filter(items);
       if(s.kind==='list'&&root.CatalogSections){var library=this.hub;items=items.filter(function(c){return root.CatalogSections.matches(c,s.section||'general',library);});}
       if (s.kind === 'list' && !root.CatalogSections.special(s.section) && s.type)
         items = items.filter(function (c) { return c.type === s.type && c.identityState !== 'pending'; });
@@ -163,7 +165,7 @@
         value = value.filter(function (card) { return card.contentId === selectedId; }).concat(
           value.filter(function (card) { return card.contentId !== selectedId; }));
       }
-      s.orderedGrid = { items: source, length: source.length, revision: revision,
+      s.orderedGrid = { items: source, length: source.length, revision: revision, safety:root.ContentSafety && root.ContentSafety.revision(),
         catalogRevision: s.catalogRevision, mode: mode, query: query, tab: s.tab, localType:s.localType, type:s.type, section:s.section, value: value };
       return value;
     };

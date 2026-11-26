@@ -316,6 +316,13 @@
     this.provider.home(force).then(
       function (data) {
         if (token !== self.generation || self.screen !== s) return;
+        if (root.ContentSafety) {
+          data = copy(data);
+          data.movies = root.ContentSafety.filter(data.movies);
+          data.series = root.ContentSafety.filter(data.series);
+          data.collections = root.ContentSafety.filter(data.collections);
+          if (!root.ContentSafety.allow(data.hero)) data.hero = null;
+        }
         s.data = data;
         s.loading = false;
         self.rememberCards(data.movies.concat(data.series));
@@ -332,13 +339,14 @@
       missing = this.library
         .continueWatching(this.watchEntries())
         .filter(function (card) {
-          return !card.poster && card.pageUrl;
+          return (!root.ContentSafety || root.ContentSafety.allow(card)) && !card.poster && card.pageUrl;
         })
         .slice(0, 2);
     missing.forEach(function (card) {
       self.provider.detail(card).then(
         function (detail) {
           if (token !== self.generation || self.screen !== screen || self.suspended) return;
+          if (root.ContentSafety) { root.ContentSafety.learn(detail); if (!root.ContentSafety.allow(detail)) { self.render(true); return; } }
           self.library.remember(detail);
           self.save();
           self.render(true);
@@ -380,7 +388,9 @@
           seen[c.contentId] = true;
         });
         var known=s.query.section?root.CatalogSections.known(self.hub,s.query.section,self.site.virtual?root.SiteRegistry.sites.filter(function(site){return !site.virtual;}).map(function(site){return site.id;}):[self.site.id],self.site.virtual&&self.hub&&self.hub.merging):[];
-        result.cards.concat(known).forEach(function (c) {
+        var candidates = result.cards.concat(known);
+        if (root.ContentSafety) candidates = root.ContentSafety.filter(candidates);
+        candidates.forEach(function (c) {
           if (!seen[c.contentId]) {
             seen[c.contentId] = true;
             added.push(c);
@@ -388,7 +398,7 @@
         });
         var oldLength = s.items.length;
         s.items = s.items.concat(added);
-        s.next = added.length ? result.next : null;
+        s.next = root.ContentSafety && root.ContentSafety.enabled() ? result.next : added.length ? result.next : null;
         s.loading = false;
         s.staleAt = result.staleAt;
         s.refreshError = result.refreshError;
@@ -522,7 +532,9 @@
         if (token !== self.generation || self.screen !== s) return;
         var seen = {},
           items = [];
-        old.concat(result.cards).forEach(function (c) {
+        var candidates = old.concat(result.cards);
+        if (root.ContentSafety) candidates = root.ContentSafety.filter(candidates);
+        candidates.forEach(function (c) {
           var current = self.site.virtual ? self.hub.card(c.contentId) || c : c;
           if (!seen[current.contentId]) {
             seen[current.contentId] = true;
@@ -633,6 +645,10 @@
   };
   App.prototype.openDetail = function (card, force, navigation) {
     if (this.suspended) return;
+    if (root.ContentSafety) {
+      root.ContentSafety.learn(card);
+      if (!root.ContentSafety.allow(card)) { this.app.view.toast(root.ContentSafety.message()); return; }
+    }
     this.save();
     this.history.push(this.screen);
     var s = {
@@ -655,8 +671,20 @@
     this.provider.detail(card, force || (tracked && tracked.follow)).then(
       function (detail) {
         if (token !== self.generation || self.screen !== s) return;
-        s.detail = detail;
         s.loading = false;
+        if (root.ContentSafety) {
+          root.ContentSafety.learn(detail);
+          if (!root.ContentSafety.allow(detail)) {
+            s.title = root.ContentSafety.message();
+            s.error = s.title;
+            self.render(true);
+            self.focus('detail-back');
+            return;
+          }
+          detail = copy(detail);
+          detail.episodes = root.ContentSafety.filter(detail.episodes);
+        }
+        s.detail = detail;
         var selected = self.selectedEpisode(detail),
           season = selected ? selected.episode.season : self.library.season(detail.contentId);
         s.season = detail.seasons.indexOf(season) >= 0 ? season : detail.seasons[0];
@@ -1127,10 +1155,10 @@
     }
     if(root.FilmPlugins&&!root.SiteRegistry.sites.length&&!Object.keys(root.FilmPlugins.state.plugins||{}).some(function(key){var entry=root.FilmPlugins.state.plugins[key];return entry.type==='site'&&!!(entry.active||entry.pending);})){var english=root.FilmI18n&&root.FilmI18n.language()==='en';parent.appendChild(node('h1','catalog-empty',english?'No plugins installed yet':'Henüz eklenti yüklenmedi'));parent.appendChild(button(english?'Install plugins':'Eklentileri yükle','home-install-plugins',function(){root.FilmUpdateCoordinator.current.install({});},'quiet-button'));return;}
     if (!data) return;
-    if (!s.heroCard)
+    if (!s.heroCard || root.ContentSafety && !root.ContentSafety.allow(s.heroCard))
       s.heroCard =
         [data.hero].concat(data.movies || [], data.series || []).filter(function (c) {
-          return c && (c.type === 'movie' || c.type === 'series');
+          return c && (!root.ContentSafety || root.ContentSafety.allow(c)) && (c.type === 'movie' || c.type === 'series');
         })[0] || null;
     var heroCard = s.heroCard;
     var recommend = this.experience.canRecommend() && this.experience.recommendButton();
@@ -1176,6 +1204,7 @@
       s.rails.push({ kind: 'collections', title: 'Koleksiyonlar', items: data.collections });
     if (this.experience.settings) s.rails = this.experience.settings.filterRails(s.rails);
     s.rails = s.rails.filter(function (row) {
+      if (root.ContentSafety) row.items = root.ContentSafety.filter(row.items);
       return row.items.length;
     });
     s.rails.forEach(function (row, i) {
@@ -1194,11 +1223,12 @@
   };
   App.prototype.gridItems = function () {
     var s = this.screen;
+    var items = root.ContentSafety ? root.ContentSafety.filter(s.items) : s.items;
     return s.kind === 'search' && s.tab !== 'all'
-      ? s.items.filter(function (c) {
+      ? items.filter(function (c) {
           return c.type === s.tab;
         })
-      : s.items;
+      : items;
   };
   App.prototype.renderGrid = function (parent, s) {
     var self = this,

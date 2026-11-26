@@ -343,6 +343,10 @@
     this.changed();
   };
   Controller.prototype.open = function (input, restoration) {
+    if (root.ContentSafety) {
+      root.ContentSafety.learn(input);
+      if (!root.ContentSafety.allow(input)) { this.notice(root.ContentSafety.message()); return; }
+    }
     var next;
     try {
       next = C.content(this.resolver.prepare ? this.resolver.prepare(input) : input);
@@ -364,6 +368,7 @@
       this.settings.rememberTracks && this.store.get(next.contentId)
         ? this.store.get(next.contentId).prefs
         : {};
+    if (root.ContentSafety && next.episodes) next.episodes = root.ContentSafety.filter(next.episodes);
     this.episodes = new root.PlayerEpisodes(next);
     this.position = 0;
     this.duration = 0;
@@ -833,6 +838,9 @@
       });
   };
   Controller.prototype.load = function (index, position) {
+    if (root.ContentSafety && this.content && !root.ContentSafety.allow(this.content)) {
+      this.fail(root.ContentSafety.message()); return;
+    }
     if (this.dialog && this.dialog.kind === 'engine-switch') {
       this.dialog = null;
       this.emit('dialog', null);

@@ -39,6 +39,7 @@
   };
   Resolver.prototype.resolve = function (content, deadline, onProgress, hints) {
     this.cancel();
+    if (root.ContentSafety && !root.ContentSafety.allow(content)) return Promise.reject(Error(root.ContentSafety.message()));
     if (root.SiteAddresses) content = root.SiteAddresses.content(content);
     var self = this,
       token = this.generation,

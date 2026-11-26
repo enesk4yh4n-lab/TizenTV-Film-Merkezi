@@ -74,8 +74,10 @@
     if (typeof provider.suggest !== 'function') return unavailable('suggestion-site-update');
     provider.deadline = context && context.deadline || Date.now() + 5000;
     return Promise.resolve().then(function () { return provider.suggest(query); }).then(function (value) {
+      if (root.ContentSafety && Array.isArray(value)) value = root.ContentSafety.filter(value);
+      else if (root.ContentSafety && value && Array.isArray(value.cards)) value = {cards:root.ContentSafety.filter(value.cards)};
       if (token !== self.generation || !self.preferences.suggestions()) throw new Error('Suggestions cancelled');
-      return (value.cards || []).filter(function (card) { return card && card.title &&
+      return (Array.isArray(value) ? value : value.cards || []).filter(function (card) { return card && card.title &&
         (card.type === 'movie' || card.type === 'series') && (type === 'all' || !type || card.type === type); }).slice(0, 6).map(function (card) {
         var queryText = typeof card.searchQuery === 'string' && card.searchQuery.replace(/^\s+|\s+$/g, '');
         return { source: selected, title: card.title, year: card.year, type: card.type, sourceCard: card,

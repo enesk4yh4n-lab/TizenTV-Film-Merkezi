@@ -245,6 +245,7 @@
           if (e) reject(e);
           else try {
             var result = detailOperation ? root.ContentIdentity.attachDetail(v, identityClient.identity.value) : v;
+            if (detailOperation && result && root.ContentSafety) root.ContentSafety.learn(result);
             if (identityOnly && result) {
               delete result.episodes;
               delete result.seasons;
@@ -494,7 +495,8 @@
         snapshotRevision = self.hub.revision;
         snapshotIdCount = ids.length;
       }
-      var cards = remote ? remote.filter(snapshotCards, remoteSession.selected) : snapshotCards,
+      var visibleCards = root.ContentSafety ? root.ContentSafety.filter(snapshotCards) : snapshotCards;
+      var cards = remote ? remote.filter(visibleCards, remoteSession.selected) : visibleCards,
         cursor = {},
         hasNext = false;
       Object.keys(results).forEach(function (id) {
@@ -577,8 +579,9 @@
       }
     }
     function admitRelevant() {
+      var sourceCards = root.ContentSafety ? root.ContentSafety.filter(received) : received;
       var cards = (
-        kind === 'search' ? root.ContentIdentity.relevant(received, query.text) : received
+        kind === 'search' ? root.ContentIdentity.relevant(sourceCards, query.text) : sourceCards
       ).filter(function (card) {
         self.searchCandidates[card.contentId] = true;
         if (observedSources[card.contentId]) return false;

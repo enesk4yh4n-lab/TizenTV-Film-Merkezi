@@ -9,7 +9,7 @@
   try {
    if (!root.tizen || !root.tizen.tvinputdevice) return;
    var api = root.tizen.tvinputdevice, allowed = ['MediaPlayPause', 'MediaPlay', 'MediaPause', 'MediaStop', 'MediaRewind', 'MediaFastForward', 'MediaTrackNext', 'MediaTrackPrevious'];
-   api.getSupportedKeys().forEach(function (key) { if (allowed.indexOf(key.name) >= 0) { try { api.registerKey(key.name); } catch (ignore) {} } });
+   api.getSupportedKeys().forEach(function (key) { if (allowed.indexOf(key.name) >= 0 || /^[0-9]$/.test(key.name)) { try { api.registerKey(key.name); } catch (ignore) {} } });
   } catch (e) { this.controller.log('Medya tuşları kaydedilemedi: ' + e.name); }
  };
  Input.prototype.keydown = function (event) {

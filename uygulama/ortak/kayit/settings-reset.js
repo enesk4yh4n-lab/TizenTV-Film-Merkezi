@@ -21,14 +21,16 @@
       var keys = [], prefixes = [], sites = app.siteManagement ? app.siteManagement.allSites : root.SiteRegistry.sites;
       sites.forEach(function (s) { if (s.storagePrefix) prefixes.push(s.storagePrefix); });
       for (var i = 0; i < raw.length; i++) { var key = raw.key(i); if (/^(?:chainprobe\.|filmmerkezi\.|site\.[a-z][a-z0-9-]*\.)/.test(key) || prefixes.some(function (p) { return key.indexOf(p) === 0; })) keys.push(key); }
-      keys.forEach(function (key) { raw.removeItem(key); if (raw.getItem(key) !== null) throw new Error(text('Kayıt silinemedi: ', 'Could not delete record: ') + key); });
+      keys.forEach(function (key) { if (root.ContentSafety && key === root.ContentSafety.settingsKey) return; raw.removeItem(key); if (raw.getItem(key) !== null) throw new Error(text('Kayıt silinemedi: ', 'Could not delete record: ') + key); });
     }
+    var finishSafety;
     var task = Promise.resolve().then(step(text('Hazırlık', 'Preparation'), function () {
       if (app.controller.content) throw new Error(text('Önce oynatıcıdan çıkın.', 'Exit the player first.'));
       raw = self.options.storage || root.localStorage;
       if (!raw) throw new Error(text('Depolama kullanılamıyor.', 'Storage is unavailable.'));
       if (core && keepCore && (!core.healthy || !core.state.active)) throw new Error(text('Etkin çekirdek doğrulanamadı.', 'The active core could not be verified.'));
       if (core && !keepCore && (!core.baselineRecord || !core.baseline)) throw new Error(text('Başlangıç paketi doğrulanamadı.', 'The bundled package could not be verified.'));
+      if (root.ContentSafety) finishSafety = root.ContentSafety.beginReset(keepCore, options && options.pinPermit);
       return core ? core.record(keepCore ? core.state.active : core.baselineRecord) : null;
     })).then(step(text('İşlemleri durdurma', 'Stopping operations'), function () {
       if (catalog) catalog.begin();
@@ -57,7 +59,7 @@
     })).then(step(text('Kişisel kayıtları temizleme', 'Removing personal records'), deleteUserData)).then(step(text('İndirilen çekirdeği temizleme', 'Removing downloaded core'), function () {
       if (keepCore) return;
       return emptyStore(coreStore, { schemaVersion: 1, seq: (core ? core.state.seq : 0) + 1, active: null, previous: null, pending: null, booting: false, revision: 0, checkedAt: 0 });
-    })).then(function () { self.stage = ''; return { reset: true, keptCore: keepCore, bundled: core && core.baseline && core.baseline.version }; });
+    })).then(function () { if (finishSafety) finishSafety(); self.stage = ''; return { reset: true, keptCore: keepCore, bundled: core && core.baseline && core.baseline.version }; });
     this.running = task.then(function (result) { self.running = null; return result; }, function (error) {
       self.running = null;
       throw new Error(self.stage + ' · ' + error.message + text(' Bazı veriler silinmiş olabilir.', ' Some data may already have been removed.'));

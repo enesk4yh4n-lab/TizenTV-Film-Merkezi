@@ -1,3 +1,10 @@
+## Çekirdek 2.1.18 · 26 Kasım 2026
+
+- Yetişkin içerik filtresi varsayılan açık. Ayarlar → Katalog ve siteler bölümünden PIN ile yönetilir. Başlangıç PIN’i 0000 ve değiştirilebilir.
+- İlk kurulumda **Kendim seçeyim** ekranı kapasite ön taramasını beklemeden açılır.
+
+**WGT 2.0.3** ile önce çekirdeği, ardından ilgili eklentileri Güncelleme Merkezi’nden güncelleyin.
+
 ## Çekirdek 2.1.17 — 25 Kasım 2026
 
 - Güncelleme Merkezi’nde yeni eklentilerin pasif görünmesine neden olan kapasite ön kontrolü kaldırıldı.

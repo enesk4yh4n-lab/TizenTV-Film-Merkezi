@@ -68,6 +68,7 @@
       pageUrl: u.href,
       title: U.clean(card.title).slice(0, 300),
       poster: U.url(card.poster, card.pageUrl),
+      contentSafety: root.ContentSafety && root.ContentSafety.mark(card),
       year: I.year(card.year),
       imdbId: I.imdb(card.imdbId || card.imdbUrl)
     };

@@ -33,7 +33,7 @@
   Coordinator.prototype.readNoticePreference=function(){try{var storage=this.app.catalog.storage||root.localStorage,raw=storage&&storage.getItem(NOTICE_KEY);if(!raw)return [];var value=JSON.parse(raw);if(raw.length>65536||!value||value.version!==1||!Array.isArray(value.items)||value.items.length>4096||!value.items.every(function(item){return typeof item==='string'&&item.length>0&&item.length<=300;}))throw Error('Invalid notice preference');return value.items;}catch(ignore){this.noticePreferenceBlocked=true;return [];}};
   Coordinator.prototype.noticeMuted=function(items){var muted=this.readNoticePreference();return items.length>0&&items.every(function(item){return muted.indexOf(item)>=0;});};
   Coordinator.prototype.muteNotice=function(items){this.readNoticePreference();if(this.noticePreferenceBlocked)throw Error(t('Bildirim tercihi okunamadı; mevcut kayıt değiştirilmedi. Daha sonra ile kapatabilirsiniz.','The notification preference could not be read; the existing record was preserved. You can choose Later.'));var storage=this.app.catalog.storage||root.localStorage,text=JSON.stringify({version:1,items:items});if(!storage||text.length>65536)throw Error(t('Bildirim tercihi kaydedilemedi. Daha sonra ile kapatabilirsiniz.','The notification preference could not be saved. You can choose Later.'));storage.setItem(NOTICE_KEY,text);};
-  Coordinator.prototype.cancel = function () { this.generation++; clearTimeout(this.timer); this.timer = null; this.dismissNotice(false); if(this.openingTask&&this.openingTask.cancel)this.openingTask.cancel();if(this.opening&&this.app.updateWorkflow&&this.app.updateWorkflow.running)this.app.updateWorkflow.cancel(); if (this.task || this.downloading || this.opening) { this.core.cancel(); if (this.sites) this.sites.cancel(); if (this.plugins) this.plugins.cancel(); } };
+  Coordinator.prototype.cancel = function () { this.generation++; clearTimeout(this.timer); this.timer = null; this.dismissNotice(false);if(this.opening&&this.app.updateWorkflow&&this.app.updateWorkflow.running)this.app.updateWorkflow.cancel(); if (this.task || this.downloading || this.opening) { this.core.cancel(); if (this.sites) this.sites.cancel(); if (this.plugins) this.plugins.cancel(); } };
   Coordinator.prototype.dismissNotice = function (restore) {
     var host = this.noticeHost, back = this.noticeReturn;
     if (!host) return;
@@ -109,24 +109,28 @@
     this.opening=true;panel.working=true;panel.notice='';panel.preparing={phase:'repository',startedAt:Date.now(),done:0,total:0};var generation=this.generation;a.renderPanel('update-flow-cancel');
     function current(){if(a.panel!==panel||generation!==self.generation||self.app.controller.content){var e=Error('Selection cancelled');e.cancelled=true;throw e;}}
     function progress(value){current();panel.preparing.phase=value.phase;panel.preparing.done=value.done||0;panel.preparing.total=value.total||0;a.renderPanel('update-flow-cancel');}
-    var setupAll=options.setup&&!options.includeCore&&!options.choose;
+    var setupSites=options.setup&&!options.includeCore,setupAll=setupSites&&!options.choose;
     function checkSelectedRepository(){return self.sites.checkSites(options.repoId).then(function(result){if(result.failed&&result.failed.length)throw Error(result.failed[0].message||'Repository check failed');});}
     var check;
-    if(setupAll&&options.repoId){
+    if(setupSites&&options.repoId){
       // Adding a repository already verifies and saves its index.
       check=Promise.resolve().then(function(){current();return self.plugins.catalog(options.repoId);}).then(function(index){
         current();self.sites.catalogs[options.repoId]=index;delete self.sites.failures[options.repoId];
       },function(){current();return checkSelectedRepository();});
-    }else check=options.setup&&!options.includeCore?checkSelectedRepository():this.check();
+    }else check=setupSites?checkSelectedRepository():this.check();
     return check.then(function(){current();var groups=flow.groups(),rows=groups.updates.concat(groups.newSites).filter(function(r){return !options.repoId||r.repoId===options.repoId;}),repoIds=options.repoId?[options.repoId]:Object.keys(self.plugins.state.repositories);panel.expandedRepos=panel.expandedRepos||{};repoIds.forEach(function(id){panel.expandedRepos[id]=true;});
-      if(options.choose){progress({phase:'dependencies',done:0,total:rows.length});self.openingTask=self.plugins.previewCapacity(rows,function(){return a.panel===panel&&generation===self.generation&&!self.app.controller.content;},progress);return self.openingTask.then(function(view){current();panel.capacity=view;panel.capacityEpoch=String(self.plugins.state.seq||0)+'|'+String(groups.checkedAt||0)+'|'+self.core.status().current;panel.capacityLoading=false;panel.centerView='new';panel.selectionRepo=options.repoId||'';panel.centerReturn='update-new-plugins';panel.notice=t('Yüklemek istediğiniz eklentileri seçin. Gerekli bileşenler birlikte yüklenir.','Choose plugins to install. Required components are included.');return false;});}
+      if(options.choose){
+        panel.centerView='new';panel.selectionRepo=options.repoId||'';panel.centerReturn='update-new-plugins';
+        panel.notice=t('Yüklemek istediğiniz eklentileri seçin. Gerekli bileşenler birlikte yüklenir.','Choose plugins to install. Required components are included.');
+        return false;
+      }
       var core=!!(options.includeCore&&self.last&&self.last.core);if(!rows.length&&!core){panel.notice=t('Yüklenecek yeni eklenti veya güncelleme bulunamadı.','No new plugins or updates found.');return false;}
       var keys=rows.map(function(row){return row.key;});
       if(setupAll)keys.sort();
       panel.notice='';flow.cancelled=false;
       if(!setupAll)progress({phase:'plan',done:0,total:0});
       return flow.prepare(keys,core,setupAll?'setup-all':'mixed').then(function(){current();panel.preparing=null;return flow.run();}).then(function(){return true;});
-    }).then(function(result){self.opening=false;self.openingTask=null;panel.working=false;panel.preparing=null;if(a.panel===panel)a.renderPanel(options.choose?'update-repo-'+Math.max(0,Object.keys(self.plugins.state.repositories).indexOf(options.repoId))+'-item-0':result?undefined:'update-add-repo');return result;},function(e){self.opening=false;self.openingTask=null;panel.working=false;panel.preparing=null;if(a.panel===panel){panel.notice=e.cancelled?t('Hazırlık iptal edildi.','Preparation cancelled.'):e.message;panel.errorReport=!e.cancelled&&root.FilmErrorReporter&&root.FilmErrorReporter.capture({scope:'update',stage:'install-selection',error:e});a.renderPanel('management-check-all');}return false;});
+    }).then(function(result){self.opening=false;panel.working=false;panel.preparing=null;if(a.panel===panel)a.renderPanel(options.choose?'update-repo-'+Math.max(0,Object.keys(self.plugins.state.repositories).indexOf(options.repoId))+'-item-0':result?undefined:'update-add-repo');return result;},function(e){self.opening=false;panel.working=false;panel.preparing=null;if(a.panel===panel){panel.notice=e.cancelled?t('Hazırlık iptal edildi.','Preparation cancelled.'):e.message;panel.errorReport=!e.cancelled&&root.FilmErrorReporter&&root.FilmErrorReporter.capture({scope:'update',stage:'install-selection',error:e});a.renderPanel('management-check-all');}return false;});
   };
   Coordinator.prototype.start = function () {
     var self = this, stopped = false;

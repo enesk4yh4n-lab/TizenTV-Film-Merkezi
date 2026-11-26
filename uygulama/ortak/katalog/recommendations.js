@@ -308,7 +308,8 @@
                   errors.push({ site: site.id, message: 'Güncel katalog alınamadı' });
                   return;
                 }
-                result.cards.forEach(function (raw) {
+                var candidates = root.ContentSafety ? root.ContentSafety.filter(result.cards) : result.cards;
+                candidates.forEach(function (raw) {
                   if (
                     !raw ||
                     raw.type !== 'movie' ||
