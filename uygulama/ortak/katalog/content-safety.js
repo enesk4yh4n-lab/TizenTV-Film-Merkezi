@@ -10,10 +10,24 @@
       .replace(/\u00e7/g,'c').replace(/\u00fc/g,'u').replace(/\u00f6/g,'o').replace(/[\u0300-\u036f]/g,'')
       .replace(/^\s+|\s+$/g,'').replace(/[\s_-]+/g,' ');
   }
+  function descriptionClassifiesAdult(value) {
+    if (typeof value !== 'string') return false;
+    var description = value.slice(0,4097);
+    if (!/erotik|yet[i\u0130\u0131][\u015fs\u0300-\u036f]|erotic|adult|porn/i.test(description)) return false;
+    var sentences = description.split(/[.!?;\r\n\u2026]+/);
+    if (description.length > 4096) sentences.pop();
+    return sentences.some(function (sentence) {
+      sentence = normal(sentence);
+      return /^(?:(?:tur|kategori|icerik turu|genre|category|content type)\s*:\s*)?(?:bir )?(?:erotik film(?:i|dir|idir)?|yetiskin film(?:i|dir|idir)?|erotic film|adult film|pornografik film)$/.test(sentence) ||
+        /^bu (?:film|yapim|icerik|eser) (?:bir )?(?:erotik|yetiskin|pornografik) film(?:i|dir|idir)$/.test(sentence) ||
+        /^this (?:film|movie) is an? (?:erotic|adult|pornographic) film$/.test(sentence);
+    });
+  }
   function direct(card) {
     var safety = card && card.contentSafety;
     if (!card) return false;
     if (safety && safety.adult === true || card.adult === true) return true;
+    if (descriptionClassifiesAdult(card.description)) return true;
     return [].concat(card.genres || [], card.categories || [], card.tags || []).some(function (x) {
       return typeof x === 'string' && label.test(normal(x));
     });

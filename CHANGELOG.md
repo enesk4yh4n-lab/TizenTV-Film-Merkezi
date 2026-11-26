@@ -1,3 +1,8 @@
+## Çekirdek 2.1.19 · 26 Kasım 2026
+
+- Yetişkin filtresi, eser açıklamasındaki açık erotik veya yetişkin içerik sınıflandırmasını da kullanır.
+- Konuyu anlatan genel ifadeler ayrı değerlendirilir. Filtre ek ağ isteği açmaz.
+
 ## Çekirdek 2.1.18 · 26 Kasım 2026
 
 - Yetişkin içerik filtresi varsayılan açık. Ayarlar → Katalog ve siteler bölümünden PIN ile yönetilir. Başlangıç PIN’i 0000 ve değiştirilebilir.
